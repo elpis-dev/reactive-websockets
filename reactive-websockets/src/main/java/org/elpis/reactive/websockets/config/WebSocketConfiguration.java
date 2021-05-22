@@ -224,7 +224,7 @@ public class WebSocketConfiguration {
             try {
                 return TypeUtils.cast(method.invoke(resource, parameters), Publisher.class);
             } catch (Exception e) {
-                throw new RuntimeException("Unable to invoke method `@Outbound " + method.getName() + "()` with request parameters", e);
+                throw new RuntimeException("Unable to invoke method `@Outbound " + method.getName() + "()` with request parameters" + e.getMessage());
             }
         }).orElseGet(Flux::never);
 
@@ -237,7 +237,7 @@ public class WebSocketConfiguration {
                     method.invoke(resource, parameters);
                 } catch (Exception e) {
                     throw new RuntimeException( "Unable to invoke method `@Inbound " + method.getName() + "()` with request parameters " +
-                            "and message publisher instance", e);
+                            "and message publisher instance" + e.getMessage());
                 }
             });
         }
@@ -336,7 +336,9 @@ public class WebSocketConfiguration {
                     "was marked as `required` but was not found on request", requestHeader.value(), methodName));
         }
 
-        return values.flatMap(s -> List.class.isAssignableFrom(parameterType) ? Optional.of(s) : s.stream().findFirst())
+        return values.flatMap(l -> List.class.isAssignableFrom(parameterType)
+                ? Optional.of(l)
+                : l.stream().findFirst().map(v -> (Object) TypeUtils.convert(v, parameterType)))
                 .orElseGet(() -> defaultValue.map(v -> (Object) TypeUtils.convert(v, parameterType))
                         .orElse(TypeUtils.getDefaultValueForType(parameter.getType())));
     }
