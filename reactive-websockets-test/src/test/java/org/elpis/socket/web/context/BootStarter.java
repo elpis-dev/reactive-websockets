@@ -48,11 +48,6 @@ public class BootStarter {
             return http.authorizeExchange().anyExchange().permitAll().and().build();
         }
 
-        @Bean
-        public SocketHandshakeService socketHandshakeService() {
-            return new SecurityHandshake(new ReactorNettyRequestUpgradeStrategy());
-        }
-
         public static class SecurityHandshake extends SocketHandshakeService {
 
             public SecurityHandshake(final RequestUpgradeStrategy requestUpgradeStrategy) {
@@ -67,7 +62,7 @@ public class BootStarter {
         }
     }
 
-    public enum Test {
+    public enum Example {
         VOID
     }
 }

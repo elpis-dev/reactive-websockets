@@ -544,7 +544,7 @@ public class QueryParameterSocketTest extends BaseWebSocketTest {
     @Test
     public void getEnumQueryTest() throws Exception {
         //given
-        final BootStarter.Test data = BootStarter.Test.VOID;
+        final BootStarter.Example data = BootStarter.Example.VOID;
 
         final String path = "/query/single/get/enum?id=" + data;
         final Sinks.One<String> sink = Sinks.one();

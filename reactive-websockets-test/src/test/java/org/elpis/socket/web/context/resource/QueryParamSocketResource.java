@@ -127,7 +127,7 @@ public class QueryParamSocketResource implements BasicWebSocketResource {
     }
 
     @Outbound("/single/get/enum")
-    public Publisher<?> getEnumQuery(@SocketQueryParam("id") final BootStarter.Test id) {
+    public Publisher<?> getEnumQuery(@SocketQueryParam("id") final BootStarter.Example id) {
         return Flux.just(Map.of("query", id));
     }
 

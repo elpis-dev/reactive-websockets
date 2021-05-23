@@ -1,0 +1,11 @@
+server:
+  port: 8085
+spring:
+  logging:
+    level:
+      org.springframework.web: DEBUG
+      org.elpis: DEBUG
+  application:
+    name: websockets-test
+
+

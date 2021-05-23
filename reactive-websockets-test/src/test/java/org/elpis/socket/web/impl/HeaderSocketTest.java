@@ -585,7 +585,7 @@ public class HeaderSocketTest extends BaseWebSocketTest {
     @Test
     public void getEnumHeaderTest() throws Exception {
         //given
-        final BootStarter.Test data = BootStarter.Test.VOID;
+        final BootStarter.Example data = BootStarter.Example.VOID;
         final HttpHeaders headers = new HttpHeaders();
         headers.add("id", data.name());
 

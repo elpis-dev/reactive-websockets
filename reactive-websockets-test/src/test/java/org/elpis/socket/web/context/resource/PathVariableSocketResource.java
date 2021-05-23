@@ -74,7 +74,7 @@ public class PathVariableSocketResource implements BasicWebSocketResource {
     }
 
     @Outbound("/single/get/enum/{id}")
-    public Publisher<?> getEnumPath(@SocketPathVariable("id") final BootStarter.Test id) {
+    public Publisher<?> getEnumPath(@SocketPathVariable("id") final BootStarter.Example id) {
         return Flux.just(Map.of("path", id));
     }
 

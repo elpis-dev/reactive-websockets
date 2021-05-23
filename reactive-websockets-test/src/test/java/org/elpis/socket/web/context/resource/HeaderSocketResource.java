@@ -127,7 +127,7 @@ public class HeaderSocketResource implements BasicWebSocketResource {
     }
 
     @Outbound("/single/get/enum")
-    public Publisher<?> getEnumHeader(@SocketHeader("id") final BootStarter.Test id) {
+    public Publisher<?> getEnumHeader(@SocketHeader("id") final BootStarter.Example id) {
         return Flux.just(Map.of("header", id));
     }
 
