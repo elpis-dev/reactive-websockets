@@ -21,6 +21,8 @@
         <reactor.test.version>3.1.0.RELEASE</reactor.test.version>
 
         <betterstrings.version>0.5</betterstrings.version>
+
+        <skipTests>true</skipTests>
     </properties>
 
     <dependencyManagement>
@@ -100,7 +102,7 @@
                         <id>install-external</id>
                         <phase>clean</phase>
                         <configuration>
-                            <file>${basedir}/../../reactive-websockets/reactive-websockets/target/websockets-0.0.1.jar</file>
+                            <file>${basedir}/../reactive-websockets/target/websockets-0.0.1.jar</file>
                             <repositoryLayout>default</repositoryLayout>
                             <groupId>org.elpis.reactive</groupId>
                             <artifactId>websockets</artifactId>
@@ -136,6 +138,9 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>${maven.surefire.version}</version>
+                <configuration>
+                    <skipTests>${skipTests}</skipTests>
+                </configuration>
             </plugin>
 
             <plugin>
