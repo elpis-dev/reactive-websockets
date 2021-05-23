@@ -11,5 +11,5 @@ cache:
 
 script:
   - java --version
-  - ./mvnw -f /reactive-websockets/pom.xml clean install
-  - ./mvnw -f /reactive-websockets-test/pom.xml clean install -DskipTests=false
+  - mvn -f /reactive-websockets/pom.xml clean install
+  - mvn -f /reactive-websockets-test/pom.xml clean install -DskipTests=false
