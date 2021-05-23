@@ -1,0 +1,15 @@
+arch: amd64
+
+language: java
+
+jdk: 
+  - openjdk11
+
+cache:
+  directories:
+  - $HOME/.m2
+
+script:
+  - java --version
+  - ./mvnw -f /reactive-websockets/pom.xml clean install
+  - ./mvnw -f /reactive-websockets-test/pom.xml clean install -DskipTests=false
