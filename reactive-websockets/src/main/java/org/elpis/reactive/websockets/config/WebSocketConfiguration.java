@@ -1,9 +1,9 @@
 package org.elpis.reactive.websockets.config;
 
+import org.elpis.reactive.websockets.config.annotations.SocketApiAnnotationEvaluator;
 import org.elpis.reactive.websockets.exceptions.ValidationException;
 import org.elpis.reactive.websockets.mappers.JsonMapper;
 import org.elpis.reactive.websockets.security.principal.Anonymous;
-import org.elpis.reactive.websockets.security.principal.WebSocketPrincipal;
 import org.elpis.reactive.websockets.utils.TerminateBean;
 import org.elpis.reactive.websockets.utils.TypeUtils;
 import org.elpis.reactive.websockets.web.BasicWebSocketResource;
@@ -18,9 +18,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
-import org.springframework.security.core.Authentication;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.bind.annotation.ValueConstants;
 import org.springframework.web.reactive.HandlerMapping;
 import org.springframework.web.reactive.handler.SimpleUrlHandlerMapping;
 import org.springframework.web.reactive.socket.HandshakeInfo;
@@ -33,7 +31,6 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
 import java.security.Principal;
 import java.util.HashMap;
 import java.util.List;
@@ -55,8 +52,25 @@ public class WebSocketConfiguration {
 
     private final ApplicationContext applicationContext;
 
-    public WebSocketConfiguration(final ApplicationContext applicationContext) {
+    private final SocketApiAnnotationEvaluator<SocketAuthentication, Principal> authenticationAnnotationEvaluator;
+    private final SocketApiAnnotationEvaluator<SocketHeader, HttpHeaders> headersAnnotationEvaluator;
+    private final SocketApiAnnotationEvaluator<SocketMessageBody, WebSocketSession> messageBodyAnnotationEvaluator;
+    private final SocketApiAnnotationEvaluator<SocketPathVariable, Map<String, String>> pathVariableAnnotationEvaluator;
+    private final SocketApiAnnotationEvaluator<SocketQueryParam, MultiValueMap<String, String>> queryParamAnnotationEvaluator;
+
+    public WebSocketConfiguration(final ApplicationContext applicationContext,
+                                  final SocketApiAnnotationEvaluator<SocketAuthentication, Principal> authenticationAnnotationEvaluator,
+                                  final SocketApiAnnotationEvaluator<SocketHeader, HttpHeaders> headersAnnotationEvaluator,
+                                  final SocketApiAnnotationEvaluator<SocketMessageBody, WebSocketSession> messageBodyAnnotationEvaluator,
+                                  final SocketApiAnnotationEvaluator<SocketPathVariable, Map<String, String>> pathVariableAnnotationEvaluator,
+                                  final SocketApiAnnotationEvaluator<SocketQueryParam, MultiValueMap<String, String>> queryParamAnnotationEvaluator) {
+
         this.applicationContext = applicationContext;
+        this.authenticationAnnotationEvaluator = authenticationAnnotationEvaluator;
+        this.headersAnnotationEvaluator = headersAnnotationEvaluator;
+        this.messageBodyAnnotationEvaluator = messageBodyAnnotationEvaluator;
+        this.pathVariableAnnotationEvaluator = pathVariableAnnotationEvaluator;
+        this.queryParamAnnotationEvaluator = queryParamAnnotationEvaluator;
     }
 
     @Bean
@@ -236,7 +250,7 @@ public class WebSocketConfiguration {
                 try {
                     method.invoke(resource, parameters);
                 } catch (Exception e) {
-                    throw new RuntimeException( "Unable to invoke method `@Inbound " + method.getName() + "()` with request parameters " +
+                    throw new RuntimeException("Unable to invoke method `@Inbound " + method.getName() + "()` with request parameters " +
                             "and message publisher instance" + e.getMessage());
                 }
             });
@@ -255,135 +269,22 @@ public class WebSocketConfiguration {
         final boolean isInbound = method.isAnnotationPresent(Inbound.class);
 
         return Stream.of(method.getParameters()).map(parameter -> {
+            final Class<?> parameterType = parameter.getType();
+
             if (parameter.isAnnotationPresent(SocketPathVariable.class)) {
-                return this.getPathVariable(pathParameters, parameter, methodName);
+                return this.pathVariableAnnotationEvaluator.evaluate(pathParameters, parameterType, methodName, parameter.getAnnotation(SocketPathVariable.class));
             } else if (parameter.isAnnotationPresent(SocketQueryParam.class)) {
-                return this.getRequestParameter(queryParameters, parameter, methodName);
+                return this.queryParamAnnotationEvaluator.evaluate(queryParameters, parameterType, methodName, parameter.getAnnotation(SocketQueryParam.class));
             } else if (parameter.isAnnotationPresent(SocketHeader.class)) {
-                return this.getHeader(headers, parameter, methodName);
+                return this.headersAnnotationEvaluator.evaluate(headers, parameterType, methodName, parameter.getAnnotation(SocketHeader.class));
             } else if (parameter.isAnnotationPresent(SocketAuthentication.class)) {
-                return this.getSocketAuthentication(parameter, methodName, principal);
+                return this.authenticationAnnotationEvaluator.evaluate(principal, parameterType, methodName, parameter.getAnnotation(SocketAuthentication.class));
             } else if (isInbound && parameter.isAnnotationPresent(SocketMessageBody.class)) {
-                return this.getWebSocketMessageFlux(session, parameter, methodName);
+                return this.messageBodyAnnotationEvaluator.evaluate(session, parameterType, methodName, parameter.getAnnotation(SocketMessageBody.class));
             }
 
             return null;
         }).toArray();
-    }
-
-    private <T extends Principal> Object getSocketAuthentication(final Parameter parameter,
-                                                                 final String methodName,
-                                                                 final T principal) {
-
-        final Class<?> parameterType = parameter.getType();
-        final Class<?> principalType = principal.getClass();
-
-        if (Anonymous.class.isAssignableFrom(principalType)) {
-            return null;
-        } else if (WebSocketPrincipal.class.isAssignableFrom(principalType)) {
-            final WebSocketPrincipal<?> webSocketPrincipal = TypeUtils.cast(principal, WebSocketPrincipal.class);
-
-            if (!parameterType.isAssignableFrom(webSocketPrincipal.getAuthentication().getClass())) {
-                throw new ValidationException(String.format("Unable register method `%s()`. Requested @SocketAuthentication type: %s, found: %s",
-                        methodName, parameterType.getName(), webSocketPrincipal.getAuthentication().getClass().getName()));
-            }
-
-            return webSocketPrincipal.getAuthentication();
-        } else if (Authentication.class.isAssignableFrom(principalType)) {
-            final Authentication authentication = TypeUtils.cast(principal, Authentication.class);
-
-            if (Authentication.class.isAssignableFrom(parameterType)) {
-                return authentication;
-            } else {
-                return authentication.getDetails();
-            }
-        } else {
-            return principal;
-        }
-
-    }
-
-    private Flux<WebSocketMessage> getWebSocketMessageFlux(final WebSocketSession session, final Parameter parameter, final String methodName) {
-        if (!Flux.class.isAssignableFrom(parameter.getType())) {
-            throw new ValidationException(String.format("Unable register outbound method `@Inbound  %s()` since " +
-                    "it should accept Flux<WebSocketMessage> instance, but `%s` was found instead", methodName, parameter.getType()));
-        }
-
-        return session.receive()
-                .doOnError(throwable -> LOG.error("WebSocketSession error occurred: {}", throwable.toString()))
-                .doFinally(signalType -> {
-                    LOG.info("Closing WebSocketSession {} on signal {}", session.getId(), signalType);
-                    this.sessionPreDestroyRegistry.remove(session.getId());
-                    session.close();
-                });
-    }
-
-    private Object getHeader(final HttpHeaders headers, final Parameter parameter, final String methodName) {
-        final SocketHeader requestHeader = parameter.getAnnotation(SocketHeader.class);
-
-        final Class<?> parameterType = parameter.getType();
-
-        final Optional<String> defaultValue = Optional.of(requestHeader.defaultValue())
-                .filter(s -> !s.isEmpty() && !ValueConstants.DEFAULT_NONE.equals(s));
-
-        final boolean isRequired = defaultValue.isEmpty() && requestHeader.required();
-
-        final Optional<List<String>> values = Optional.ofNullable(headers.get(requestHeader.value()))
-                .filter(l -> !l.isEmpty());
-
-        if (isRequired && values.isEmpty()) {
-            throw new ValidationException(String.format("Request header `@SocketHeader %s` at method `%s()` " +
-                    "was marked as `required` but was not found on request", requestHeader.value(), methodName));
-        }
-
-        return values.flatMap(l -> List.class.isAssignableFrom(parameterType)
-                ? Optional.of(l)
-                : l.stream().findFirst().map(v -> (Object) TypeUtils.convert(v, parameterType)))
-                .orElseGet(() -> defaultValue.map(v -> (Object) TypeUtils.convert(v, parameterType))
-                        .orElse(TypeUtils.getDefaultValueForType(parameter.getType())));
-    }
-
-    private Object getRequestParameter(final MultiValueMap<String, String> queryParameters,
-                                       final Parameter parameter,
-                                       final String methodName) {
-
-        final SocketQueryParam requestParam = parameter.getAnnotation(SocketQueryParam.class);
-
-        final Class<?> parameterType = parameter.getType();
-
-        final Optional<String> defaultValue = Optional.of(requestParam.defaultValue())
-                .filter(s -> !s.isEmpty() && !ValueConstants.DEFAULT_NONE.equals(s));
-
-        final boolean isRequired = defaultValue.isEmpty() && requestParam.required();
-
-        final Optional<List<String>> values = Optional.ofNullable(queryParameters.get(requestParam.value()))
-                .filter(l -> !l.isEmpty());
-
-        if (isRequired && values.isEmpty()) {
-            throw new ValidationException(String.format("Request parameter `@SocketQueryParam %s` at method `%s()` " +
-                    "was marked as `required` but was not found on request", requestParam.value(), methodName));
-        }
-
-        return values.flatMap(l -> List.class.isAssignableFrom(parameterType)
-                ? Optional.of(l)
-                : l.stream().findFirst().map(v -> (Object) TypeUtils.convert(v, parameterType)))
-                .orElseGet(() -> defaultValue.map(v -> (Object) TypeUtils.convert(v, parameterType))
-                        .orElse(TypeUtils.getDefaultValueForType(parameter.getType())));
-    }
-
-    private Object getPathVariable(final Map<String, String> pathParameters, final Parameter parameter, final String methodName) {
-        final SocketPathVariable pathVariable = parameter.getAnnotation(SocketPathVariable.class);
-
-        final Optional<String> value = Optional.ofNullable(pathParameters.get(pathVariable.value()))
-                .filter(s -> !s.isEmpty());
-
-        if (pathVariable.required() && value.isEmpty()) {
-            throw new ValidationException(String.format("Path parameter `@SocketPathVariable %s` at method `%s()` " +
-                    "was marked as `required` but was not found on request", pathVariable.value(), methodName));
-        }
-
-        return value.map(v -> (Object) TypeUtils.convert(v, parameter.getType()))
-                .orElse(TypeUtils.getDefaultValueForType(parameter.getType()));
     }
 
     private static class WebHandlerResourceDescriptor<T extends BasicWebSocketResource> {
