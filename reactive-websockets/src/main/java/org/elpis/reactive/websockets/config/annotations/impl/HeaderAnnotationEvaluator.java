@@ -1,9 +1,11 @@
 package org.elpis.reactive.websockets.config.annotations.impl;
 
+import lombok.NonNull;
 import org.elpis.reactive.websockets.config.annotations.SocketApiAnnotationEvaluator;
 import org.elpis.reactive.websockets.exceptions.ValidationException;
 import org.elpis.reactive.websockets.utils.TypeUtils;
 import org.elpis.reactive.websockets.web.annotations.request.SocketHeader;
+import org.elpis.reactive.websockets.web.model.WebSocketSessionContext;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.ValueConstants;
@@ -12,28 +14,32 @@ import java.util.List;
 import java.util.Optional;
 
 @Component
-public class HeaderAnnotationEvaluator extends SocketApiAnnotationEvaluator<SocketHeader, HttpHeaders> {
+public class HeaderAnnotationEvaluator extends SocketApiAnnotationEvaluator<SocketHeader> {
 
     @Override
-    public Object evaluate(final HttpHeaders headers, final Class<?> parameterType,
-                           final String methodName, final SocketHeader requestHeader) {
+    public Object evaluate(@NonNull WebSocketSessionContext webSocketSessionContext,
+                           @NonNull Class<?> parameterType,
+                           @NonNull String methodName,
+                           @NonNull SocketHeader annotation) {
 
-        final Optional<String> defaultValue = Optional.of(requestHeader.defaultValue())
+        final HttpHeaders headers = webSocketSessionContext.getHeaders();
+
+        final Optional<String> defaultValue = Optional.of(annotation.defaultValue())
                 .filter(s -> !s.isEmpty() && !ValueConstants.DEFAULT_NONE.equals(s));
 
-        final boolean isRequired = defaultValue.isEmpty() && requestHeader.required();
+        final boolean isRequired = defaultValue.isEmpty() && annotation.required();
 
-        final Optional<List<String>> values = Optional.ofNullable(headers.get(requestHeader.value()))
+        final Optional<List<String>> values = Optional.ofNullable(headers.get(annotation.value()))
                 .filter(l -> !l.isEmpty());
 
         if (isRequired && values.isEmpty()) {
             throw new ValidationException(String.format("Request header `@SocketHeader %s` at method `%s()` " +
-                    "was marked as `required` but was not found on request", requestHeader.value(), methodName));
+                    "was marked as `required` but was not found on request", annotation.value(), methodName));
         }
 
         return values.flatMap(l -> List.class.isAssignableFrom(parameterType)
-                    ? Optional.of(l)
-                    : l.stream().findFirst().map(v -> (Object) TypeUtils.convert(v, parameterType)))
+                ? Optional.of(l)
+                : l.stream().findFirst().map(v -> (Object) TypeUtils.convert(v, parameterType)))
                 .orElseGet(() -> defaultValue.map(v -> (Object) TypeUtils.convert(v, parameterType))
                         .orElse(TypeUtils.getDefaultValueForType(parameterType)));
     }

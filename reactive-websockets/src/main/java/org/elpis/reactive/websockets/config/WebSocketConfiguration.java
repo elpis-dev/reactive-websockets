@@ -1,6 +1,6 @@
 package org.elpis.reactive.websockets.config;
 
-import org.elpis.reactive.websockets.config.annotations.SocketApiAnnotationEvaluator;
+import org.elpis.reactive.websockets.config.annotations.SocketAnnotationEvaluatorFactory;
 import org.elpis.reactive.websockets.exceptions.ValidationException;
 import org.elpis.reactive.websockets.mappers.JsonMapper;
 import org.elpis.reactive.websockets.security.principal.Anonymous;
@@ -10,13 +10,14 @@ import org.elpis.reactive.websockets.web.BasicWebSocketResource;
 import org.elpis.reactive.websockets.web.annotations.controller.Inbound;
 import org.elpis.reactive.websockets.web.annotations.controller.Outbound;
 import org.elpis.reactive.websockets.web.annotations.controller.SocketResource;
-import org.elpis.reactive.websockets.web.annotations.request.*;
+import org.elpis.reactive.websockets.web.model.WebSocketSessionContext;
 import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.HandlerMapping;
@@ -42,6 +43,7 @@ import java.util.stream.Stream;
 import static java.util.Objects.nonNull;
 
 @Configuration
+@Import(SocketAnnotationEvaluatorFactory.class)
 public class WebSocketConfiguration {
     private static final Logger LOG = LoggerFactory.getLogger(WebSocketConfiguration.class);
 
@@ -51,26 +53,13 @@ public class WebSocketConfiguration {
     private final Map<String, WebHandlerResourceDescriptor> descriptorRegistry = new ConcurrentHashMap<>();
 
     private final ApplicationContext applicationContext;
-
-    private final SocketApiAnnotationEvaluator<SocketAuthentication, Principal> authenticationAnnotationEvaluator;
-    private final SocketApiAnnotationEvaluator<SocketHeader, HttpHeaders> headersAnnotationEvaluator;
-    private final SocketApiAnnotationEvaluator<SocketMessageBody, WebSocketSession> messageBodyAnnotationEvaluator;
-    private final SocketApiAnnotationEvaluator<SocketPathVariable, Map<String, String>> pathVariableAnnotationEvaluator;
-    private final SocketApiAnnotationEvaluator<SocketQueryParam, MultiValueMap<String, String>> queryParamAnnotationEvaluator;
+    private final SocketAnnotationEvaluatorFactory socketAnnotationEvaluatorFactory;
 
     public WebSocketConfiguration(final ApplicationContext applicationContext,
-                                  final SocketApiAnnotationEvaluator<SocketAuthentication, Principal> authenticationAnnotationEvaluator,
-                                  final SocketApiAnnotationEvaluator<SocketHeader, HttpHeaders> headersAnnotationEvaluator,
-                                  final SocketApiAnnotationEvaluator<SocketMessageBody, WebSocketSession> messageBodyAnnotationEvaluator,
-                                  final SocketApiAnnotationEvaluator<SocketPathVariable, Map<String, String>> pathVariableAnnotationEvaluator,
-                                  final SocketApiAnnotationEvaluator<SocketQueryParam, MultiValueMap<String, String>> queryParamAnnotationEvaluator) {
+                                  final SocketAnnotationEvaluatorFactory socketAnnotationEvaluatorFactory) {
 
         this.applicationContext = applicationContext;
-        this.authenticationAnnotationEvaluator = authenticationAnnotationEvaluator;
-        this.headersAnnotationEvaluator = headersAnnotationEvaluator;
-        this.messageBodyAnnotationEvaluator = messageBodyAnnotationEvaluator;
-        this.pathVariableAnnotationEvaluator = pathVariableAnnotationEvaluator;
-        this.queryParamAnnotationEvaluator = queryParamAnnotationEvaluator;
+        this.socketAnnotationEvaluatorFactory = socketAnnotationEvaluatorFactory;
     }
 
     @Bean
@@ -138,7 +127,7 @@ public class WebSocketConfiguration {
 
         if (nonNull(webHandlerResourceDescriptor.getInboundMethod())) {
             throw new ValidationException(String.format("Cannot register method `@Inbound %s()` on `%s` since " +
-                    "`@Inbound %s()` was already registered on provided path", method.getName(), inboundPathTemplate,
+                            "`@Inbound %s()` was already registered on provided path", method.getName(), inboundPathTemplate,
                     webHandlerResourceDescriptor.getInboundMethod().getName()));
         }
 
@@ -163,7 +152,7 @@ public class WebSocketConfiguration {
 
         if (nonNull(webHandlerResourceDescriptor.getOutboundMethod())) {
             throw new ValidationException(String.format("Cannot register method `@Outbound %s()` on `%s` since " +
-                    "`@Outbound %s()` was already registered on provided path", method.getName(), outboundPathTemplate,
+                            "`@Outbound %s()` was already registered on provided path", method.getName(), outboundPathTemplate,
                     webHandlerResourceDescriptor.getOutboundMethod().getName()));
         }
 
@@ -177,35 +166,55 @@ public class WebSocketConfiguration {
             final HandshakeInfo handshakeInfo = session.getHandshakeInfo();
             final BasicWebSocketResource resource = this.applicationContext.getBean(configEntity.getClazz());
 
-            LOG.trace("Establishing WebSocketSession: id => {}, uri => {}, address => {}", session.getId(), handshakeInfo.getUri().toString(),
+            LOG.trace("Establishing WebSocketSession: id => {}, uri => {}, address => {}", session.getId(), handshakeInfo.getUri(),
                     handshakeInfo.getRemoteAddress());
-
-            final String uriPath = handshakeInfo.getUri().getPath();
-
-            final UriTemplate uriTemplate = new UriTemplate(pathTemplate);
-
-            final Map<String, String> pathParameters = uriTemplate.match(uriPath);
-            final MultiValueMap<String, String> queryParameters = UriComponentsBuilder.fromUri(handshakeInfo.getUri()).build()
-                    .getQueryParams();
-            final HttpHeaders headers = handshakeInfo.getHeaders();
 
             this.sessionPreDestroyRegistry.put(session.getId(), session::close);
 
             return session.getHandshakeInfo().getPrincipal()
                     .switchIfEmpty(Mono.just(new Anonymous()))
-                    .flatMap(principal -> this.processConnection(resource, session, principal, configEntity,
-                            pathParameters, queryParameters, headers))
+                    .flatMap(principal -> {
+                        final WebSocketSessionContext webSocketSessionContext =
+                                this.getWebSocketSessionContext(pathTemplate, session, handshakeInfo, principal);
+
+                        return this.processConnection(resource, session, configEntity, webSocketSessionContext);
+                    })
                     .doOnError(throwable -> LOG.error(throwable.getMessage()));
         };
     }
 
-    private <T extends Principal> Mono<Void> processConnection(final BasicWebSocketResource resource, final WebSocketSession session,
-                                                               final T principal, final WebHandlerResourceDescriptor<?> configEntity,
-                                                               final Map<String, String> pathParameters,
-                                                               final MultiValueMap<String, String> queryParameters, final HttpHeaders headers) {
+    private WebSocketSessionContext getWebSocketSessionContext(final String pathTemplate, final WebSocketSession session,
+                                                               final HandshakeInfo handshakeInfo, final Principal principal) {
 
-        final Publisher<?> socketMessageFlux = this.processMethod(session, configEntity, resource, pathParameters,
-                queryParameters, headers, principal);
+        final String uriPath = handshakeInfo.getUri().getPath();
+
+        final UriTemplate uriTemplate = new UriTemplate(pathTemplate);
+
+        final Map<String, String> pathParameters = uriTemplate.match(uriPath);
+        final MultiValueMap<String, String> queryParameters = UriComponentsBuilder.fromUri(handshakeInfo.getUri()).build()
+                .getQueryParams();
+        final HttpHeaders headers = handshakeInfo.getHeaders();
+
+        return WebSocketSessionContext.builder()
+                .authentication(principal)
+                .pathParameters(pathParameters)
+                .queryParameters(queryParameters)
+                .headers(headers)
+                .messageStream(() -> session.receive()
+                        .doOnError(throwable -> LOG.error("WebSocketSession error occurred: {}", throwable.toString()))
+                        .doFinally(signalType -> {
+                            LOG.info("Closing WebSocketSession {} on signal {}", session.getId(), signalType);
+                            this.sessionPreDestroyRegistry.remove(session.getId());
+                            session.close();
+                        }))
+                .build();
+    }
+
+    private Mono<Void> processConnection(final BasicWebSocketResource resource, final WebSocketSession session,
+                                         final WebHandlerResourceDescriptor<?> configEntity,
+                                         final WebSocketSessionContext webSocketSessionContext) {
+
+        final Publisher<?> socketMessageFlux = this.processMethod(configEntity, resource, webSocketSessionContext);
 
         final Flux<WebSocketMessage> webSocketMessageFlux = Flux.from(socketMessageFlux)
                 .flatMap(value -> String.class.isAssignableFrom(value.getClass())
@@ -216,13 +225,9 @@ public class WebSocketConfiguration {
         return session.send(webSocketMessageFlux);
     }
 
-    private <T extends Principal> Publisher<?> processMethod(final WebSocketSession session,
-                                                             final WebHandlerResourceDescriptor<?> configEntity,
-                                                             final BasicWebSocketResource resource,
-                                                             final Map<String, String> pathParameters,
-                                                             final MultiValueMap<String, String> queryParameters,
-                                                             final HttpHeaders headers,
-                                                             final T principal) {
+    private Publisher<?> processMethod(final WebHandlerResourceDescriptor<?> configEntity,
+                                       final BasicWebSocketResource resource,
+                                       final WebSocketSessionContext webSocketSessionContext) {
 
         final Optional<Method> outbound = Optional.ofNullable(configEntity.getOutboundMethod());
         final Optional<Method> inbound = Optional.ofNullable(configEntity.getInboundMethod());
@@ -232,8 +237,7 @@ public class WebSocketConfiguration {
                 .orElse(false);
 
         final Publisher<?> publisher = outbound.map(method -> {
-            final Object[] parameters = processMethodParameters(session, pathParameters, queryParameters,
-                    headers, principal, method);
+            final Object[] parameters = this.processMethodParameters(method, webSocketSessionContext);
 
             try {
                 return TypeUtils.cast(method.invoke(resource, parameters), Publisher.class);
@@ -244,8 +248,7 @@ public class WebSocketConfiguration {
 
         if (!fullMethod) {
             inbound.ifPresent(method -> {
-                final Object[] parameters = processMethodParameters(session, pathParameters, queryParameters,
-                        headers, principal, method);
+                final Object[] parameters = this.processMethodParameters(method, webSocketSessionContext);
 
                 try {
                     method.invoke(resource, parameters);
@@ -256,34 +259,25 @@ public class WebSocketConfiguration {
             });
         }
 
+        webSocketSessionContext.setInbound(inbound.isPresent());
+        webSocketSessionContext.setOutbound(outbound.isPresent());
+
         return publisher;
     }
 
-    private <T extends Principal> Object[] processMethodParameters(final WebSocketSession session,
-                                                                   final Map<String, String> pathParameters,
-                                                                   final MultiValueMap<String, String> queryParameters,
-                                                                   final HttpHeaders headers, final T principal,
-                                                                   final Method method) {
-
+    @SuppressWarnings("unchecked")
+    private Object[] processMethodParameters(final Method method, final WebSocketSessionContext webSocketSessionContext) {
         final String methodName = method.getName();
-        final boolean isInbound = method.isAnnotationPresent(Inbound.class);
+
+        webSocketSessionContext.setInbound(method.isAnnotationPresent(Inbound.class));
+        webSocketSessionContext.setOutbound(method.isAnnotationPresent(Outbound.class));
 
         return Stream.of(method.getParameters()).map(parameter -> {
             final Class<?> parameterType = parameter.getType();
 
-            if (parameter.isAnnotationPresent(SocketPathVariable.class)) {
-                return this.pathVariableAnnotationEvaluator.evaluate(pathParameters, parameterType, methodName, parameter.getAnnotation(SocketPathVariable.class));
-            } else if (parameter.isAnnotationPresent(SocketQueryParam.class)) {
-                return this.queryParamAnnotationEvaluator.evaluate(queryParameters, parameterType, methodName, parameter.getAnnotation(SocketQueryParam.class));
-            } else if (parameter.isAnnotationPresent(SocketHeader.class)) {
-                return this.headersAnnotationEvaluator.evaluate(headers, parameterType, methodName, parameter.getAnnotation(SocketHeader.class));
-            } else if (parameter.isAnnotationPresent(SocketAuthentication.class)) {
-                return this.authenticationAnnotationEvaluator.evaluate(principal, parameterType, methodName, parameter.getAnnotation(SocketAuthentication.class));
-            } else if (isInbound && parameter.isAnnotationPresent(SocketMessageBody.class)) {
-                return this.messageBodyAnnotationEvaluator.evaluate(session, parameterType, methodName, parameter.getAnnotation(SocketMessageBody.class));
-            }
-
-            return null;
+            return this.socketAnnotationEvaluatorFactory.getEvaluator(parameter.getAnnotations())
+                    .map(evaluator -> evaluator.evaluate(webSocketSessionContext, parameterType, methodName, parameter.getAnnotation(evaluator.getAnnotationType())))
+                    .orElse(null);
         }).toArray();
     }
 
