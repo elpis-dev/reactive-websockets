@@ -11,6 +11,7 @@ import org.elpis.reactive.websockets.web.annotations.controller.Inbound;
 import org.elpis.reactive.websockets.web.annotations.controller.Outbound;
 import org.elpis.reactive.websockets.web.annotations.controller.SocketResource;
 import org.elpis.reactive.websockets.web.model.WebSocketSessionContext;
+import org.elpis.reactive.websockets.web.model.WebSocketSessionInfo;
 import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,7 +50,6 @@ public class WebSocketConfiguration {
 
     private final JsonMapper jsonMapper = new JsonMapper();
 
-    private final Map<String, Runnable> sessionPreDestroyRegistry = new ConcurrentHashMap<>();
     private final Map<String, WebHandlerResourceDescriptor> descriptorRegistry = new ConcurrentHashMap<>();
 
     private final ApplicationContext applicationContext;
@@ -60,6 +60,23 @@ public class WebSocketConfiguration {
 
         this.applicationContext = applicationContext;
         this.socketAnnotationEvaluatorFactory = socketAnnotationEvaluatorFactory;
+    }
+
+    @Bean
+    public Map<String, WebSocketSessionInfo> sessionRegistry() {
+        return new ConcurrentHashMap<>();
+    }
+
+    @Bean("webSocketsTerminateBean")
+    public TerminateBean terminateBean() {
+        return TerminateBean.with(() -> {
+            LOG.info("Gracefully terminating all socket sessions...");
+            sessionRegistry().forEach((sessionId, sessionInfo) -> {
+                LOG.debug("Terminating session: {}", sessionId);
+
+                sessionInfo.getClose().run();
+            });
+        });
     }
 
     @Bean
@@ -82,19 +99,6 @@ public class WebSocketConfiguration {
                 setOrder(10);
             }
         };
-    }
-
-    @Bean("webSocketsTerminateBean")
-    public TerminateBean terminateBean() {
-        return TerminateBean.with(() -> {
-            LOG.info("Gracefully terminating all socket sessions...");
-
-            this.sessionPreDestroyRegistry.forEach((sessionId, executor) -> {
-                LOG.debug("Terminating session: {}", sessionId);
-
-                executor.run();
-            });
-        });
     }
 
     private void registerMappings(final SocketResource socketResource,
@@ -169,7 +173,14 @@ public class WebSocketConfiguration {
             LOG.trace("Establishing WebSocketSession: id => {}, uri => {}, address => {}", session.getId(), handshakeInfo.getUri(),
                     handshakeInfo.getRemoteAddress());
 
-            this.sessionPreDestroyRegistry.put(session.getId(), session::close);
+            sessionRegistry().put(session.getId(), WebSocketSessionInfo.builder()
+                    .isOpen(session::isOpen)
+                    .protocol(handshakeInfo.getSubProtocol())
+                    .id(session.getId())
+                    .uri(handshakeInfo.getUri())
+                    .remoteAddress(handshakeInfo.getRemoteAddress())
+                    .close(session::close)
+                    .build());
 
             return session.getHandshakeInfo().getPrincipal()
                     .switchIfEmpty(Mono.just(new Anonymous()))
@@ -204,7 +215,7 @@ public class WebSocketConfiguration {
                         .doOnError(throwable -> LOG.error("WebSocketSession error occurred: {}", throwable.toString()))
                         .doFinally(signalType -> {
                             LOG.info("Closing WebSocketSession {} on signal {}", session.getId(), signalType);
-                            this.sessionPreDestroyRegistry.remove(session.getId());
+                            sessionRegistry().remove(session.getId());
                             session.close();
                         }))
                 .build();
