@@ -103,7 +103,6 @@
                         <phase>clean</phase>
                         <configuration>
                             <file>${basedir}/../reactive-websockets/target/websockets-0.0.1.jar</file>
-                            <repositoryLayout>default</repositoryLayout>
                             <groupId>org.elpis.reactive</groupId>
                             <artifactId>websockets</artifactId>
                             <version>0.0.1</version>

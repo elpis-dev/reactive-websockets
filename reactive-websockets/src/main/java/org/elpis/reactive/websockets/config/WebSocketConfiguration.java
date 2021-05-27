@@ -1,8 +1,11 @@
 package org.elpis.reactive.websockets.config;
 
+import io.micrometer.core.instrument.Gauge;
+import io.micrometer.core.instrument.Tags;
 import org.elpis.reactive.websockets.config.annotations.SocketAnnotationEvaluatorFactory;
 import org.elpis.reactive.websockets.exceptions.ValidationException;
 import org.elpis.reactive.websockets.mappers.JsonMapper;
+import org.elpis.reactive.websockets.mertics.WebSocketMetricsService;
 import org.elpis.reactive.websockets.security.principal.Anonymous;
 import org.elpis.reactive.websockets.utils.TerminateBean;
 import org.elpis.reactive.websockets.utils.TypeUtils;
@@ -42,9 +45,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
 import static java.util.Objects.nonNull;
+import static org.elpis.reactive.websockets.mertics.WebSocketMetricsService.MeterConstants.*;
 
 @Configuration
-@Import(SocketAnnotationEvaluatorFactory.class)
+@Import({SocketAnnotationEvaluatorFactory.class, WebSocketMetricsService.class})
 public class WebSocketConfiguration {
     private static final Logger LOG = LoggerFactory.getLogger(WebSocketConfiguration.class);
 
@@ -54,17 +58,23 @@ public class WebSocketConfiguration {
 
     private final ApplicationContext applicationContext;
     private final SocketAnnotationEvaluatorFactory socketAnnotationEvaluatorFactory;
+    private final WebSocketMetricsService webSocketMetricsService;
 
     public WebSocketConfiguration(final ApplicationContext applicationContext,
-                                  final SocketAnnotationEvaluatorFactory socketAnnotationEvaluatorFactory) {
+                                  final SocketAnnotationEvaluatorFactory socketAnnotationEvaluatorFactory,
+                                  final WebSocketMetricsService webSocketMetricsService) {
 
         this.applicationContext = applicationContext;
         this.socketAnnotationEvaluatorFactory = socketAnnotationEvaluatorFactory;
+        this.webSocketMetricsService = webSocketMetricsService;
     }
 
     @Bean
     public Map<String, WebSocketSessionInfo> sessionRegistry() {
-        return new ConcurrentHashMap<>();
+        return this.webSocketMetricsService.withGauge(new ConcurrentHashMap<>(), (sessionInfoMap, meterRegistry) ->
+                Gauge.builder(ACTIVE_SESSIONS.getKey(), sessionInfoMap, Map::size)
+                        .description(ACTIVE_SESSIONS.getDescription())
+                        .register(meterRegistry));
     }
 
     @Bean("webSocketsTerminateBean")
@@ -166,32 +176,38 @@ public class WebSocketConfiguration {
     }
 
     private WebSocketHandler handle(final String pathTemplate, final WebHandlerResourceDescriptor<?> configEntity) {
-        return session -> {
-            final HandshakeInfo handshakeInfo = session.getHandshakeInfo();
-            final BasicWebSocketResource resource = this.applicationContext.getBean(configEntity.getClazz());
+        return session ->
+                this.webSocketMetricsService.withTimer(stop -> {
+                    final HandshakeInfo handshakeInfo = session.getHandshakeInfo();
+                    final BasicWebSocketResource resource = this.applicationContext.getBean(configEntity.getClazz());
 
-            LOG.trace("Establishing WebSocketSession: id => {}, uri => {}, address => {}", session.getId(), handshakeInfo.getUri(),
-                    handshakeInfo.getRemoteAddress());
+                    LOG.trace("Establishing WebSocketSession: id => {}, uri => {}, address => {}", session.getId(), handshakeInfo.getUri(),
+                            handshakeInfo.getRemoteAddress());
 
-            sessionRegistry().put(session.getId(), WebSocketSessionInfo.builder()
-                    .isOpen(session::isOpen)
-                    .protocol(handshakeInfo.getSubProtocol())
-                    .id(session.getId())
-                    .uri(handshakeInfo.getUri())
-                    .remoteAddress(handshakeInfo.getRemoteAddress())
-                    .close(session::close)
-                    .build());
+                    sessionRegistry().put(session.getId(), WebSocketSessionInfo.builder()
+                            .isOpen(session::isOpen)
+                            .protocol(handshakeInfo.getSubProtocol())
+                            .id(session.getId())
+                            .uri(handshakeInfo.getUri())
+                            .remoteAddress(handshakeInfo.getRemoteAddress())
+                            .close(session::close)
+                            .build());
 
-            return session.getHandshakeInfo().getPrincipal()
-                    .switchIfEmpty(Mono.just(new Anonymous()))
-                    .flatMap(principal -> {
-                        final WebSocketSessionContext webSocketSessionContext =
-                                this.getWebSocketSessionContext(pathTemplate, session, handshakeInfo, principal);
+                    return session.getHandshakeInfo().getPrincipal()
+                            .switchIfEmpty(Mono.just(new Anonymous()))
+                            .flatMap(principal -> {
+                                final WebSocketSessionContext webSocketSessionContext =
+                                        this.getWebSocketSessionContext(pathTemplate, session, handshakeInfo, principal);
 
-                        return this.processConnection(resource, session, configEntity, webSocketSessionContext);
-                    })
-                    .doOnError(throwable -> LOG.error(throwable.getMessage()));
-        };
+                                return stop.andThen(taskTime -> this.processConnection(resource, session, configEntity, webSocketSessionContext))
+                                        .apply(SESSION_CONNECTION_TIME.getKey(), Tags.of(RESULT, SUCCESS));
+                            })
+                            .doOnError(throwable -> {
+                                stop.apply(SESSION_CONNECTION_TIME.getKey(), Tags.of(RESULT, FAILURE));
+
+                                LOG.error(throwable.getMessage());
+                            });
+                });
     }
 
     private WebSocketSessionContext getWebSocketSessionContext(final String pathTemplate, final WebSocketSession session,

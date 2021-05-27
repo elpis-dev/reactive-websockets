@@ -25,8 +25,9 @@ public class ChatWebSocketResource implements BasicWebSocketResource {
                                        @SocketQueryParam("last") final Integer lastMessages,
                                        @SocketAuthentication final Principal principal) {
 
-        return Flux.interval(Duration.ofSeconds(2))
+        return Flux.interval(Duration.ofSeconds(5))
                 .share()
+                .takeLast(lastMessages)
                 .map(i -> Map.of("chatId", chatId, "message", i, "userName", userName));
     }
 

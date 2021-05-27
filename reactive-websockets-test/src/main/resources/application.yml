@@ -8,4 +8,8 @@ spring:
   application:
     name: websockets-test
 
-
+management:
+  endpoints:
+    web:
+      exposure:
+        include: prometheus
