@@ -17,12 +17,12 @@ public class MessageBodyAnnotationEvaluator extends SocketApiAnnotationEvaluator
                            @NonNull final SocketMessageBody annotation) {
 
         if (!webSocketSessionContext.isInbound()) {
-            throw new ValidationException(String.format("Unable register outbound method `@Outbound  %s()` since " +
+            throw new ValidationException(String.format("Unable register outbound method `@Outbound %s()` since " +
                     "it cannot accept Flux<WebSocketMessage>", methodName));
         }
 
         if (!Flux.class.isAssignableFrom(parameterType)) {
-            throw new ValidationException(String.format("Unable register outbound method `@Inbound  %s()` since " +
+            throw new ValidationException(String.format("Unable register outbound method `@Inbound %s()` since " +
                     "it should accept Flux<WebSocketMessage> instance, but `%s` was found instead", methodName, parameterType));
         }
 

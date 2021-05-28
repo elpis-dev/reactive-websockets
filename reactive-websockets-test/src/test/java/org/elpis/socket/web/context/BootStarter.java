@@ -6,6 +6,7 @@ import org.elpis.reactive.websockets.config.annotations.impl.*;
 import org.elpis.reactive.websockets.security.SocketHandshakeService;
 import org.elpis.reactive.websockets.security.principal.Anonymous;
 import org.elpis.socket.web.context.resource.HeaderSocketResource;
+import org.elpis.socket.web.context.resource.MessageBodySocketResource;
 import org.elpis.socket.web.context.resource.PathVariableSocketResource;
 import org.elpis.socket.web.context.resource.QueryParamSocketResource;
 import org.springframework.boot.SpringApplication;
@@ -25,6 +26,8 @@ import reactor.core.publisher.Mono;
         HeaderSocketResource.class,
         PathVariableSocketResource.class,
         QueryParamSocketResource.class,
+        MessageBodySocketResource.class,
+
         AuthenticationAnnotationEvaluator.class,
         HeaderAnnotationEvaluator.class,
         MessageBodyAnnotationEvaluator.class,

@@ -50,7 +50,7 @@ import static org.elpis.reactive.websockets.mertics.WebSocketMetricsService.Mete
 @Configuration
 @Import({SocketAnnotationEvaluatorFactory.class, WebSocketMetricsService.class})
 public class WebSocketConfiguration {
-    private static final Logger LOG = LoggerFactory.getLogger(WebSocketConfiguration.class);
+    private static final Logger log = LoggerFactory.getLogger(WebSocketConfiguration.class);
 
     private final JsonMapper jsonMapper = new JsonMapper();
 
@@ -80,9 +80,9 @@ public class WebSocketConfiguration {
     @Bean("webSocketsTerminateBean")
     public TerminateBean terminateBean() {
         return TerminateBean.with(() -> {
-            LOG.info("Gracefully terminating all socket sessions...");
+            log.info("Gracefully terminating all socket sessions...");
             sessionRegistry().forEach((sessionId, sessionInfo) -> {
-                LOG.debug("Terminating session: {}", sessionId);
+                log.debug("Terminating session: {}", sessionId);
 
                 sessionInfo.getClose().run();
             });
@@ -181,7 +181,7 @@ public class WebSocketConfiguration {
                     final HandshakeInfo handshakeInfo = session.getHandshakeInfo();
                     final BasicWebSocketResource resource = this.applicationContext.getBean(configEntity.getClazz());
 
-                    LOG.trace("Establishing WebSocketSession: id => {}, uri => {}, address => {}", session.getId(), handshakeInfo.getUri(),
+                    log.trace("Establishing WebSocketSession: id => {}, uri => {}, address => {}", session.getId(), handshakeInfo.getUri(),
                             handshakeInfo.getRemoteAddress());
 
                     sessionRegistry().put(session.getId(), WebSocketSessionInfo.builder()
@@ -205,7 +205,7 @@ public class WebSocketConfiguration {
                             .doOnError(throwable -> {
                                 stop.apply(SESSION_CONNECTION_TIME.getKey(), Tags.of(RESULT, FAILURE));
 
-                                LOG.error(throwable.getMessage());
+                                log.error(throwable.getMessage());
                             });
                 });
     }
@@ -228,9 +228,10 @@ public class WebSocketConfiguration {
                 .queryParameters(queryParameters)
                 .headers(headers)
                 .messageStream(() -> session.receive()
-                        .doOnError(throwable -> LOG.error("WebSocketSession error occurred: {}", throwable.toString()))
+                        .doOnError(throwable -> log.error("WebSocketSession error occurred: {}", throwable.toString()))
                         .doFinally(signalType -> {
-                            LOG.info("Closing WebSocketSession {} on signal {}", session.getId(), signalType);
+                            log.debug("Closing WebSocketSession {} on signal {}", session.getId(), signalType);
+
                             sessionRegistry().remove(session.getId());
                             session.close();
                         }))

@@ -1,0 +1,10 @@
+spring:
+  logging:
+    level:
+      org.springframework.web: DEBUG
+      org.elpis: DEBUG
+
+logging:
+  level:
+    org.springframework.web: DEBUG
+    org.elpis: DEBUG
