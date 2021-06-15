@@ -8,11 +8,11 @@ jobs:
       - checkout
       - run:
           name: Build Source 
-          command: mvn -f ./reactive-websockets/pom.xml clean install
+          command: mvn -f ../reactive-websockets/pom.xml clean install
       # Then run your tests!
       - run:
           name: Build Test 
-          command: mvn -f ./reactive-websockets-test/pom.xml clean install -DskipTests=false
+          command: mvn -f ../reactive-websockets-test/pom.xml clean install -DskipTests=false
 
 workflows:
   sample: 
