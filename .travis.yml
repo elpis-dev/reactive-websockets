@@ -1,4 +1,6 @@
-arch: amd64
+os: linux
+arch:
+  - arm64
 
 language: java
 
