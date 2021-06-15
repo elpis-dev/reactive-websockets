@@ -16,11 +16,13 @@ import org.springframework.web.reactive.socket.server.RequestUpgradeStrategy;
 import org.springframework.web.reactive.socket.server.support.HandshakeWebSocketService;
 import org.springframework.web.reactive.socket.server.upgrade.ReactorNettyRequestUpgradeStrategy;
 import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 
 import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -88,7 +90,8 @@ public abstract class SocketHandshakeService extends HandshakeWebSocketService {
 
     public static class Builder {
         private Function<Throwable, Mono<ServerResponse>> handleError;
-        private Function<ServerWebExchange, Mono<?>> handshake;
+        private BiFunction<ServerWebExchange, WebFilterChain, Mono<?>> handshake;
+        private Function<ServerWebExchange, Mono<?>> handshakeSingle;
 
         private Supplier<SecurityWebFilterChain> securityChainSupplier;
         private Function<ServerHttpSecurity, SecurityWebFilterChain> securityChainFunction;
@@ -107,8 +110,14 @@ public abstract class SocketHandshakeService extends HandshakeWebSocketService {
             return this;
         }
 
-        public Builder handshake(Function<ServerWebExchange, Mono<?>> handshake) {
+        public Builder handshake(BiFunction<ServerWebExchange, WebFilterChain, Mono<?>> handshake) {
             this.handshake = handshake;
+
+            return this;
+        }
+
+        public Builder handshake(Function<ServerWebExchange, Mono<?>> handshake) {
+            this.handshakeSingle = handshake;
 
             return this;
         }
@@ -151,7 +160,15 @@ public abstract class SocketHandshakeService extends HandshakeWebSocketService {
                 @Override
                 public Mono<?> handshake(@lombok.NonNull ServerWebExchange exchange) {
                     if (nonNull(handshake)) {
-                        return handshake.apply(exchange);
+                        return handshake.apply(exchange, serverWebExchange -> this.securityChain().matches(serverWebExchange)
+                                .filter(matches -> matches)
+                                .onErrorResume(throwable -> this.handleError(throwable)
+                                        .flatMap(serverResponse -> serverResponse.writeTo(exchange, EMPTY_CONTEXT))
+                                        .then(Mono.empty()))
+                                .switchIfEmpty(Mono.error(() -> new HttpServerErrorException(HttpStatus.UNAUTHORIZED, "Security chain failed")))
+                                .then());
+                    } else if (nonNull(handshakeSingle)) {
+                        return handshakeSingle.apply(exchange);
                     } else {
                         return super.handshake(exchange);
                     }
