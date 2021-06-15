@@ -24,6 +24,6 @@ jobs:
           path: ~/test-results/junit 
 
 workflows:
-  sample: 
+  buildAndTest: 
     jobs:
       - build-and-test
