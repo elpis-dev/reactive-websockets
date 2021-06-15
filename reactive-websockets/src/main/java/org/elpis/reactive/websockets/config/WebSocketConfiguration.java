@@ -4,6 +4,7 @@ import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.Tags;
 import org.elpis.reactive.websockets.config.annotations.SocketAnnotationEvaluatorFactory;
 import org.elpis.reactive.websockets.exceptions.ValidationException;
+import org.elpis.reactive.websockets.exceptions.WebSocketConfigurationException;
 import org.elpis.reactive.websockets.mappers.JsonMapper;
 import org.elpis.reactive.websockets.mertics.WebSocketMetricsService;
 import org.elpis.reactive.websockets.security.principal.Anonymous;
@@ -270,7 +271,7 @@ public class WebSocketConfiguration {
             try {
                 return TypeUtils.cast(method.invoke(resource, parameters), Publisher.class);
             } catch (Exception e) {
-                throw new RuntimeException("Unable to invoke method `@Outbound " + method.getName() + "()` with request parameters" + e.getMessage());
+                throw new WebSocketConfigurationException("Unable to invoke method `@Outbound " + method.getName() + "()` with request parameters" + e.getMessage());
             }
         }).orElseGet(Flux::never);
 
@@ -281,7 +282,7 @@ public class WebSocketConfiguration {
                 try {
                     method.invoke(resource, parameters);
                 } catch (Exception e) {
-                    throw new RuntimeException("Unable to invoke method `@Inbound " + method.getName() + "()` with request parameters " +
+                    throw new WebSocketConfigurationException("Unable to invoke method `@Inbound " + method.getName() + "()` with request parameters " +
                             "and message publisher instance" + e.getMessage());
                 }
             });
