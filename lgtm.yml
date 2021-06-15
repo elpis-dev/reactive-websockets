@@ -1,8 +1,7 @@
 extraction:
   java:
-    prepare:
-      build_command:
-        ./.lgtm/install-maven.sh
+    after_prepare:
+      - ./.lgtm/install-maven.sh
     index:
       java_version: 11
       build_command:
