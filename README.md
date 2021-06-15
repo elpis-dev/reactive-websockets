@@ -1,1 +1,1 @@
-# Reactive WebSockets [![CircleCI](https://circleci.com/gh/Elpis-Development/reactive-websockets/tree/main.svg?style=svg)](https://circleci.com/gh/Elpis-Development/reactive-websockets/tree/main)
+# Reactive WebSockets [![CircleCI](https://circleci.com/gh/Elpis-Development/reactive-websockets/tree/main.svg?style=svg)](https://circleci.com/gh/Elpis-Development/reactive-websockets/tree/main) [![Known Vulnerabilities](https://snyk.io/test/github/Elpis-Development/reactive-websockets/badge.svg)](https://snyk.io/test/github/Elpis-Development/reactive-websockets)
