@@ -1,3 +1,11 @@
+queries:
+  - include:            
+      tags:
+        - "security"
+        - "correctness"
+        - "logic"
+        - "exceptions"
+      severity: "error"
 extraction:
   java:
     after_prepare:
