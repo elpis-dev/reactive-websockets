@@ -1,6 +1,7 @@
 extraction:
   java:
     after_prepare:
+      - chmod 777 ./.lgtm/install-maven.sh
       - ./.lgtm/install-maven.sh
     index:
       java_version: 11
