@@ -1,4 +1,9 @@
 extraction:
   java:
+    prepare:
+      build_command:
+        ./.lgtm/install-maven.sh
     index:
-      xml_mode: all
+      java_version: 11
+      build_command:
+      - mvn -f reactive-websockets/pom.xml clean install
