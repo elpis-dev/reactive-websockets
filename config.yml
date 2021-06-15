@@ -1,0 +1,20 @@
+version: 2.1
+
+jobs:
+  build-and-test:  
+    docker:
+      - image: cimg/openjdk:11.0
+    steps:
+      - checkout
+      - run:
+          name: Build Source 
+          command: mvn -f ./reactive-websockets/pom.xml clean install
+      # Then run your tests!
+      - run:
+          name: Build Test 
+          command: mvn -f ./reactive-websockets-test/pom.xml clean install -DskipTests=false
+
+workflows:
+  sample: 
+    jobs:
+      - build-and-test
