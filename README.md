@@ -1,1 +1,1 @@
-# Reactive WebSockets [![Build Status](https://www.travis-ci.com/Elpis-Development/reactive-websockets.svg?branch=main)](https://www.travis-ci.com/Elpis-Development/reactive-websockets)
+# Reactive WebSockets [![CircleCI](https://circleci.com/gh/Elpis-Development/reactive-websockets/tree/main.svg?style=svg)](https://circleci.com/gh/Elpis-Development/reactive-websockets/tree/main)
