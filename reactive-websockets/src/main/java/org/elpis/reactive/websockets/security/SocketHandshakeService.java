@@ -3,8 +3,14 @@ package org.elpis.reactive.websockets.security;
 import org.elpis.reactive.websockets.security.principal.Anonymous;
 import org.elpis.reactive.websockets.security.principal.WebSocketPrincipal;
 import org.elpis.reactive.websockets.utils.TriFunction;
+import org.elpis.reactive.websockets.web.model.WebSocketError;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.core.codec.Encoder;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.codec.EncoderHttpMessageWriter;
 import org.springframework.http.codec.HttpMessageWriter;
+import org.springframework.http.codec.json.Jackson2JsonEncoder;
 import org.springframework.lang.NonNull;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.web.server.SecurityWebFilterChain;
@@ -17,9 +23,11 @@ import org.springframework.web.reactive.socket.server.support.HandshakeWebSocket
 import org.springframework.web.reactive.socket.server.upgrade.ReactorNettyRequestUpgradeStrategy;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilterChain;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.security.Principal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.BiFunction;
@@ -34,7 +42,8 @@ public abstract class SocketHandshakeService extends HandshakeWebSocketService {
         @Override
         @NonNull
         public List<HttpMessageWriter<?>> messageWriters() {
-            return List.of();
+            final Encoder<?> encoder = new Jackson2JsonEncoder();
+            return List.of(new EncoderHttpMessageWriter<>(encoder));
         }
 
         @Override
@@ -52,7 +61,9 @@ public abstract class SocketHandshakeService extends HandshakeWebSocketService {
     }
 
     public Mono<ServerResponse> handleError(@lombok.NonNull final Throwable throwable) {
-        return ServerResponse.status(HttpStatus.UNAUTHORIZED).bodyValue(throwable.getMessage());
+        return ServerResponse.status(HttpStatus.UNAUTHORIZED)
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(new WebSocketError(throwable.getMessage()));
     }
 
     public Mono<?> handshake(@lombok.NonNull final ServerWebExchange exchange) {
@@ -65,7 +76,9 @@ public abstract class SocketHandshakeService extends HandshakeWebSocketService {
 
     @Override
     @NonNull
-    public Mono<Void> handleRequest(@lombok.NonNull final ServerWebExchange exchange, @lombok.NonNull final WebSocketHandler handler) {
+    public Mono<Void> handleRequest(@NotNull @lombok.NonNull final ServerWebExchange exchange,
+                                    @NotNull @lombok.NonNull final WebSocketHandler handler) {
+
         return this.securityChain().matches(exchange)
                 .flatMap(matches -> matches
                         ? this.handshake(exchange)
@@ -89,14 +102,15 @@ public abstract class SocketHandshakeService extends HandshakeWebSocketService {
     }
 
     public static class Builder {
-        private Function<Throwable, Mono<ServerResponse>> handleError;
-        private BiFunction<ServerWebExchange, WebFilterChain, Mono<?>> handshake;
-        private Function<ServerWebExchange, Mono<?>> handshakeSingle;
+        private Function<Throwable, Mono<ServerResponse>> errorHandler;
 
-        private Supplier<SecurityWebFilterChain> securityChainSupplier;
-        private Function<ServerHttpSecurity, SecurityWebFilterChain> securityChainFunction;
+        private BiFunction<ServerWebExchange, WebFilterChain, Mono<?>> handshakeWithWebFilter;
+        private Function<ServerWebExchange, Mono<?>> handshakeWithServerWebExchange;
 
-        private TriFunction<SocketHandshakeService, ServerWebExchange, WebSocketHandler, Mono<Void>> handleRequest;
+        private Supplier<SecurityWebFilterChain> securityChain;
+        private Function<ServerHttpSecurity, SecurityWebFilterChain> securityChainWithServerHttpSecurity;
+
+        private TriFunction<SocketHandshakeService, ServerWebExchange, WebSocketHandler, Mono<Void>> requestHandler;
 
         private RequestUpgradeStrategy requestUpgradeStrategy;
 
@@ -104,38 +118,38 @@ public abstract class SocketHandshakeService extends HandshakeWebSocketService {
 
         }
 
-        public Builder handleError(Function<Throwable, Mono<ServerResponse>> handleError) {
-            this.handleError = handleError;
+        public Builder handleError(Function<Throwable, Mono<ServerResponse>> errorHandler) {
+            this.errorHandler = errorHandler;
 
             return this;
         }
 
-        public Builder handshake(BiFunction<ServerWebExchange, WebFilterChain, Mono<?>> handshake) {
-            this.handshake = handshake;
+        public Builder handshake(BiFunction<ServerWebExchange, WebFilterChain, Mono<?>> handshakeWithWebFilter) {
+            this.handshakeWithWebFilter = handshakeWithWebFilter;
 
             return this;
         }
 
-        public Builder handshake(Function<ServerWebExchange, Mono<?>> handshake) {
-            this.handshakeSingle = handshake;
+        public Builder handshake(Function<ServerWebExchange, Mono<?>> handshakeWithServerWebExchange) {
+            this.handshakeWithServerWebExchange = handshakeWithServerWebExchange;
 
             return this;
         }
 
-        public Builder securityChain(Supplier<SecurityWebFilterChain> securityChainSupplier) {
-            this.securityChainSupplier = securityChainSupplier;
+        public Builder securityChain(Supplier<SecurityWebFilterChain> securityChain) {
+            this.securityChain = securityChain;
 
             return this;
         }
 
-        public Builder securityChain(Function<ServerHttpSecurity, SecurityWebFilterChain> securityChainFunction) {
-            this.securityChainFunction = securityChainFunction;
+        public Builder securityChain(Function<ServerHttpSecurity, SecurityWebFilterChain> securityChainWithServerHttpSecurity) {
+            this.securityChainWithServerHttpSecurity = securityChainWithServerHttpSecurity;
 
             return this;
         }
 
         public Builder handleRequest(TriFunction<SocketHandshakeService, ServerWebExchange, WebSocketHandler, Mono<Void>> handleRequest) {
-            this.handleRequest = handleRequest;
+            this.requestHandler = handleRequest;
 
             return this;
         }
@@ -152,23 +166,26 @@ public abstract class SocketHandshakeService extends HandshakeWebSocketService {
 
                 @Override
                 public Mono<ServerResponse> handleError(@lombok.NonNull Throwable throwable) {
-                    return Optional.ofNullable(handleError)
+                    return Optional.ofNullable(errorHandler)
                             .map(func -> func.apply(throwable))
                             .orElseGet(() -> super.handleError(throwable));
                 }
 
                 @Override
                 public Mono<?> handshake(@lombok.NonNull ServerWebExchange exchange) {
-                    if (nonNull(handshake)) {
-                        return handshake.apply(exchange, serverWebExchange -> this.securityChain().matches(serverWebExchange)
-                                .filter(matches -> matches)
+                    if (nonNull(handshakeWithWebFilter)) {
+                        final List<Principal> principals = new ArrayList<>();
+                        final Flux<Principal> flux = Flux.fromIterable(principals);
+
+                        return handshakeWithWebFilter.apply(exchange, serverWebExchange -> serverWebExchange.getPrincipal()
+                                .switchIfEmpty(Mono.error(() -> new HttpServerErrorException(HttpStatus.UNAUTHORIZED, "Cannot get a Principal from request")))
                                 .onErrorResume(throwable -> this.handleError(throwable)
                                         .flatMap(serverResponse -> serverResponse.writeTo(exchange, EMPTY_CONTEXT))
                                         .then(Mono.empty()))
-                                .switchIfEmpty(Mono.error(() -> new HttpServerErrorException(HttpStatus.UNAUTHORIZED, "Security chain failed")))
-                                .then());
-                    } else if (nonNull(handshakeSingle)) {
-                        return handshakeSingle.apply(exchange);
+                                .doOnNext(principals::add).then())
+                                .then(flux.next());
+                    } else if (nonNull(handshakeWithServerWebExchange)) {
+                        return handshakeWithServerWebExchange.apply(exchange);
                     } else {
                         return super.handshake(exchange);
                     }
@@ -176,18 +193,19 @@ public abstract class SocketHandshakeService extends HandshakeWebSocketService {
 
                 @Override
                 public SecurityWebFilterChain securityChain() {
-                    if (nonNull(securityChainSupplier)) {
-                        return securityChainSupplier.get();
-                    } else if (nonNull(securityChainFunction)) {
-                        return securityChainFunction.apply(this.getHttp());
+                    if (nonNull(securityChain)) {
+                        return securityChain.get();
+                    } else if (nonNull(securityChainWithServerHttpSecurity)) {
+                        return securityChainWithServerHttpSecurity.apply(this.getHttp());
                     } else {
                         return super.securityChain();
                     }
                 }
 
+                @NotNull
                 @Override
-                public Mono<Void> handleRequest(@lombok.NonNull ServerWebExchange exchange, @lombok.NonNull WebSocketHandler handler) {
-                    return Optional.ofNullable(handleRequest)
+                public Mono<Void> handleRequest(@NotNull @lombok.NonNull ServerWebExchange exchange, @NotNull @lombok.NonNull WebSocketHandler handler) {
+                    return Optional.ofNullable(requestHandler)
                             .map(func -> func.apply(this, exchange, handler))
                             .orElseGet(() -> super.handleRequest(exchange, handler));
                 }
