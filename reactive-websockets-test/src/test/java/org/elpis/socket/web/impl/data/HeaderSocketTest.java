@@ -1,7 +1,8 @@
-package org.elpis.socket.web.impl;
+package org.elpis.socket.web.impl.data;
 
 import org.elpis.socket.web.BaseWebSocketTest;
 import org.elpis.socket.web.context.BootStarter;
+import org.elpis.socket.web.context.security.model.SecurityProfiles;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -10,6 +11,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.http.HttpHeaders;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.reactive.socket.WebSocketHandler;
 import org.springframework.web.reactive.socket.WebSocketMessage;
 import org.springframework.web.reactive.socket.server.WebSocketService;
@@ -28,6 +30,7 @@ import static org.mockito.Mockito.doAnswer;
 
 @ExtendWith(OutputCaptureExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = BootStarter.class)
+@ActiveProfiles({BaseWebSocketTest.DEFAULT_TEST_PROFILE, SecurityProfiles.PERMIT_ALL})
 public class HeaderSocketTest extends BaseWebSocketTest {
 
     @MockBean

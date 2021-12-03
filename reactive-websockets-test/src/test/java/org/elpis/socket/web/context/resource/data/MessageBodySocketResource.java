@@ -1,4 +1,4 @@
-package org.elpis.socket.web.context.resource;
+package org.elpis.socket.web.context.resource.data;
 
 import org.elpis.reactive.websockets.web.BasicWebSocketResource;
 import org.elpis.reactive.websockets.web.annotations.controller.Inbound;

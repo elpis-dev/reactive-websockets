@@ -1,10 +1,11 @@
-package org.elpis.socket.web.impl;
+package org.elpis.socket.web.impl.data;
 
 import nl.altindag.log.LogCaptor;
 import org.elpis.reactive.websockets.config.WebSocketConfiguration;
 import org.elpis.socket.web.BaseWebSocketTest;
 import org.elpis.socket.web.context.BootStarter;
-import org.elpis.socket.web.context.resource.MessageBodySocketResource;
+import org.elpis.socket.web.context.resource.data.MessageBodySocketResource;
+import org.elpis.socket.web.context.security.model.SecurityProfiles;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -31,7 +32,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = BootStarter.class)
-@ActiveProfiles("test")
+@ActiveProfiles({BaseWebSocketTest.DEFAULT_TEST_PROFILE, SecurityProfiles.PERMIT_ALL})
 public class BodySocketTest extends BaseWebSocketTest {
 
     @MockBean

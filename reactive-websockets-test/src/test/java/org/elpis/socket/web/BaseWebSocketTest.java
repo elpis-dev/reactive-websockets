@@ -15,6 +15,8 @@ import java.util.Random;
 import java.util.function.Function;
 
 public abstract class BaseWebSocketTest {
+    public static final String DEFAULT_TEST_PROFILE = "test";
+
     protected static final Duration DEFAULT_LONG_TEST_FALLBACK = Duration.ofSeconds(30L);
     protected static final Duration DEFAULT_GENERIC_TEST_FALLBACK = Duration.ofSeconds(10L);
     protected static final Duration DEFAULT_FAST_TEST_FALLBACK = Duration.ofSeconds(5L);
