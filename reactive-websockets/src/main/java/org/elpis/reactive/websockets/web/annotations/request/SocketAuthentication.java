@@ -12,6 +12,4 @@ import java.lang.annotation.Target;
 @Order(1)
 public @interface SocketAuthentication {
 
-
-
 }

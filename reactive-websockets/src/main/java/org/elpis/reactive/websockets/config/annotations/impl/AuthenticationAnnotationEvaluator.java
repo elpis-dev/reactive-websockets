@@ -30,18 +30,22 @@ public class AuthenticationAnnotationEvaluator extends SocketApiAnnotationEvalua
         } else if (WebSocketPrincipal.class.isAssignableFrom(principalType)) {
             final WebSocketPrincipal<?> webSocketPrincipal = TypeUtils.cast(principal, WebSocketPrincipal.class);
 
-            if (!parameterType.isAssignableFrom(webSocketPrincipal.getAuthentication().getClass())) {
+            if (!Principal.class.isAssignableFrom(parameterType) && !parameterType.isAssignableFrom(webSocketPrincipal.getAuthentication().getClass())) {
                 throw new ValidationException(String.format("Unable register method `%s()`. Requested @SocketAuthentication type: %s, found: %s",
                         methodName, parameterType.getName(), webSocketPrincipal.getAuthentication().getClass().getName()));
             }
 
-            return webSocketPrincipal.getAuthentication();
+            return Principal.class.isAssignableFrom(parameterType)
+                    ? webSocketPrincipal
+                    : webSocketPrincipal.getAuthentication();
         } else if (Authentication.class.isAssignableFrom(principalType)) {
             final Authentication authentication = TypeUtils.cast(principal, Authentication.class);
 
             return Authentication.class.isAssignableFrom(parameterType)
                     ? authentication
-                    : authentication.getDetails();
+                    : Principal.class.isAssignableFrom(parameterType)
+                        ? authentication.getPrincipal()
+                        : authentication.getDetails();
         } else {
             return principal;
         }

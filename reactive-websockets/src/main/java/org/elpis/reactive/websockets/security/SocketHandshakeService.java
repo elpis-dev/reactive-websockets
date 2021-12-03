@@ -3,17 +3,14 @@ package org.elpis.reactive.websockets.security;
 import org.elpis.reactive.websockets.security.principal.Anonymous;
 import org.elpis.reactive.websockets.security.principal.WebSocketPrincipal;
 import org.elpis.reactive.websockets.utils.TriFunction;
-import org.elpis.reactive.websockets.web.model.WebSocketError;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.core.codec.Encoder;
+import org.springframework.core.codec.CharSequenceEncoder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.EncoderHttpMessageWriter;
 import org.springframework.http.codec.HttpMessageWriter;
 import org.springframework.http.codec.json.Jackson2JsonEncoder;
-import org.springframework.lang.NonNull;
-import org.springframework.security.config.web.server.ServerHttpSecurity;
-import org.springframework.security.web.server.SecurityWebFilterChain;
+import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatcher;
+import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import org.springframework.web.reactive.result.view.ViewResolver;
@@ -40,61 +37,60 @@ public abstract class SocketHandshakeService extends HandshakeWebSocketService {
     public static final ServerResponse.Context EMPTY_CONTEXT = new ServerResponse.Context() {
 
         @Override
-        @NonNull
+        @lombok.NonNull
         public List<HttpMessageWriter<?>> messageWriters() {
-            final Encoder<?> encoder = new Jackson2JsonEncoder();
-            return List.of(new EncoderHttpMessageWriter<>(encoder));
+            final EncoderHttpMessageWriter<Object> encoderHttpMessageWriter = new EncoderHttpMessageWriter<>(new Jackson2JsonEncoder());
+            final EncoderHttpMessageWriter<CharSequence> sequenceEncoderHttpMessageWriter = new EncoderHttpMessageWriter<>(CharSequenceEncoder.textPlainOnly());
+
+            return List.of(encoderHttpMessageWriter, sequenceEncoderHttpMessageWriter);
         }
 
         @Override
-        @NonNull
+        @lombok.NonNull
         public List<ViewResolver> viewResolvers() {
             return List.of();
         }
 
     };
 
-    private final ServerHttpSecurity http = ServerHttpSecurity.http();
-
     public SocketHandshakeService(final RequestUpgradeStrategy upgradeStrategy) {
         super(upgradeStrategy);
     }
 
+    @lombok.NonNull
     public Mono<ServerResponse> handleError(@lombok.NonNull final Throwable throwable) {
         return ServerResponse.status(HttpStatus.UNAUTHORIZED)
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(new WebSocketError(throwable.getMessage()));
+                .contentType(MediaType.TEXT_PLAIN)
+                .bodyValue(throwable.getMessage());
     }
 
+    @lombok.NonNull
     public Mono<?> handshake(@lombok.NonNull final ServerWebExchange exchange) {
         return Mono.just(new Anonymous());
     }
 
-    public SecurityWebFilterChain securityChain() {
-        return this.getHttp().build();
+    @lombok.NonNull
+    public ServerWebExchangeMatcher exchangeMatcher() {
+        return ServerWebExchangeMatchers.anyExchange();
     }
 
     @Override
-    @NonNull
-    public Mono<Void> handleRequest(@NotNull @lombok.NonNull final ServerWebExchange exchange,
-                                    @NotNull @lombok.NonNull final WebSocketHandler handler) {
+    @lombok.NonNull
+    public Mono<Void> handleRequest(@lombok.NonNull final ServerWebExchange exchange,
+                                    @lombok.NonNull final WebSocketHandler handler) {
 
-        return this.securityChain().matches(exchange)
-                .flatMap(matches -> matches
-                        ? this.handshake(exchange)
-                        : Mono.error(() -> new HttpServerErrorException(HttpStatus.UNAUTHORIZED, "Security chain failed")))
+        return Mono.just(exchange)
+                .filterWhen(serverWebExchange -> this.exchangeMatcher().matches(serverWebExchange).map(ServerWebExchangeMatcher.MatchResult::isMatch))
+                .switchIfEmpty(Mono.error(() -> new HttpServerErrorException(HttpStatus.UNAUTHORIZED, "Security chain failed")))
                 .onErrorResume(throwable -> this.handleError(throwable)
                         .flatMap(serverResponse -> serverResponse.writeTo(exchange, EMPTY_CONTEXT))
                         .then(Mono.empty()))
+                .flatMap(this::handshake)
                 .map(credentials -> Principal.class.isAssignableFrom(credentials.getClass())
                         ? (Principal) credentials
                         : new WebSocketPrincipal<>(credentials))
                 .map(principal -> exchange.mutate().principal(Mono.just(principal)).build())
                 .flatMap(request -> super.handleRequest(request, handler));
-    }
-
-    public ServerHttpSecurity getHttp() {
-        return http;
     }
 
     public static Builder builder() {
@@ -107,8 +103,9 @@ public abstract class SocketHandshakeService extends HandshakeWebSocketService {
         private BiFunction<ServerWebExchange, WebFilterChain, Mono<?>> handshakeWithWebFilter;
         private Function<ServerWebExchange, Mono<?>> handshakeWithServerWebExchange;
 
-        private Supplier<SecurityWebFilterChain> securityChain;
-        private Function<ServerHttpSecurity, SecurityWebFilterChain> securityChainWithServerHttpSecurity;
+        private Function<ServerWebExchange, Mono<?>> principalExtractor;
+
+        private Supplier<ServerWebExchangeMatcher> exchangeMatcher;
 
         private TriFunction<SocketHandshakeService, ServerWebExchange, WebSocketHandler, Mono<Void>> requestHandler;
 
@@ -126,6 +123,16 @@ public abstract class SocketHandshakeService extends HandshakeWebSocketService {
 
         public Builder handshake(BiFunction<ServerWebExchange, WebFilterChain, Mono<?>> handshakeWithWebFilter) {
             this.handshakeWithWebFilter = handshakeWithWebFilter;
+            this.principalExtractor = null;
+
+            return this;
+        }
+
+        public Builder handshake(BiFunction<ServerWebExchange, WebFilterChain, Mono<?>> handshakeWithWebFilter,
+                                 Function<ServerWebExchange, Mono<?>> principalExtractor) {
+
+            this.handshakeWithWebFilter = handshakeWithWebFilter;
+            this.principalExtractor = principalExtractor;
 
             return this;
         }
@@ -136,14 +143,8 @@ public abstract class SocketHandshakeService extends HandshakeWebSocketService {
             return this;
         }
 
-        public Builder securityChain(Supplier<SecurityWebFilterChain> securityChain) {
-            this.securityChain = securityChain;
-
-            return this;
-        }
-
-        public Builder securityChain(Function<ServerHttpSecurity, SecurityWebFilterChain> securityChainWithServerHttpSecurity) {
-            this.securityChainWithServerHttpSecurity = securityChainWithServerHttpSecurity;
+        public Builder exchangeMatcher(Supplier<ServerWebExchangeMatcher> exchangeMatcher) {
+            this.exchangeMatcher = exchangeMatcher;
 
             return this;
         }
@@ -164,7 +165,12 @@ public abstract class SocketHandshakeService extends HandshakeWebSocketService {
             return new SocketHandshakeService(Optional.ofNullable(this.requestUpgradeStrategy)
                     .orElseGet(ReactorNettyRequestUpgradeStrategy::new)) {
 
+                private final Function<ServerWebExchange, Mono<?>> exchangeProcessor = serverWebExchange -> nonNull(principalExtractor)
+                        ? principalExtractor.apply(serverWebExchange)
+                        : serverWebExchange.getPrincipal();
+
                 @Override
+                @lombok.NonNull
                 public Mono<ServerResponse> handleError(@lombok.NonNull Throwable throwable) {
                     return Optional.ofNullable(errorHandler)
                             .map(func -> func.apply(throwable))
@@ -172,12 +178,13 @@ public abstract class SocketHandshakeService extends HandshakeWebSocketService {
                 }
 
                 @Override
+                @lombok.NonNull
                 public Mono<?> handshake(@lombok.NonNull ServerWebExchange exchange) {
                     if (nonNull(handshakeWithWebFilter)) {
-                        final List<Principal> principals = new ArrayList<>();
-                        final Flux<Principal> flux = Flux.fromIterable(principals);
+                        final List<Object> principals = new ArrayList<>();
+                        final Flux<?> flux = Flux.fromIterable(principals);
 
-                        return handshakeWithWebFilter.apply(exchange, serverWebExchange -> serverWebExchange.getPrincipal()
+                        return handshakeWithWebFilter.apply(exchange, serverWebExchange -> exchangeProcessor.apply(serverWebExchange)
                                 .switchIfEmpty(Mono.error(() -> new HttpServerErrorException(HttpStatus.UNAUTHORIZED, "Cannot get a Principal from request")))
                                 .onErrorResume(throwable -> this.handleError(throwable)
                                         .flatMap(serverResponse -> serverResponse.writeTo(exchange, EMPTY_CONTEXT))
@@ -185,26 +192,27 @@ public abstract class SocketHandshakeService extends HandshakeWebSocketService {
                                 .doOnNext(principals::add).then())
                                 .then(flux.next());
                     } else if (nonNull(handshakeWithServerWebExchange)) {
-                        return handshakeWithServerWebExchange.apply(exchange);
+                        return handshakeWithServerWebExchange.apply(exchange)
+                                .switchIfEmpty(Mono.error(() -> new HttpServerErrorException(HttpStatus.UNAUTHORIZED, "Cannot get a Principal from request")))
+                                .onErrorResume(throwable -> this.handleError(throwable)
+                                        .flatMap(serverResponse -> serverResponse.writeTo(exchange, EMPTY_CONTEXT))
+                                        .then(Mono.empty()));
                     } else {
                         return super.handshake(exchange);
                     }
                 }
 
                 @Override
-                public SecurityWebFilterChain securityChain() {
-                    if (nonNull(securityChain)) {
-                        return securityChain.get();
-                    } else if (nonNull(securityChainWithServerHttpSecurity)) {
-                        return securityChainWithServerHttpSecurity.apply(this.getHttp());
-                    } else {
-                        return super.securityChain();
-                    }
+                @lombok.NonNull
+                public ServerWebExchangeMatcher exchangeMatcher() {
+                    return nonNull(exchangeMatcher)
+                            ? exchangeMatcher.get()
+                            : super.exchangeMatcher();
                 }
 
-                @NotNull
                 @Override
-                public Mono<Void> handleRequest(@NotNull @lombok.NonNull ServerWebExchange exchange, @NotNull @lombok.NonNull WebSocketHandler handler) {
+                @lombok.NonNull
+                public Mono<Void> handleRequest(@lombok.NonNull ServerWebExchange exchange, @lombok.NonNull WebSocketHandler handler) {
                     return Optional.ofNullable(requestHandler)
                             .map(func -> func.apply(this, exchange, handler))
                             .orElseGet(() -> super.handleRequest(exchange, handler));
