@@ -40,4 +40,9 @@ public class WebFilterSecurityResource implements BasicWebSocketResource {
         return Flux.just(authentication);
     }
 
+    @Outbound("/withDetailsFromAuthentication")
+    public Publisher<?> withDetailsFromAuthentication(@SocketAuthentication final String authentication) {
+        return Flux.just(authentication);
+    }
+
 }
