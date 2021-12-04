@@ -2,48 +2,26 @@ package org.elpis.socket.web.impl.data;
 
 import org.elpis.socket.web.BaseWebSocketTest;
 import org.elpis.socket.web.context.BootStarter;
-import org.elpis.socket.web.context.security.model.SecurityProfiles;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.web.reactive.socket.WebSocketHandler;
 import org.springframework.web.reactive.socket.WebSocketMessage;
-import org.springframework.web.reactive.socket.server.WebSocketService;
-import org.springframework.web.reactive.socket.server.support.HandshakeWebSocketService;
-import org.springframework.web.reactive.socket.server.upgrade.ReactorNettyRequestUpgradeStrategy;
-import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Sinks;
 import reactor.test.StepVerifier;
 
 import java.util.concurrent.TimeoutException;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doAnswer;
 
 @ExtendWith(OutputCaptureExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = BootStarter.class)
-@ActiveProfiles({BaseWebSocketTest.DEFAULT_TEST_PROFILE, SecurityProfiles.PERMIT_ALL})
+@ActiveProfiles({BaseWebSocketTest.DEFAULT_TEST_PROFILE})
+@Import(BaseWebSocketTest.PermitAllSecurityConfiguration.class)
 public class PathVariableSocketTest extends BaseWebSocketTest {
-
-    @MockBean
-    private WebSocketService webSocketService;
-
-    @BeforeEach
-    public void each() {
-        doAnswer(answer -> {
-            final ServerWebExchange serverWebExchange = answer.getArgument(0);
-            final WebSocketHandler webSocketHandler = answer.getArgument(1);
-
-            return new HandshakeWebSocketService(new ReactorNettyRequestUpgradeStrategy())
-                    .handleRequest(serverWebExchange, webSocketHandler);
-        }).when(webSocketService).handleRequest(any(ServerWebExchange.class), any(WebSocketHandler.class));
-    }
 
     @Test
     public void getWithStringPathTest() throws Exception {

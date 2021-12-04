@@ -1,5 +1,6 @@
 package org.elpis.socket.web.impl.security;
 
+import org.elpis.reactive.websockets.security.SocketHandshakeService;
 import org.elpis.socket.web.BaseWebSocketTest;
 import org.elpis.socket.web.context.BootStarter;
 import org.elpis.socket.web.context.security.model.SecurityProfiles;
@@ -7,14 +8,22 @@ import org.elpis.socket.web.context.security.model.TestConstants;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
+import org.springframework.security.authorization.AuthorizationDecision;
+import org.springframework.security.config.web.server.ServerHttpSecurity;
+import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.reactive.socket.WebSocketMessage;
+import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 import reactor.test.StepVerifier;
 
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeoutException;
 
@@ -22,7 +31,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(OutputCaptureExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = BootStarter.class)
-@ActiveProfiles({BaseWebSocketTest.DEFAULT_TEST_PROFILE, SecurityProfiles.GENERIC, SecurityProfiles.SECURITY_CHAIN})
+@ActiveProfiles({BaseWebSocketTest.DEFAULT_TEST_PROFILE, SecurityProfiles.FULL})
+@Import(SecurityChainTest.SecurityChainTestSecurityConfiguration.class)
 public class SecurityChainTest extends BaseWebSocketTest {
 
     @Test
@@ -71,6 +81,31 @@ public class SecurityChainTest extends BaseWebSocketTest {
                 .verifyError(TimeoutException.class);
 
         assertThat(output).contains("Invalid handshake response getStatus: 401 Unauthorized");
+    }
+
+    @TestConfiguration
+    public static class SecurityChainTestSecurityConfiguration {
+
+        @Bean
+        public SecurityWebFilterChain securityWebFilterChain(final ServerHttpSecurity http) {
+            return http.authorizeExchange(authorizeExchangeSpec -> authorizeExchangeSpec.anyExchange()
+                    .access((authentication, context) -> {
+                        final boolean hasValidHeader = Optional.ofNullable(context.getExchange().getRequest().getHeaders().get(TestConstants.PRINCIPAL))
+                                .flatMap(headers -> headers.stream().findFirst())
+                                .map(TestConstants.TEST_VALUE::equals)
+                                .orElse(false);
+
+                        return Mono.just(new AuthorizationDecision(hasValidHeader));
+                    })).formLogin().disable().build();
+        }
+
+        @Bean
+        public SocketHandshakeService socketHandshakeService() {
+            return SocketHandshakeService.builder()
+                    .handshake(serverWebExchange -> Mono.justOrEmpty(Optional.ofNullable(serverWebExchange.getRequest().getHeaders().get(TestConstants.PRINCIPAL))
+                            .flatMap(headers -> headers.stream().findFirst())))
+                    .build();
+        }
     }
 
 }

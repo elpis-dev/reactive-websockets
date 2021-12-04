@@ -1,11 +1,19 @@
 
 package org.elpis.socket.web;
 
+import org.elpis.reactive.websockets.EnableReactiveSockets;
+import org.elpis.reactive.websockets.security.SocketHandshakeService;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpHeaders;
 import org.springframework.lang.NonNull;
+import org.springframework.security.config.web.server.ServerHttpSecurity;
+import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.web.reactive.socket.WebSocketSession;
 import org.springframework.web.reactive.socket.client.ReactorNettyWebSocketClient;
+import org.springframework.web.reactive.socket.server.support.HandshakeWebSocketService;
+import org.springframework.web.reactive.socket.server.upgrade.ReactorNettyRequestUpgradeStrategy;
 import reactor.core.publisher.Mono;
 
 import java.net.URI;
@@ -74,6 +82,22 @@ public abstract class BaseWebSocketTest {
 
     protected URI getUrl(@NonNull final String path) throws URISyntaxException {
         return new URI("ws://localhost:" + this.port + path);
+    }
+
+    @TestConfiguration
+    @EnableReactiveSockets
+    public static class PermitAllSecurityConfiguration {
+
+        @Bean
+        public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
+            return http.authorizeExchange().anyExchange().permitAll().and().build();
+        }
+
+        @Bean
+        public SocketHandshakeService socketHandshakeService() {
+            return SocketHandshakeService.builder().build();
+        }
+
     }
 
 }

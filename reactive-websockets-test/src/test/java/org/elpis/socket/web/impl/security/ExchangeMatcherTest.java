@@ -1,5 +1,6 @@
 package org.elpis.socket.web.impl.security;
 
+import org.elpis.reactive.websockets.security.SocketHandshakeService;
 import org.elpis.socket.web.BaseWebSocketTest;
 import org.elpis.socket.web.context.BootStarter;
 import org.elpis.socket.web.context.security.model.SecurityProfiles;
@@ -7,14 +8,21 @@ import org.elpis.socket.web.context.security.model.TestConstants;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
+import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatcher;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.web.reactive.socket.WebSocketMessage;
+import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 import reactor.test.StepVerifier;
 
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeoutException;
 
@@ -22,7 +30,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(OutputCaptureExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = BootStarter.class)
-@ActiveProfiles({BaseWebSocketTest.DEFAULT_TEST_PROFILE, SecurityProfiles.GENERIC, SecurityProfiles.CUSTOM_EXCHANGE_MATCHER})
+@ActiveProfiles({BaseWebSocketTest.DEFAULT_TEST_PROFILE, SecurityProfiles.FULL})
+@Import(ExchangeMatcherTest.CustomExchangeMatherTestSecurityConfiguration.class)
+@TestPropertySource("classpath:application-test-disabled-default-security.properties")
 public class ExchangeMatcherTest extends BaseWebSocketTest {
 
     @Test
@@ -94,6 +104,32 @@ public class ExchangeMatcherTest extends BaseWebSocketTest {
                 .verifyError(TimeoutException.class);
 
         assertThat(output).contains("Unable register method `withExtractedAuthentication()`. Requested @SocketAuthentication type: java.lang.Void, found: java.lang.String");
+    }
+
+    @TestConfiguration
+    public static class CustomExchangeMatherTestSecurityConfiguration {
+
+        @Bean
+        public SocketHandshakeService socketHandshakeService() {
+            return SocketHandshakeService.builder()
+                    .exchangeMatcher(this::serverWebExchangeMatcher)
+                    .handshake(serverWebExchange -> Mono.justOrEmpty(Optional.ofNullable(serverWebExchange.getRequest().getHeaders().get(TestConstants.PRINCIPAL))
+                            .flatMap(headers -> headers.stream().findFirst())))
+                    .build();
+        }
+
+        private ServerWebExchangeMatcher serverWebExchangeMatcher() {
+            return exchange -> {
+                final boolean hasValidHeader = Optional.ofNullable(exchange.getRequest().getHeaders().get(TestConstants.PRINCIPAL))
+                        .flatMap(headers -> headers.stream().findFirst())
+                        .map(TestConstants.TEST_VALUE::equals)
+                        .orElse(false);
+
+                return hasValidHeader
+                        ? ServerWebExchangeMatcher.MatchResult.match()
+                        : ServerWebExchangeMatcher.MatchResult.notMatch();
+            };
+        }
     }
 
 }
