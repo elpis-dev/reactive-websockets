@@ -1,9 +1,9 @@
 package org.elpis.socket.web.context.resource.data;
 
 import org.elpis.reactive.websockets.web.BasicWebSocketResource;
-import org.elpis.reactive.websockets.web.annotations.controller.Inbound;
-import org.elpis.reactive.websockets.web.annotations.controller.SocketResource;
-import org.elpis.reactive.websockets.web.annotations.request.SocketMessageBody;
+import org.elpis.reactive.websockets.web.annotation.controller.Inbound;
+import org.elpis.reactive.websockets.web.annotation.controller.SocketResource;
+import org.elpis.reactive.websockets.web.annotation.request.SocketMessageBody;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.reactive.socket.WebSocketMessage;

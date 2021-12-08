@@ -1,7 +1,7 @@
 package org.elpis.socket.web.context;
 
 import org.elpis.reactive.websockets.EnableReactiveSockets;
-import org.elpis.reactive.websockets.config.annotations.impl.*;
+import org.elpis.reactive.websockets.config.annotation.impl.*;
 import org.elpis.socket.web.context.resource.data.HeaderSocketResource;
 import org.elpis.socket.web.context.resource.data.MessageBodySocketResource;
 import org.elpis.socket.web.context.resource.data.PathVariableSocketResource;

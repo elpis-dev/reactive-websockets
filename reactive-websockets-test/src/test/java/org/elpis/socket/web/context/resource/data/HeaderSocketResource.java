@@ -1,9 +1,9 @@
 package org.elpis.socket.web.context.resource.data;
 
 import org.elpis.reactive.websockets.web.BasicWebSocketResource;
-import org.elpis.reactive.websockets.web.annotations.controller.Outbound;
-import org.elpis.reactive.websockets.web.annotations.controller.SocketResource;
-import org.elpis.reactive.websockets.web.annotations.request.SocketHeader;
+import org.elpis.reactive.websockets.web.annotation.controller.Outbound;
+import org.elpis.reactive.websockets.web.annotation.controller.SocketResource;
+import org.elpis.reactive.websockets.web.annotation.request.SocketHeader;
 import org.elpis.socket.web.context.BootStarter;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;

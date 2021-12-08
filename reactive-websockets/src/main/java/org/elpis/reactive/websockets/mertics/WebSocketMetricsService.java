@@ -18,10 +18,8 @@ public class WebSocketMetricsService {
         this.meterRegistry = meterRegistry;
     }
 
-    public <T> T withGauge(@NonNull T data, @NonNull BiConsumer<T, MeterRegistry> gaugeFunction) {
+    public <T> void withGauge(@NonNull T data, @NonNull BiConsumer<T, MeterRegistry> gaugeFunction) {
         gaugeFunction.accept(data, meterRegistry);
-
-        return data;
     }
 
     public <T> T withTimer(@NonNull final Function<BiFunction<String, Iterable<Tag>, Long>, T> sampleFunction) {

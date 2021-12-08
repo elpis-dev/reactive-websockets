@@ -4,7 +4,11 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
+import org.reactivestreams.Publisher;
 import org.springframework.lang.Nullable;
+import org.springframework.web.reactive.socket.CloseStatus;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.net.InetSocketAddress;
 import java.net.URI;
@@ -30,8 +34,4 @@ public class WebSocketSessionInfo {
 
     @Nullable
     private InetSocketAddress remoteAddress;
-
-    @NonNull
-    @Builder.Default
-    private Runnable close = () -> {};
 }
