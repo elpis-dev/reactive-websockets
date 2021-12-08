@@ -1,7 +1,9 @@
 package org.elpis.socket.web.context;
 
 import org.elpis.reactive.websockets.EnableReactiveSockets;
+import org.elpis.reactive.websockets.config.WebSessionRegistry;
 import org.elpis.reactive.websockets.config.annotation.impl.*;
+import org.elpis.reactive.websockets.mapper.JsonMapper;
 import org.elpis.socket.web.context.resource.data.HeaderSocketResource;
 import org.elpis.socket.web.context.resource.data.MessageBodySocketResource;
 import org.elpis.socket.web.context.resource.data.PathVariableSocketResource;
@@ -30,7 +32,10 @@ import org.springframework.context.annotation.Import;
         HeaderAnnotationEvaluator.class,
         MessageBodyAnnotationEvaluator.class,
         PathVariableAnnotationEvaluator.class,
-        QueryParameterAnnotationEvaluator.class
+        QueryParameterAnnotationEvaluator.class,
+
+        WebSessionRegistry.class,
+        JsonMapper.class
 })
 public class BootStarter {
     public static void main(String[] args) {
