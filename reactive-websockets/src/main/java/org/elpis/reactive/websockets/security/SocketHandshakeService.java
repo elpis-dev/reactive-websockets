@@ -29,7 +29,7 @@ import java.util.function.Supplier;
 import static java.util.Objects.nonNull;
 
 public abstract class SocketHandshakeService extends HandshakeWebSocketService {
-    public SocketHandshakeService(final RequestUpgradeStrategy upgradeStrategy) {
+    protected SocketHandshakeService(final RequestUpgradeStrategy upgradeStrategy) {
         super(upgradeStrategy);
     }
 

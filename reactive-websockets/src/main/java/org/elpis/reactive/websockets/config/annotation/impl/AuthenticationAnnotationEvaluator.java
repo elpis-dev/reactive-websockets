@@ -43,12 +43,16 @@ public class AuthenticationAnnotationEvaluator implements SocketApiAnnotationEva
 
             return Authentication.class.isAssignableFrom(parameterType)
                     ? authentication
-                    : Principal.class.isAssignableFrom(parameterType)
-                        ? authentication.getPrincipal()
-                        : authentication.getDetails();
+                    : this.getPrincipalDetails(authentication, parameterType);
         } else {
             return principal;
         }
+    }
+
+    private Object getPrincipalDetails(final Authentication authentication, final Class<?> parameterType) {
+        return Principal.class.isAssignableFrom(parameterType)
+                ? authentication.getPrincipal()
+                : authentication.getDetails();
     }
 
     @Override

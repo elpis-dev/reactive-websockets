@@ -16,8 +16,8 @@ import static org.elpis.reactive.websockets.mertics.WebSocketMetricsService.Mete
 
 @Component
 public class WebSessionRegistry extends ConcurrentHashMap<String, WebSocketSessionInfo> {
-    private final WebSocketEventManager<SessionConnectedEvent> webSocketConnectionEvent;
-    private final WebSocketMetricsService webSocketMetricsService;
+    private final transient WebSocketEventManager<SessionConnectedEvent> webSocketConnectionEvent;
+    private final transient WebSocketMetricsService webSocketMetricsService;
 
     public WebSessionRegistry(final WebSocketEventManager<SessionConnectedEvent> webSocketConnectionEvent,
                               final WebSocketMetricsService webSocketMetricsService) {

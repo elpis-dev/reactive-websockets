@@ -49,7 +49,7 @@ import static org.elpis.reactive.websockets.mertics.WebSocketMetricsService.Mete
 public class WebSocketConfiguration {
     private static final Logger log = LoggerFactory.getLogger(WebSocketConfiguration.class);
 
-    private final JsonMapper jsonMapper = new JsonMapper();
+    private final JsonMapper jsonMapper;
 
     private final Map<String, WebHandlerResourceDescriptor> descriptorRegistry = new ConcurrentHashMap<>();
 
@@ -64,8 +64,10 @@ public class WebSocketConfiguration {
                                   final SocketAnnotationEvaluatorFactory socketAnnotationEvaluatorFactory,
                                   final WebSocketMetricsService webSocketMetricsService,
                                   final WebSessionRegistry sessionRegistry,
-
-                                  final WebSocketEventManager<ClientSessionClosedEvent> closedEventWebSocketEventManager) {
+                                  // Event Managers
+                                  final WebSocketEventManager<ClientSessionClosedEvent> closedEventWebSocketEventManager,
+                                  // Misc
+                                  final JsonMapper jsonMapper) {
 
         this.applicationContext = applicationContext;
         this.socketAnnotationEvaluatorFactory = socketAnnotationEvaluatorFactory;
@@ -73,6 +75,8 @@ public class WebSocketConfiguration {
         this.sessionRegistry = sessionRegistry;
 
         this.closedEventWebSocketEventManager = closedEventWebSocketEventManager;
+
+        this.jsonMapper = jsonMapper;
     }
 
     @Bean
@@ -89,12 +93,7 @@ public class WebSocketConfiguration {
         });
 
 
-        return new SimpleUrlHandlerMapping() {
-            {
-                setUrlMap(webSocketHandlers);
-                setOrder(10);
-            }
-        };
+        return new SimpleUrlHandlerMapping(webSocketHandlers, 10);
     }
 
     private void registerMappings(final SocketResource socketResource,
