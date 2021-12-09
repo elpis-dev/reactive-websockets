@@ -2,6 +2,7 @@ package org.elpis.reactive.websockets.config;
 
 import io.micrometer.core.instrument.Tags;
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.Setter;
 import org.elpis.reactive.websockets.config.annotation.SocketAnnotationEvaluatorFactory;
 import org.elpis.reactive.websockets.config.event.EventManagerConfiguration;
@@ -40,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.Objects.nonNull;
@@ -73,26 +75,24 @@ public class WebSocketConfiguration {
     }
 
     @Bean
-    public HandlerMapping handlerMapping(final List<? extends BasicWebSocketResource> webSocketResources) {
-        final Map<String, WebSocketHandler> webSocketHandlers = new HashMap<>();
-
+    public HandlerMapping handlerMapping(@NonNull final List<? extends BasicWebSocketResource> webSocketResources) {
         webSocketResources.forEach(resource -> {
             final Class<? extends BasicWebSocketResource> clazz = resource.getClass();
 
             Stream.of(clazz.getAnnotations())
                     .findFirst()
                     .map(annotation -> TypeUtils.cast(annotation, SocketResource.class))
-                    .ifPresent(socketResource -> this.registerMappings(socketResource, webSocketHandlers, clazz));
+                    .ifPresent(socketResource -> this.registerMappings(socketResource, clazz));
         });
 
+        final Map<String, WebSocketHandler> webSocketHandlers = this.descriptorRegistry.entrySet()
+                .stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, entry -> this.handle(entry.getKey(), entry.getValue())));
 
         return new SimpleUrlHandlerMapping(webSocketHandlers, 10);
     }
 
-    private void registerMappings(final SocketResource socketResource,
-                                  final Map<String, WebSocketHandler> webSocketHandlers,
-                                  final Class<? extends BasicWebSocketResource> clazz) {
-
+    private void registerMappings(final SocketResource socketResource, final Class<? extends BasicWebSocketResource> clazz) {
         Stream.of(clazz.getDeclaredMethods())
                 .forEach(method -> {
                     if (method.isAnnotationPresent(Outbound.class)) {
@@ -103,9 +103,6 @@ public class WebSocketConfiguration {
                         this.configureListener(socketResource, method, clazz);
                     }
                 });
-
-        this.descriptorRegistry.forEach((pathTemplate, configEntity) ->
-                webSocketHandlers.put(pathTemplate, this.handle(pathTemplate, configEntity)));
     }
 
     private void configureListener(final SocketResource socketResource,

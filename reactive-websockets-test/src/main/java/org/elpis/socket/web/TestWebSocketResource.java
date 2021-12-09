@@ -18,9 +18,9 @@ import java.security.Principal;
 import java.time.Duration;
 import java.util.Map;
 
-@SocketResource("/ws/chat")
-public class ChatWebSocketResource implements BasicWebSocketResource {
-    private final static Logger LOG = LoggerFactory.getLogger(ChatWebSocketResource.class);
+@SocketResource("/ws/test")
+public class TestWebSocketResource implements BasicWebSocketResource {
+    private final static Logger LOG = LoggerFactory.getLogger(TestWebSocketResource.class);
 
     @Outbound("/listen/{chatId}")
     public Publisher<?> handleOutbound(@SocketHeader("userName") final String userName,
