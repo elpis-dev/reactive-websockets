@@ -4,9 +4,18 @@ import org.elpis.reactive.websockets.event.WebSocketEventManager;
 import org.elpis.reactive.websockets.event.model.WebSocketEvent;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Sinks;
+import reactor.util.concurrent.Queues;
 
-public abstract class ReplayManyEventManager<T extends WebSocketEvent<?>> implements WebSocketEventManager<T> {
-    private final Sinks.Many<T> sink = Sinks.many().replay().all();
+public abstract class MulticastEventManager<T extends WebSocketEvent<?>> implements WebSocketEventManager<T> {
+    private final Sinks.Many<T> sink;
+
+    protected MulticastEventManager() {
+        this(Queues.SMALL_BUFFER_SIZE);
+    }
+
+    protected MulticastEventManager(final int eventQueueSize) {
+        sink = Sinks.many().multicast().onBackpressureBuffer(eventQueueSize);
+    }
 
     @Override
     public Sinks.EmitResult fire(final T t) {

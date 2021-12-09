@@ -7,6 +7,8 @@ import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 
 public interface WebSocketEventManager<T extends WebSocketEvent<?>> {
+    int MEDIUM_EVENT_QUEUE_SIZE = 256;
+
     Sinks.EmitResult fire(final T t);
 
     Publisher<T> listen();

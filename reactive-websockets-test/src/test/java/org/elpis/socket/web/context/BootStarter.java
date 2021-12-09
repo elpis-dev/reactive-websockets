@@ -1,7 +1,7 @@
 package org.elpis.socket.web.context;
 
 import org.elpis.reactive.websockets.EnableReactiveSockets;
-import org.elpis.reactive.websockets.config.WebSessionRegistry;
+import org.elpis.reactive.websockets.config.registry.WebSessionRegistry;
 import org.elpis.reactive.websockets.config.annotation.impl.*;
 import org.elpis.reactive.websockets.mapper.JsonMapper;
 import org.elpis.socket.web.context.resource.data.HeaderSocketResource;

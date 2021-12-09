@@ -1,9 +1,13 @@
 package org.elpis.reactive.websockets.config;
 
 import io.micrometer.core.instrument.Tags;
+import lombok.Getter;
+import lombok.Setter;
 import org.elpis.reactive.websockets.config.annotation.SocketAnnotationEvaluatorFactory;
-import org.elpis.reactive.websockets.event.WebSocketEventManager;
-import org.elpis.reactive.websockets.event.model.impl.ClientSessionClosedEvent;
+import org.elpis.reactive.websockets.config.event.EventManagerConfiguration;
+import org.elpis.reactive.websockets.config.model.WebSocketSessionContext;
+import org.elpis.reactive.websockets.config.registry.WebSessionRegistry;
+import org.elpis.reactive.websockets.config.registry.WebSocketSessionInfo;
 import org.elpis.reactive.websockets.exception.ValidationException;
 import org.elpis.reactive.websockets.exception.WebSocketConfigurationException;
 import org.elpis.reactive.websockets.mapper.JsonMapper;
@@ -14,9 +18,6 @@ import org.elpis.reactive.websockets.web.BasicWebSocketResource;
 import org.elpis.reactive.websockets.web.annotation.controller.Inbound;
 import org.elpis.reactive.websockets.web.annotation.controller.Outbound;
 import org.elpis.reactive.websockets.web.annotation.controller.SocketResource;
-import org.elpis.reactive.websockets.web.model.ClientSessionCloseInfo;
-import org.elpis.reactive.websockets.web.model.WebSocketSessionContext;
-import org.elpis.reactive.websockets.web.model.WebSocketSessionInfo;
 import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,24 +59,16 @@ public class WebSocketConfiguration {
     private final WebSocketMetricsService webSocketMetricsService;
     private final WebSessionRegistry sessionRegistry;
 
-    private final WebSocketEventManager<ClientSessionClosedEvent> closedEventWebSocketEventManager;
-
     public WebSocketConfiguration(final ApplicationContext applicationContext,
                                   final SocketAnnotationEvaluatorFactory socketAnnotationEvaluatorFactory,
                                   final WebSocketMetricsService webSocketMetricsService,
                                   final WebSessionRegistry sessionRegistry,
-                                  // Event Managers
-                                  final WebSocketEventManager<ClientSessionClosedEvent> closedEventWebSocketEventManager,
-                                  // Misc
                                   final JsonMapper jsonMapper) {
 
         this.applicationContext = applicationContext;
         this.socketAnnotationEvaluatorFactory = socketAnnotationEvaluatorFactory;
         this.webSocketMetricsService = webSocketMetricsService;
         this.sessionRegistry = sessionRegistry;
-
-        this.closedEventWebSocketEventManager = closedEventWebSocketEventManager;
-
         this.jsonMapper = jsonMapper;
     }
 
@@ -175,11 +168,10 @@ public class WebSocketConfiguration {
                             .id(session.getId())
                             .uri(handshakeInfo.getUri())
                             .remoteAddress(handshakeInfo.getRemoteAddress())
+                            .closeStatus(session.closeStatus())
                             .build();
 
                     this.sessionRegistry.put(session.getId(), webSocketSessionInfo);
-
-                    this.addOnClientCloseEvent(webSocketSessionInfo, session.closeStatus());
 
                     return session.getHandshakeInfo().getPrincipal()
                             .switchIfEmpty(Mono.just(new Anonymous()))
@@ -285,45 +277,20 @@ public class WebSocketConfiguration {
                 .orElse(null)).toArray();
     }
 
-    private void addOnClientCloseEvent(final WebSocketSessionInfo webSocketSessionInfo, final Mono<CloseStatus> closeStatus) {
-        final ClientSessionCloseInfo clientSessionCloseInfo = ClientSessionCloseInfo.builder()
-                .webSocketSessionInfo(webSocketSessionInfo)
-                .closeStatus(closeStatus)
-                .build();
-
-        this.closedEventWebSocketEventManager.fire(ClientSessionClosedEvent.builder()
-                .clientSessionCloseInfo(clientSessionCloseInfo)
-                .build());
-    }
-
     private static class WebHandlerResourceDescriptor<T extends BasicWebSocketResource> {
+        @Getter
+        @Setter
         private Method outboundMethod;
+
+        @Getter
+        @Setter
         private Method inboundMethod;
 
+        @Getter
         private final Class<T> clazz;
 
         public WebHandlerResourceDescriptor(Class<T> clazz) {
             this.clazz = clazz;
-        }
-
-        public Method getOutboundMethod() {
-            return outboundMethod;
-        }
-
-        public void setOutboundMethod(Method outboundMethod) {
-            this.outboundMethod = outboundMethod;
-        }
-
-        public Method getInboundMethod() {
-            return inboundMethod;
-        }
-
-        public void setInboundMethod(Method inboundMethod) {
-            this.inboundMethod = inboundMethod;
-        }
-
-        public Class<T> getClazz() {
-            return clazz;
         }
     }
 

@@ -1,4 +1,4 @@
-package org.elpis.reactive.websockets.config;
+package org.elpis.reactive.websockets.config.event;
 
 import org.elpis.reactive.websockets.event.EventManagers;
 import org.elpis.reactive.websockets.event.WebSocketEventManager;
@@ -8,16 +8,16 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-class EventManagerConfiguration {
+public class EventManagerConfiguration {
 
     @Bean
     public WebSocketEventManager<SessionConnectedEvent> connectedEventWebSocketEventManager() {
-        return EventManagers.replayMany();
+        return EventManagers.multicast();
     }
 
     @Bean
     public WebSocketEventManager<ClientSessionClosedEvent> clientClosedEventWebSocketEventManager() {
-        return EventManagers.replayMany();
+        return EventManagers.multicast(WebSocketEventManager.MEDIUM_EVENT_QUEUE_SIZE);
     }
 
 }

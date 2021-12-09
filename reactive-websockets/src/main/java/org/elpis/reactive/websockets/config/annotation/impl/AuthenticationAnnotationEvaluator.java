@@ -7,7 +7,7 @@ import org.elpis.reactive.websockets.security.principal.Anonymous;
 import org.elpis.reactive.websockets.security.principal.WebSocketPrincipal;
 import org.elpis.reactive.websockets.util.TypeUtils;
 import org.elpis.reactive.websockets.web.annotation.request.SocketAuthentication;
-import org.elpis.reactive.websockets.web.model.WebSocketSessionContext;
+import org.elpis.reactive.websockets.config.model.WebSocketSessionContext;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
