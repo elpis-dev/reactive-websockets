@@ -8,6 +8,7 @@ import org.elpis.reactive.websockets.web.annotation.request.SocketPathVariable;
 import org.elpis.reactive.websockets.web.model.WebSocketSessionContext;
 import org.springframework.stereotype.Component;
 
+import java.lang.reflect.Parameter;
 import java.util.Map;
 import java.util.Optional;
 
@@ -16,8 +17,10 @@ public class PathVariableAnnotationEvaluator implements SocketApiAnnotationEvalu
 
     @Override
     public Object evaluate(@NonNull final WebSocketSessionContext webSocketSessionContext,
-                           @NonNull final Class<?> parameterType, @NonNull final String methodName,
+                           @NonNull final Parameter parameter, @NonNull final String methodName,
                            @NonNull final SocketPathVariable annotation) {
+
+        final Class<?> parameterType = parameter.getType();
 
         final Map<String, String> pathParameters = webSocketSessionContext.getPathParameters();
 

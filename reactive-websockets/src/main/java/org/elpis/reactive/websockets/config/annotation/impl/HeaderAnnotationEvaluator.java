@@ -10,6 +10,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.ValueConstants;
 
+import java.lang.reflect.Parameter;
 import java.util.List;
 import java.util.Optional;
 
@@ -18,9 +19,11 @@ public class HeaderAnnotationEvaluator implements SocketApiAnnotationEvaluator<S
 
     @Override
     public Object evaluate(@NonNull WebSocketSessionContext webSocketSessionContext,
-                           @NonNull Class<?> parameterType,
+                           @NonNull Parameter parameter,
                            @NonNull String methodName,
                            @NonNull SocketHeader annotation) {
+
+        final Class<?> parameterType = parameter.getType();
 
         final HttpHeaders headers = webSocketSessionContext.getHeaders();
 

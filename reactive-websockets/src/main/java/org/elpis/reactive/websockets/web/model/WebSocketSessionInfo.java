@@ -4,15 +4,11 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
-import org.reactivestreams.Publisher;
 import org.springframework.lang.Nullable;
-import org.springframework.web.reactive.socket.CloseStatus;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 import java.net.InetSocketAddress;
 import java.net.URI;
-import java.util.function.Supplier;
+import java.util.function.BooleanSupplier;
 
 @Getter
 @Setter
@@ -24,7 +20,7 @@ public class WebSocketSessionInfo {
 
     @NonNull
     @Builder.Default
-    private Supplier<Boolean> isOpen = () -> false;
+    private BooleanSupplier isOpen = () -> false;
 
     @NonNull
     private URI uri;

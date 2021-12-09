@@ -1,5 +1,7 @@
 package org.elpis.reactive.websockets.util;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import org.elpis.reactive.websockets.exception.ValidationException;
 
 import java.math.BigDecimal;
@@ -11,6 +13,7 @@ import java.util.function.BiFunction;
 
 import static java.util.Objects.isNull;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class TypeUtils {
     private static final Map<Class<?>, BiFunction<String, Class<?>, ?>> convertRegistry = Map.ofEntries(

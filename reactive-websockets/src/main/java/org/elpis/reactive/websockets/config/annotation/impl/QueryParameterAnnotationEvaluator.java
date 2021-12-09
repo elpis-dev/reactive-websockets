@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.ValueConstants;
 
+import java.lang.reflect.Parameter;
 import java.util.List;
 import java.util.Optional;
 
@@ -18,8 +19,10 @@ public class QueryParameterAnnotationEvaluator implements SocketApiAnnotationEva
 
     @Override
     public Object evaluate(@NonNull final WebSocketSessionContext webSocketSessionContext,
-                           @NonNull final Class<?> parameterType, @NonNull final String methodName,
+                           @NonNull final Parameter parameter, @NonNull final String methodName,
                            @NonNull final SocketQueryParam annotation) {
+
+        final Class<?> parameterType = parameter.getType();
 
         final MultiValueMap<String, String> queryParameters = webSocketSessionContext.getQueryParameters();
 

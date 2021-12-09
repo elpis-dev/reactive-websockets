@@ -4,16 +4,13 @@ import lombok.NonNull;
 import org.elpis.reactive.websockets.web.model.WebSocketSessionContext;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Parameter;
 
 public interface SocketApiAnnotationEvaluator<A extends Annotation> {
 
     Object evaluate(@NonNull WebSocketSessionContext webSocketSessionContext,
-                    @NonNull Class<?> parameterType, @NonNull String methodName,
+                    @NonNull Parameter parameter, @NonNull String methodName,
                     @NonNull A annotation);
 
     @NonNull Class<A> getAnnotationType();
-
-    default boolean supported(@NonNull final Class<? extends Annotation> annotationType) {
-        return this.getAnnotationType().isAssignableFrom(annotationType);
-    }
 }

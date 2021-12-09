@@ -280,13 +280,9 @@ public class WebSocketConfiguration {
         webSocketSessionContext.setInbound(method.isAnnotationPresent(Inbound.class));
         webSocketSessionContext.setOutbound(method.isAnnotationPresent(Outbound.class));
 
-        return Stream.of(method.getParameters()).map(parameter -> {
-            final Class<?> parameterType = parameter.getType();
-
-            return this.socketAnnotationEvaluatorFactory.getEvaluator(parameter.getAnnotations())
-                    .map(evaluator -> evaluator.evaluate(webSocketSessionContext, parameterType, methodName, parameter.getAnnotation(evaluator.getAnnotationType())))
-                    .orElse(null);
-        }).toArray();
+        return Stream.of(method.getParameters()).map(parameter -> this.socketAnnotationEvaluatorFactory.getEvaluator(parameter.getAnnotations())
+                .map(evaluator -> evaluator.evaluate(webSocketSessionContext, parameter, methodName, parameter.getAnnotation(evaluator.getAnnotationType())))
+                .orElse(null)).toArray();
     }
 
     private void addOnClientCloseEvent(final WebSocketSessionInfo webSocketSessionInfo, final Mono<CloseStatus> closeStatus) {

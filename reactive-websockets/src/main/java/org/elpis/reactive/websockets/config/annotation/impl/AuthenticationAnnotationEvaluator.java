@@ -11,6 +11,7 @@ import org.elpis.reactive.websockets.web.model.WebSocketSessionContext;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
+import java.lang.reflect.Parameter;
 import java.security.Principal;
 
 @Component
@@ -18,9 +19,11 @@ public class AuthenticationAnnotationEvaluator implements SocketApiAnnotationEva
 
     @Override
     public Object evaluate(@NonNull final WebSocketSessionContext webSocketSessionContext,
-                           @NonNull final Class<?> parameterType,
+                           @NonNull final Parameter parameter,
                            @NonNull final String methodName,
                            @NonNull final SocketAuthentication annotation) {
+
+        final Class<?> parameterType = parameter.getType();
 
         final Principal principal = webSocketSessionContext.getAuthentication();
         final Class<?> principalType = principal.getClass();
