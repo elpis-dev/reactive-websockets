@@ -8,7 +8,7 @@ import org.springframework.lang.Nullable;
 
 import java.net.InetSocketAddress;
 import java.net.URI;
-import java.util.function.Supplier;
+import java.util.function.BooleanSupplier;
 
 @Getter
 @Setter
@@ -20,7 +20,7 @@ public class WebSocketSessionInfo {
 
     @NonNull
     @Builder.Default
-    private Supplier<Boolean> isOpen = () -> false;
+    private BooleanSupplier isOpen = () -> false;
 
     @NonNull
     private URI uri;
@@ -30,8 +30,4 @@ public class WebSocketSessionInfo {
 
     @Nullable
     private InetSocketAddress remoteAddress;
-
-    @NonNull
-    @Builder.Default
-    private Runnable close = () -> {};
 }

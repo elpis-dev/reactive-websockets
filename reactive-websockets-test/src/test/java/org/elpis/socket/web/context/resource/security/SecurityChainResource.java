@@ -1,9 +1,9 @@
 package org.elpis.socket.web.context.resource.security;
 
 import org.elpis.reactive.websockets.web.BasicWebSocketResource;
-import org.elpis.reactive.websockets.web.annotations.controller.Outbound;
-import org.elpis.reactive.websockets.web.annotations.controller.SocketResource;
-import org.elpis.reactive.websockets.web.annotations.request.SocketAuthentication;
+import org.elpis.reactive.websockets.web.annotation.controller.Outbound;
+import org.elpis.reactive.websockets.web.annotation.controller.SocketResource;
+import org.elpis.reactive.websockets.web.annotation.request.SocketAuthentication;
 import org.reactivestreams.Publisher;
 import org.springframework.security.core.Authentication;
 import reactor.core.publisher.Flux;

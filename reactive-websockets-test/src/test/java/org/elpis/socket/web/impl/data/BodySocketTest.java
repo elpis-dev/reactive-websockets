@@ -118,8 +118,9 @@ public class BodySocketTest extends BaseWebSocketTest {
         StepVerifier.create(sink.asFlux().timeout(DEFAULT_FAST_TEST_FALLBACK))
                 .verifyError(TimeoutException.class);
 
-        assertThat(logCaptor.getDebugLogs())
-                .anyMatch(error -> error.matches("Closing WebSocketSession .+ on signal cancel"));
+        assertThat(logCaptor.getErrorLogs())
+                .contains("Unable register outbound method `@Inbound nonValidFlux()` since it should accept " +
+                        "Flux<WebSocketMessage> or Mono<WebSocketMessage> instance, but `Flux<String>` was found instead");
     }
 
     @Test
@@ -146,6 +147,6 @@ public class BodySocketTest extends BaseWebSocketTest {
 
         assertThat(logCaptor.getErrorLogs())
                 .contains("Unable register outbound method `@Inbound notFlux()` since it should accept " +
-                        "Flux<WebSocketMessage> instance, but `interface java.util.List` was found instead");
+                        "Flux<WebSocketMessage> or Mono<WebSocketMessage> instance, but `List` was found instead");
     }
 }
