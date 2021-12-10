@@ -9,7 +9,7 @@ public class SessionConnectedEvent implements WebSocketEvent<WebSocketSessionInf
     private final WebSocketSessionInfo webSocketSessionInfo;
 
     @Override
-    public WebSocketSessionInfo event() {
+    public WebSocketSessionInfo payload() {
         return webSocketSessionInfo;
     }
 }

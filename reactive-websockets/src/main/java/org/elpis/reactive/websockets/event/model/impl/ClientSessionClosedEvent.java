@@ -9,7 +9,7 @@ public class ClientSessionClosedEvent implements WebSocketEvent<ClientSessionClo
     private final ClientSessionCloseInfo clientSessionCloseInfo;
 
     @Override
-    public ClientSessionCloseInfo event() {
+    public ClientSessionCloseInfo payload() {
         return clientSessionCloseInfo;
     }
 }

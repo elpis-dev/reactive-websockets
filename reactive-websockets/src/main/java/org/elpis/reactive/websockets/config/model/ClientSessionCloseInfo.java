@@ -10,6 +10,6 @@ import org.springframework.web.reactive.socket.CloseStatus;
 @Getter
 @Setter
 public class ClientSessionCloseInfo {
-    private WebSocketSessionInfo webSocketSessionInfo;
+    private WebSocketSessionInfo sessionInfo;
     private CloseStatus closeStatus;
 }

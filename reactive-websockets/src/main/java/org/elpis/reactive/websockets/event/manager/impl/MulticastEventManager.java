@@ -1,6 +1,6 @@
-package org.elpis.reactive.websockets.event.impl;
+package org.elpis.reactive.websockets.event.manager.impl;
 
-import org.elpis.reactive.websockets.event.WebSocketEventManager;
+import org.elpis.reactive.websockets.event.manager.WebSocketEventManager;
 import org.elpis.reactive.websockets.event.model.WebSocketEvent;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Sinks;

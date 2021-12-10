@@ -1,8 +1,8 @@
-package org.elpis.reactive.websockets.event;
+package org.elpis.reactive.websockets.event.manager;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import org.elpis.reactive.websockets.event.impl.MulticastEventManager;
+import org.elpis.reactive.websockets.event.manager.impl.MulticastEventManager;
 import org.elpis.reactive.websockets.event.model.WebSocketEvent;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)

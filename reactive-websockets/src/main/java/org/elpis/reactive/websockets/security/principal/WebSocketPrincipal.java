@@ -14,7 +14,7 @@ public class WebSocketPrincipal<T> implements Principal, Serializable {
 
     @Override
     public String getName() {
-        return "WebSocketPrincipal";
+        return WebSocketPrincipal.class.getSimpleName();
     }
 
     public T getAuthentication() {

@@ -20,7 +20,7 @@ import java.util.Map;
 
 @SocketResource("/ws/chat")
 public class ChatWebSocketResource implements BasicWebSocketResource {
-    private final static Logger LOG = LoggerFactory.getLogger(ChatWebSocketResource.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ChatWebSocketResource.class);
 
     @Outbound("/listen/{chatId}")
     public Publisher<?> handleOutbound(@SocketHeader("userName") final String userName,
@@ -71,7 +71,7 @@ public class ChatWebSocketResource implements BasicWebSocketResource {
     @Inbound("/listen/me")
     public void handle(@SocketMessageBody final Flux<WebSocketMessage> webSocketMessages) {
         webSocketMessages.map(WebSocketMessage::getPayloadAsText)
-                .subscribe(System.out::println);
+                .subscribe(LOG::info);
     }
 
 }

@@ -1,7 +1,7 @@
 package org.elpis.reactive.websockets.config.event;
 
-import org.elpis.reactive.websockets.event.EventManagers;
-import org.elpis.reactive.websockets.event.WebSocketEventManager;
+import org.elpis.reactive.websockets.event.manager.EventManagers;
+import org.elpis.reactive.websockets.event.manager.WebSocketEventManager;
 import org.elpis.reactive.websockets.event.model.impl.ClientSessionClosedEvent;
 import org.elpis.reactive.websockets.event.model.impl.SessionConnectedEvent;
 import org.springframework.context.annotation.Bean;

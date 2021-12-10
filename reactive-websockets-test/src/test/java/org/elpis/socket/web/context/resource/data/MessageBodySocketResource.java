@@ -13,21 +13,21 @@ import java.util.List;
 
 @SocketResource("/body")
 public class MessageBodySocketResource implements BasicWebSocketResource {
-    private static final Logger log = LoggerFactory.getLogger(MessageBodySocketResource.class);
+    private static final Logger LOG = LoggerFactory.getLogger(MessageBodySocketResource.class);
 
     @Inbound("/post")
     public void receiveDefaultMessage(@SocketMessageBody final Flux<WebSocketMessage> webSocketMessageFlux) {
-        webSocketMessageFlux.subscribe(message -> log.info("Received message: " + message.getPayloadAsText()));
+        webSocketMessageFlux.subscribe(message -> LOG.info("Received message: " + message.getPayloadAsText()));
     }
 
     @Inbound("/post/false")
     public void nonValidFlux(@SocketMessageBody final Flux<String> webSocketMessageFlux) {
-        webSocketMessageFlux.subscribe(message -> log.info("Received message: " + message));
+        webSocketMessageFlux.subscribe(message -> LOG.info("Received message: " + message));
     }
 
     @Inbound("/post/not/flux")
     public void notFlux(@SocketMessageBody final List<String> webSocketMessages) {
-        webSocketMessages.forEach(message -> log.info("Received message: " + message));
+        webSocketMessages.forEach(message -> LOG.info("Received message: " + message));
     }
 
 }

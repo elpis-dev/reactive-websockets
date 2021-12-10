@@ -11,6 +11,7 @@ import org.elpis.reactive.websockets.config.registry.WebSessionRegistry;
 import org.elpis.reactive.websockets.config.registry.WebSocketSessionInfo;
 import org.elpis.reactive.websockets.exception.ValidationException;
 import org.elpis.reactive.websockets.exception.WebSocketConfigurationException;
+import org.elpis.reactive.websockets.exception.handler.ClosedConnectionHandlerConfiguration;
 import org.elpis.reactive.websockets.mapper.JsonMapper;
 import org.elpis.reactive.websockets.mertics.WebSocketMetricsService;
 import org.elpis.reactive.websockets.security.principal.Anonymous;
@@ -36,7 +37,6 @@ import reactor.core.publisher.Mono;
 
 import java.lang.reflect.Method;
 import java.security.Principal;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -48,11 +48,16 @@ import static java.util.Objects.nonNull;
 import static org.elpis.reactive.websockets.mertics.WebSocketMetricsService.MeterConstants.*;
 
 @Configuration
-@Import({SocketAnnotationEvaluatorFactory.class, WebSocketMetricsService.class, EventManagerConfiguration.class})
+@Import({
+        SocketAnnotationEvaluatorFactory.class,
+        WebSocketMetricsService.class,
+        EventManagerConfiguration.class,
+        ClosedConnectionHandlerConfiguration.class
+})
 public class WebSocketConfiguration {
     private static final Logger log = LoggerFactory.getLogger(WebSocketConfiguration.class);
 
-    private final JsonMapper jsonMapper;
+    private static final int HANDLER_ORDER = 10;
 
     private final Map<String, WebHandlerResourceDescriptor> descriptorRegistry = new ConcurrentHashMap<>();
 
@@ -60,6 +65,7 @@ public class WebSocketConfiguration {
     private final SocketAnnotationEvaluatorFactory socketAnnotationEvaluatorFactory;
     private final WebSocketMetricsService webSocketMetricsService;
     private final WebSessionRegistry sessionRegistry;
+    private final JsonMapper jsonMapper;
 
     public WebSocketConfiguration(final ApplicationContext applicationContext,
                                   final SocketAnnotationEvaluatorFactory socketAnnotationEvaluatorFactory,
@@ -89,7 +95,7 @@ public class WebSocketConfiguration {
                 .stream()
                 .collect(Collectors.toMap(Map.Entry::getKey, entry -> this.handle(entry.getKey(), entry.getValue())));
 
-        return new SimpleUrlHandlerMapping(webSocketHandlers, 10);
+        return new SimpleUrlHandlerMapping(webSocketHandlers, HANDLER_ORDER);
     }
 
     private void registerMappings(final SocketResource socketResource, final Class<? extends BasicWebSocketResource> clazz) {
@@ -163,7 +169,9 @@ public class WebSocketConfiguration {
                             .isOpen(session::isOpen)
                             .protocol(handshakeInfo.getSubProtocol())
                             .id(session.getId())
-                            .uri(handshakeInfo.getUri())
+                            .host(handshakeInfo.getUri().getHost())
+                            .port(handshakeInfo.getUri().getPort())
+                            .path(pathTemplate)
                             .remoteAddress(handshakeInfo.getRemoteAddress())
                             .closeStatus(session.closeStatus())
                             .build();

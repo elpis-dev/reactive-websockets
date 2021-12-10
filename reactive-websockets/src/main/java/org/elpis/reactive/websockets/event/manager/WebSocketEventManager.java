@@ -1,4 +1,4 @@
-package org.elpis.reactive.websockets.event;
+package org.elpis.reactive.websockets.event.manager;
 
 import org.elpis.reactive.websockets.event.model.WebSocketEvent;
 import org.reactivestreams.Publisher;

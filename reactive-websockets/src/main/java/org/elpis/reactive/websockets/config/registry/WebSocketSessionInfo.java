@@ -6,7 +6,6 @@ import org.springframework.web.reactive.socket.CloseStatus;
 import reactor.core.publisher.Mono;
 
 import java.net.InetSocketAddress;
-import java.net.URI;
 import java.util.function.BooleanSupplier;
 
 @Builder(toBuilder = true)
@@ -26,7 +25,12 @@ public class WebSocketSessionInfo {
     @NonNull
     @Getter
     @Setter
-    private URI uri;
+    private String host;
+
+    @NonNull
+    @Getter
+    @Setter
+    private int port;
 
     @Nullable
     @Getter
@@ -37,6 +41,11 @@ public class WebSocketSessionInfo {
     @Getter
     @Setter
     private InetSocketAddress remoteAddress;
+
+    @Nullable
+    @Getter
+    @Setter
+    private String path;
 
     @Builder.Default
     @Getter(value = AccessLevel.PACKAGE)

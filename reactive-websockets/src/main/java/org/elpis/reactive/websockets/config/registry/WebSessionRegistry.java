@@ -2,7 +2,7 @@ package org.elpis.reactive.websockets.config.registry;
 
 import io.micrometer.core.instrument.Gauge;
 import org.elpis.reactive.websockets.config.model.ClientSessionCloseInfo;
-import org.elpis.reactive.websockets.event.WebSocketEventManager;
+import org.elpis.reactive.websockets.event.manager.WebSocketEventManager;
 import org.elpis.reactive.websockets.event.model.impl.ClientSessionClosedEvent;
 import org.elpis.reactive.websockets.event.model.impl.SessionConnectedEvent;
 import org.elpis.reactive.websockets.mertics.WebSocketMetricsService;
@@ -52,22 +52,19 @@ public class WebSessionRegistry extends ConcurrentHashMap<String, WebSocketSessi
                         .description(ACTIVE_SESSIONS.getDescription())
                         .register(meterRegistry));
 
-        this.executorService.submit(() -> {
-           this.webSocketConnectionEvent.asFlux()
-                   .map(SessionConnectedEvent::event)
-                   .subscribe(webSocketSessionInfo -> {
-                       webSocketSessionInfo.getCloseStatus()
-                               .subscribe(closeStatus -> {
-                                   final ClientSessionClosedEvent clientSessionClosedEvent = ClientSessionClosedEvent.builder()
-                                           .clientSessionCloseInfo(ClientSessionCloseInfo.builder()
-                                                   .webSocketSessionInfo(webSocketSessionInfo)
-                                                   .closeStatus(closeStatus)
-                                                   .build())
-                                           .build();
+        this.executorService.submit(() -> this.webSocketConnectionEvent.asFlux()
+                .map(SessionConnectedEvent::payload)
+                .subscribe(webSocketSessionInfo -> webSocketSessionInfo.getCloseStatus()
+                        .subscribe(closeStatus -> {
+                            final ClientSessionClosedEvent clientSessionClosedEvent = ClientSessionClosedEvent.builder()
+                                    .clientSessionCloseInfo(ClientSessionCloseInfo.builder()
+                                            .sessionInfo(webSocketSessionInfo)
+                                            .closeStatus(closeStatus)
+                                            .build())
+                                    .build();
 
-                                   this.closedEventWebSocketEventManager.fire(clientSessionClosedEvent);
-                               });
-                   });
-        });
+                            this.closedEventWebSocketEventManager.fire(clientSessionClosedEvent);
+                        }))
+        );
     }
 }
