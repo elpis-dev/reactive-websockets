@@ -1,7 +1,7 @@
 package org.elpis.reactive.websockets.config.annotation;
 
 import lombok.NonNull;
-import org.elpis.reactive.websockets.web.model.WebSocketSessionContext;
+import org.elpis.reactive.websockets.config.model.WebSocketSessionContext;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Parameter;

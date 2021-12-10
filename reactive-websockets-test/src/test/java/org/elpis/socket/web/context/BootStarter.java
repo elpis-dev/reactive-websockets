@@ -1,8 +1,9 @@
 package org.elpis.socket.web.context;
 
 import org.elpis.reactive.websockets.EnableReactiveSockets;
-import org.elpis.reactive.websockets.config.WebSessionRegistry;
+import org.elpis.reactive.websockets.config.registry.WebSessionRegistry;
 import org.elpis.reactive.websockets.config.annotation.impl.*;
+import org.elpis.reactive.websockets.event.impl.ClosedSessionEventSelectorMatcher;
 import org.elpis.reactive.websockets.mapper.JsonMapper;
 import org.elpis.socket.web.context.resource.data.HeaderSocketResource;
 import org.elpis.socket.web.context.resource.data.MessageBodySocketResource;
@@ -33,6 +34,9 @@ import org.springframework.context.annotation.Import;
         MessageBodyAnnotationEvaluator.class,
         PathVariableAnnotationEvaluator.class,
         QueryParameterAnnotationEvaluator.class,
+
+        //Event Matchers
+        ClosedSessionEventSelectorMatcher.class,
 
         WebSessionRegistry.class,
         JsonMapper.class

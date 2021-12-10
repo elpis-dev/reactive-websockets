@@ -1,4 +1,4 @@
-package org.elpis.reactive.websockets.web.model;
+package org.elpis.reactive.websockets.config.model;
 
 import lombok.Builder;
 import lombok.Data;

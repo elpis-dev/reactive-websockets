@@ -5,7 +5,7 @@ import org.elpis.reactive.websockets.config.annotation.SocketApiAnnotationEvalua
 import org.elpis.reactive.websockets.exception.ValidationException;
 import org.elpis.reactive.websockets.util.TypeUtils;
 import org.elpis.reactive.websockets.web.annotation.request.SocketPathVariable;
-import org.elpis.reactive.websockets.web.model.WebSocketSessionContext;
+import org.elpis.reactive.websockets.config.model.WebSocketSessionContext;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Parameter;

@@ -1,11 +1,17 @@
 package org.elpis.reactive.websockets.config;
 
 import io.micrometer.core.instrument.Tags;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.Setter;
 import org.elpis.reactive.websockets.config.annotation.SocketAnnotationEvaluatorFactory;
-import org.elpis.reactive.websockets.event.WebSocketEventManager;
-import org.elpis.reactive.websockets.event.model.impl.ClientSessionClosedEvent;
+import org.elpis.reactive.websockets.config.event.EventManagerConfiguration;
+import org.elpis.reactive.websockets.config.model.WebSocketSessionContext;
+import org.elpis.reactive.websockets.config.registry.WebSessionRegistry;
+import org.elpis.reactive.websockets.config.registry.WebSocketSessionInfo;
 import org.elpis.reactive.websockets.exception.ValidationException;
 import org.elpis.reactive.websockets.exception.WebSocketConfigurationException;
+import org.elpis.reactive.websockets.exception.handler.ClosedConnectionHandlerConfiguration;
 import org.elpis.reactive.websockets.mapper.JsonMapper;
 import org.elpis.reactive.websockets.mertics.WebSocketMetricsService;
 import org.elpis.reactive.websockets.security.principal.Anonymous;
@@ -14,9 +20,6 @@ import org.elpis.reactive.websockets.web.BasicWebSocketResource;
 import org.elpis.reactive.websockets.web.annotation.controller.Inbound;
 import org.elpis.reactive.websockets.web.annotation.controller.Outbound;
 import org.elpis.reactive.websockets.web.annotation.controller.SocketResource;
-import org.elpis.reactive.websockets.web.model.ClientSessionCloseInfo;
-import org.elpis.reactive.websockets.web.model.WebSocketSessionContext;
-import org.elpis.reactive.websockets.web.model.WebSocketSessionInfo;
 import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,22 +37,27 @@ import reactor.core.publisher.Mono;
 
 import java.lang.reflect.Method;
 import java.security.Principal;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.Objects.nonNull;
 import static org.elpis.reactive.websockets.mertics.WebSocketMetricsService.MeterConstants.*;
 
 @Configuration
-@Import({SocketAnnotationEvaluatorFactory.class, WebSocketMetricsService.class, EventManagerConfiguration.class})
+@Import({
+        SocketAnnotationEvaluatorFactory.class,
+        WebSocketMetricsService.class,
+        EventManagerConfiguration.class,
+        ClosedConnectionHandlerConfiguration.class
+})
 public class WebSocketConfiguration {
     private static final Logger log = LoggerFactory.getLogger(WebSocketConfiguration.class);
 
-    private final JsonMapper jsonMapper;
+    private static final int HANDLER_ORDER = 10;
 
     private final Map<String, WebHandlerResourceDescriptor> descriptorRegistry = new ConcurrentHashMap<>();
 
@@ -57,49 +65,40 @@ public class WebSocketConfiguration {
     private final SocketAnnotationEvaluatorFactory socketAnnotationEvaluatorFactory;
     private final WebSocketMetricsService webSocketMetricsService;
     private final WebSessionRegistry sessionRegistry;
-
-    private final WebSocketEventManager<ClientSessionClosedEvent> closedEventWebSocketEventManager;
+    private final JsonMapper jsonMapper;
 
     public WebSocketConfiguration(final ApplicationContext applicationContext,
                                   final SocketAnnotationEvaluatorFactory socketAnnotationEvaluatorFactory,
                                   final WebSocketMetricsService webSocketMetricsService,
                                   final WebSessionRegistry sessionRegistry,
-                                  // Event Managers
-                                  final WebSocketEventManager<ClientSessionClosedEvent> closedEventWebSocketEventManager,
-                                  // Misc
                                   final JsonMapper jsonMapper) {
 
         this.applicationContext = applicationContext;
         this.socketAnnotationEvaluatorFactory = socketAnnotationEvaluatorFactory;
         this.webSocketMetricsService = webSocketMetricsService;
         this.sessionRegistry = sessionRegistry;
-
-        this.closedEventWebSocketEventManager = closedEventWebSocketEventManager;
-
         this.jsonMapper = jsonMapper;
     }
 
     @Bean
-    public HandlerMapping handlerMapping(final List<? extends BasicWebSocketResource> webSocketResources) {
-        final Map<String, WebSocketHandler> webSocketHandlers = new HashMap<>();
-
+    public HandlerMapping handlerMapping(@NonNull final List<? extends BasicWebSocketResource> webSocketResources) {
         webSocketResources.forEach(resource -> {
             final Class<? extends BasicWebSocketResource> clazz = resource.getClass();
 
             Stream.of(clazz.getAnnotations())
                     .findFirst()
                     .map(annotation -> TypeUtils.cast(annotation, SocketResource.class))
-                    .ifPresent(socketResource -> this.registerMappings(socketResource, webSocketHandlers, clazz));
+                    .ifPresent(socketResource -> this.registerMappings(socketResource, clazz));
         });
 
+        final Map<String, WebSocketHandler> webSocketHandlers = this.descriptorRegistry.entrySet()
+                .stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, entry -> this.handle(entry.getKey(), entry.getValue())));
 
-        return new SimpleUrlHandlerMapping(webSocketHandlers, 10);
+        return new SimpleUrlHandlerMapping(webSocketHandlers, HANDLER_ORDER);
     }
 
-    private void registerMappings(final SocketResource socketResource,
-                                  final Map<String, WebSocketHandler> webSocketHandlers,
-                                  final Class<? extends BasicWebSocketResource> clazz) {
-
+    private void registerMappings(final SocketResource socketResource, final Class<? extends BasicWebSocketResource> clazz) {
         Stream.of(clazz.getDeclaredMethods())
                 .forEach(method -> {
                     if (method.isAnnotationPresent(Outbound.class)) {
@@ -110,9 +109,6 @@ public class WebSocketConfiguration {
                         this.configureListener(socketResource, method, clazz);
                     }
                 });
-
-        this.descriptorRegistry.forEach((pathTemplate, configEntity) ->
-                webSocketHandlers.put(pathTemplate, this.handle(pathTemplate, configEntity)));
     }
 
     private void configureListener(final SocketResource socketResource,
@@ -173,13 +169,14 @@ public class WebSocketConfiguration {
                             .isOpen(session::isOpen)
                             .protocol(handshakeInfo.getSubProtocol())
                             .id(session.getId())
-                            .uri(handshakeInfo.getUri())
+                            .host(handshakeInfo.getUri().getHost())
+                            .port(handshakeInfo.getUri().getPort())
+                            .path(pathTemplate)
                             .remoteAddress(handshakeInfo.getRemoteAddress())
+                            .closeStatus(session.closeStatus())
                             .build();
 
                     this.sessionRegistry.put(session.getId(), webSocketSessionInfo);
-
-                    this.addOnClientCloseEvent(webSocketSessionInfo, session.closeStatus());
 
                     return session.getHandshakeInfo().getPrincipal()
                             .switchIfEmpty(Mono.just(new Anonymous()))
@@ -285,45 +282,20 @@ public class WebSocketConfiguration {
                 .orElse(null)).toArray();
     }
 
-    private void addOnClientCloseEvent(final WebSocketSessionInfo webSocketSessionInfo, final Mono<CloseStatus> closeStatus) {
-        final ClientSessionCloseInfo clientSessionCloseInfo = ClientSessionCloseInfo.builder()
-                .webSocketSessionInfo(webSocketSessionInfo)
-                .closeStatus(closeStatus)
-                .build();
-
-        this.closedEventWebSocketEventManager.fire(ClientSessionClosedEvent.builder()
-                .clientSessionCloseInfo(clientSessionCloseInfo)
-                .build());
-    }
-
     private static class WebHandlerResourceDescriptor<T extends BasicWebSocketResource> {
+        @Getter
+        @Setter
         private Method outboundMethod;
+
+        @Getter
+        @Setter
         private Method inboundMethod;
 
+        @Getter
         private final Class<T> clazz;
 
         public WebHandlerResourceDescriptor(Class<T> clazz) {
             this.clazz = clazz;
-        }
-
-        public Method getOutboundMethod() {
-            return outboundMethod;
-        }
-
-        public void setOutboundMethod(Method outboundMethod) {
-            this.outboundMethod = outboundMethod;
-        }
-
-        public Method getInboundMethod() {
-            return inboundMethod;
-        }
-
-        public void setInboundMethod(Method inboundMethod) {
-            this.inboundMethod = inboundMethod;
-        }
-
-        public Class<T> getClazz() {
-            return clazz;
         }
     }
 
