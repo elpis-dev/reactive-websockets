@@ -55,12 +55,6 @@ public class ClosedConnectionHandlerConfiguration {
                 .forEach(closeStatusHandler -> Stream.of(closeStatusHandler.getClass().getMethods())
                         .filter(method -> method.isAnnotationPresent(SessionCloseStatus.class))
                         .forEach(method -> {
-                            if (method.getAnnotationsByType(SessionCloseStatus.class).length > 1) {
-                                throw new WebSocketConfigurationException(String.format("Found two or more @SessionCloseStatus " +
-                                                "on method `%s.%s()` - only single one is supported",
-                                        closeStatusHandler.getClass().getSimpleName(), method.getName()));
-                            }
-
                             if (method.getParameterCount() > 1) {
                                 throw new WebSocketConfigurationException(String.format("Found two or more parameters on " +
                                                 "@SessionCloseStatus `%s.%s(...)` - one or none are only supported",
