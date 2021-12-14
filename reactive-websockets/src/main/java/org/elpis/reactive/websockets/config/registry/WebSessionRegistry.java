@@ -1,12 +1,12 @@
 package org.elpis.reactive.websockets.config.registry;
 
 import io.micrometer.core.instrument.Gauge;
+import lombok.NonNull;
 import org.elpis.reactive.websockets.config.model.ClientSessionCloseInfo;
 import org.elpis.reactive.websockets.event.manager.WebSocketEventManager;
 import org.elpis.reactive.websockets.event.model.impl.ClientSessionClosedEvent;
 import org.elpis.reactive.websockets.event.model.impl.SessionConnectedEvent;
 import org.elpis.reactive.websockets.mertics.WebSocketMetricsService;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -35,7 +35,7 @@ public class WebSessionRegistry extends ConcurrentHashMap<String, WebSocketSessi
     }
 
     @Override
-    public WebSocketSessionInfo put(@NotNull String key, @NotNull WebSocketSessionInfo value) {
+    public WebSocketSessionInfo put(@NonNull String key, @NonNull WebSocketSessionInfo value) {
         final WebSocketSessionInfo webSocketSessionInfo = super.put(key, value);
 
         webSocketConnectionEvent.fire(SessionConnectedEvent.builder()

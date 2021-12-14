@@ -3,6 +3,7 @@ package org.elpis.socket.web.impl.security;
 import org.elpis.reactive.websockets.security.SocketHandshakeService;
 import org.elpis.socket.web.BaseWebSocketTest;
 import org.elpis.socket.web.context.BootStarter;
+import org.elpis.socket.web.context.resource.security.SecurityChainResource;
 import org.elpis.socket.web.context.security.model.SecurityProfiles;
 import org.elpis.socket.web.context.security.model.TestConstants;
 import org.junit.jupiter.api.Test;
@@ -14,6 +15,7 @@ import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
+import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatcher;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
@@ -31,7 +33,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ExtendWith(OutputCaptureExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = BootStarter.class)
 @ActiveProfiles({BaseWebSocketTest.DEFAULT_TEST_PROFILE, SecurityProfiles.FULL})
-@Import(ExchangeMatcherTest.CustomExchangeMatherTestSecurityConfiguration.class)
+@Import({ExchangeMatcherTest.CustomExchangeMatherTestSecurityConfiguration.class, SecurityChainResource.class})
 @TestPropertySource("classpath:application-test-disabled-default-security.properties")
 public class ExchangeMatcherTest extends BaseWebSocketTest {
 
