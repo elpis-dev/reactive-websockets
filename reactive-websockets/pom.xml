@@ -27,6 +27,8 @@
 
         <micrometer.version>1.8.1</micrometer.version>
         <lombok.version>1.18.22</lombok.version>
+
+        <log4j2.version>2.15.0</log4j2.version>
     </properties>
 
     <dependencies>
@@ -84,6 +86,24 @@
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-registry-prometheus</artifactId>
             <version>${micrometer.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-api</artifactId>
+            <version>${log4j2.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>${log4j2.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-to-slf4j</artifactId>
+            <version>${log4j2.version}</version>
         </dependency>
     </dependencies>
 

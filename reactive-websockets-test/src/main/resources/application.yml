@@ -1,5 +1,10 @@
 server:
-  port: 8085
+  port: 8443
+  ssl:
+    key-store: classpath:ssl.p12
+    key-store-password: changeit
+    key-password: changeit
+
 spring:
   logging:
     level:
