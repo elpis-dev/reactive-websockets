@@ -2,6 +2,7 @@ package org.elpis.socket.web.impl.data;
 
 import org.elpis.socket.web.BaseWebSocketTest;
 import org.elpis.socket.web.context.BootStarter;
+import org.elpis.socket.web.context.resource.data.HeaderSocketResource;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -22,7 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ExtendWith(OutputCaptureExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = BootStarter.class)
 @ActiveProfiles({BaseWebSocketTest.DEFAULT_TEST_PROFILE})
-@Import(BaseWebSocketTest.PermitAllSecurityConfiguration.class)
+@Import({BaseWebSocketTest.PermitAllSecurityConfiguration.class, HeaderSocketResource.class})
 public class HeaderSocketTest extends BaseWebSocketTest {
 
     @Test

@@ -12,15 +12,19 @@
         <java.version>11</java.version>
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
+        <maven.compiler.release>11</maven.compiler.release>
+
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <maven.compiler.version>3.8.1</maven.compiler.version>
         <maven.surefire.version>3.0.0-M5</maven.surefire.version>
         <maven.install.version>3.0.0-M1</maven.install.version>
 
-        <spring.boot.version>2.4.3</spring.boot.version>
-        <reactor.test.version>3.1.0.RELEASE</reactor.test.version>
+        <spring.boot.version>2.6.1</spring.boot.version>
+        <reactor.test.version>3.4.12</reactor.test.version>
 
-        <betterstrings.version>0.5</betterstrings.version>
+        <log4j2.version>2.15.0</log4j2.version>
 
         <skipTests>true</skipTests>
     </properties>
@@ -93,8 +97,26 @@
         <dependency>
             <groupId>io.github.hakky54</groupId>
             <artifactId>logcaptor</artifactId>
-            <version>2.5.0</version>
+            <version>2.7.2</version>
             <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-api</artifactId>
+            <version>${log4j2.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>${log4j2.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-to-slf4j</artifactId>
+            <version>${log4j2.version}</version>
         </dependency>
     </dependencies>
 
@@ -128,15 +150,9 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>${maven.compiler.version}</version>
                 <configuration>
-                    <annotationProcessorPaths>
-                        <path>
-                            <groupId>com.antkorwin</groupId>
-                            <artifactId>better-strings</artifactId>
-                            <version>${betterstrings.version}</version>
-                        </path>
-                    </annotationProcessorPaths>
                     <source>${maven.compiler.source}</source>
                     <target>${maven.compiler.target}</target>
+                    <release>${maven.compiler.release}</release>
                 </configuration>
             </plugin>
 

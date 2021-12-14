@@ -3,6 +3,7 @@ package org.elpis.socket.web.impl.security;
 import org.elpis.reactive.websockets.security.SocketHandshakeService;
 import org.elpis.socket.web.BaseWebSocketTest;
 import org.elpis.socket.web.context.BootStarter;
+import org.elpis.socket.web.context.resource.security.WebFilterSecurityResource;
 import org.elpis.socket.web.context.security.model.SecurityProfiles;
 import org.elpis.socket.web.context.security.model.TestConstants;
 import org.junit.jupiter.api.Test;
@@ -23,7 +24,7 @@ import java.util.Optional;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = BootStarter.class)
 @ActiveProfiles({BaseWebSocketTest.DEFAULT_TEST_PROFILE, SecurityProfiles.FULL})
-@Import(WebFilterCustomSocketTest.WebFilterAttributeTestSecurityConfiguration.class)
+@Import({WebFilterCustomSocketTest.WebFilterAttributeTestSecurityConfiguration.class, WebFilterSecurityResource.class})
 public class WebFilterCustomSocketTest extends BaseWebSocketTest {
 
     @Test

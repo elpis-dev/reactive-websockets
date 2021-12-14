@@ -2,6 +2,7 @@ package org.elpis.socket.web.impl.security;
 
 import org.elpis.socket.web.BaseWebSocketTest;
 import org.elpis.socket.web.context.BootStarter;
+import org.elpis.socket.web.context.resource.security.SecurityChainResource;
 import org.elpis.socket.web.context.security.model.SecurityProfiles;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -13,7 +14,7 @@ import reactor.test.StepVerifier;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = BootStarter.class)
 @ActiveProfiles({BaseWebSocketTest.DEFAULT_TEST_PROFILE, SecurityProfiles.FULL})
-@Import(BaseWebSocketTest.PermitAllSecurityConfiguration.class)
+@Import({BaseWebSocketTest.PermitAllSecurityConfiguration.class, SecurityChainResource.class})
 public class AnonymousAuthenticationTest extends BaseWebSocketTest {
 
     @Test

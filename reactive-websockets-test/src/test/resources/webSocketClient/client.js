@@ -1,6 +1,6 @@
 // Node.js socket client script
 const WebSocket = require('ws');
-const socket = new WebSocket("ws://localhost:8085/ws/chat/listen/me", null, { headers: { Authorization: "Bearer 365d246e-dc3a-4823-95fa-5e9907e77479", userName: "Alex" }});
+const socket = new WebSocket("wss://localhost:8443/ws/chat/listen/me", null, { headers: { Authorization: "Bearer 365d246e-dc3a-4823-95fa-5e9907e77479", userName: "Alex" }});
 
 socket.onopen = function(e, a, b, c, d) {
   console.log("[open] Connection established");
