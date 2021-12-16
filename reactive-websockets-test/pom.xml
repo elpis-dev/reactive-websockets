@@ -24,7 +24,7 @@
         <spring.boot.version>2.6.1</spring.boot.version>
         <reactor.test.version>3.4.12</reactor.test.version>
 
-        <log4j2.version>2.15.0</log4j2.version>
+        <log4j2.version>2.16.0</log4j2.version>
 
         <skipTests>true</skipTests>
     </properties>
