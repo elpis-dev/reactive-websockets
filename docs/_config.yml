@@ -13,6 +13,11 @@ aux_links:
     - "//github.com/elpis-dev/reactive-websockets"
 logo: "/assets/images/elpis.png"
 
+# For Dev
+#domain: localhost
+#url: http://localhost:4000
+#baseurl: ""
+
 # Build settings
 #theme: just-the-docs
 remote_theme: pmarsceill/just-the-docs
