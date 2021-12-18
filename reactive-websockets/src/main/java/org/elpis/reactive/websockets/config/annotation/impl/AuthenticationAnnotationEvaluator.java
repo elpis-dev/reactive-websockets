@@ -18,14 +18,12 @@ import java.security.Principal;
 public class AuthenticationAnnotationEvaluator implements SocketApiAnnotationEvaluator<SocketAuthentication> {
 
     @Override
-    public Object evaluate(@NonNull final WebSocketSessionContext webSocketSessionContext,
-                           @NonNull final Parameter parameter,
-                           @NonNull final String methodName,
-                           @NonNull final SocketAuthentication annotation) {
+    public Object evaluate(@NonNull final WebSocketSessionContext context, @NonNull final Parameter parameter,
+                           @NonNull final String methodName, @NonNull final SocketAuthentication annotation) {
 
         final Class<?> parameterType = parameter.getType();
 
-        final Principal principal = webSocketSessionContext.getAuthentication();
+        final Principal principal = context.getAuthentication();
         final Class<?> principalType = principal.getClass();
 
         if (Anonymous.class.isAssignableFrom(principalType)) {
@@ -53,9 +51,7 @@ public class AuthenticationAnnotationEvaluator implements SocketApiAnnotationEva
     }
 
     private Object getPrincipalDetails(final Authentication authentication, final Class<?> parameterType) {
-        return Principal.class.isAssignableFrom(parameterType)
-                ? authentication.getPrincipal()
-                : authentication.getDetails();
+        return Principal.class.isAssignableFrom(parameterType) ? authentication.getPrincipal() : authentication.getDetails();
     }
 
     @Override

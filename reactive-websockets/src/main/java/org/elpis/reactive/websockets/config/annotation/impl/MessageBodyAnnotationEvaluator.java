@@ -2,10 +2,10 @@ package org.elpis.reactive.websockets.config.annotation.impl;
 
 import lombok.NonNull;
 import org.elpis.reactive.websockets.config.annotation.SocketApiAnnotationEvaluator;
+import org.elpis.reactive.websockets.config.model.WebSocketSessionContext;
 import org.elpis.reactive.websockets.exception.ValidationException;
 import org.elpis.reactive.websockets.util.TypeUtils;
 import org.elpis.reactive.websockets.web.annotation.request.SocketMessageBody;
-import org.elpis.reactive.websockets.config.model.WebSocketSessionContext;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.socket.WebSocketMessage;
 import reactor.core.publisher.Flux;
@@ -18,15 +18,13 @@ import java.lang.reflect.ParameterizedType;
 public class MessageBodyAnnotationEvaluator implements SocketApiAnnotationEvaluator<SocketMessageBody> {
 
     @Override
-    public Object evaluate(@NonNull final WebSocketSessionContext webSocketSessionContext,
-                           @NonNull final Parameter parameter, @NonNull final String methodName,
-                           @NonNull final SocketMessageBody annotation) {
+    public Object evaluate(@NonNull final WebSocketSessionContext context, @NonNull final Parameter parameter,
+                           @NonNull final String methodName, @NonNull final SocketMessageBody annotation) {
 
         final Class<?> parameterType = parameter.getType();
-
-        if (!webSocketSessionContext.isInbound()) {
+        if (!context.isInbound()) {
             throw new ValidationException(String.format("Unable register outbound method `@Outbound %s()` since " +
-                    "it doesn't accept Flux<WebSocketMessage> or Mono<WebSocketMessage>", methodName));
+                    "it cannot accept Flux<WebSocketMessage> or Mono<WebSocketMessage>", methodName));
         }
 
         final boolean isFlux = Flux.class.isAssignableFrom(parameterType);
@@ -45,7 +43,8 @@ public class MessageBodyAnnotationEvaluator implements SocketApiAnnotationEvalua
                     "it should accept Flux<WebSocketMessage> or Mono<WebSocketMessage> instance, but `%s<%s>` was found instead", methodName, parameterType.getSimpleName(), persistentClass.getSimpleName()));
         }
 
-        return webSocketSessionContext.getMessageStream().get();
+        final Flux<WebSocketMessage> messageFlux = context.getMessageStream().get();
+        return isMono ? messageFlux.next() : messageFlux;
     }
 
     @Override

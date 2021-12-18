@@ -2,8 +2,8 @@ package org.elpis.socket.web.context;
 
 import org.elpis.reactive.websockets.config.model.WebSocketCloseStatus;
 import org.elpis.reactive.websockets.event.model.impl.ClientSessionClosedEvent;
-import org.elpis.reactive.websockets.exception.handler.annotation.CloseStatusHandler;
-import org.elpis.reactive.websockets.exception.handler.annotation.SessionCloseStatus;
+import org.elpis.reactive.websockets.event.annotation.CloseStatusHandler;
+import org.elpis.reactive.websockets.event.annotation.SessionCloseStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

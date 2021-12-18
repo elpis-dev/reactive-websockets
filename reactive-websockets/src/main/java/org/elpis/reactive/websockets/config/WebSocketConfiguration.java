@@ -11,7 +11,7 @@ import org.elpis.reactive.websockets.config.registry.WebSessionRegistry;
 import org.elpis.reactive.websockets.config.registry.WebSocketSessionInfo;
 import org.elpis.reactive.websockets.exception.ValidationException;
 import org.elpis.reactive.websockets.exception.WebSocketConfigurationException;
-import org.elpis.reactive.websockets.exception.handler.ClosedConnectionHandlerConfiguration;
+import org.elpis.reactive.websockets.config.event.ClosedConnectionHandlerConfiguration;
 import org.elpis.reactive.websockets.mapper.JsonMapper;
 import org.elpis.reactive.websockets.mertics.WebSocketMetricsService;
 import org.elpis.reactive.websockets.security.principal.Anonymous;
@@ -102,7 +102,7 @@ public class WebSocketConfiguration {
         Stream.of(clazz.getDeclaredMethods())
                 .forEach(method -> {
                     if (method.isAnnotationPresent(Outbound.class)) {
-                        this.configureEmitter(socketResource, method, clazz);
+                        this.configurePublisher(socketResource, method, clazz);
                     }
 
                     if (method.isAnnotationPresent(Inbound.class)) {
@@ -111,11 +111,8 @@ public class WebSocketConfiguration {
                 });
     }
 
-    private void configureListener(final SocketResource socketResource,
-                                   final Method method,
-                                   final Class<? extends BasicWebSocketResource> clazz) {
-
-        final String inboundPathTemplate = socketResource.value() + method.getAnnotation(Inbound.class).value();
+    private void configureListener(final SocketResource resource, final Method method, final Class<? extends BasicWebSocketResource> clazz) {
+        final String inboundPathTemplate = resource.value() + method.getAnnotation(Inbound.class).value();
 
         final var webHandlerResourceDescriptor = Optional.ofNullable(this.descriptorRegistry.get(inboundPathTemplate))
                 .orElse(new WebHandlerResourceDescriptor<>(clazz));
@@ -131,16 +128,13 @@ public class WebSocketConfiguration {
         this.descriptorRegistry.put(inboundPathTemplate, webHandlerResourceDescriptor);
     }
 
-    private void configureEmitter(final SocketResource socketResource,
-                                  final Method method,
-                                  final Class<? extends BasicWebSocketResource> clazz) {
-
+    private void configurePublisher(final SocketResource resource, final Method method, final Class<? extends BasicWebSocketResource> clazz) {
         if (!Publisher.class.isAssignableFrom(method.getReturnType())) {
             throw new ValidationException(String.format("Cannot register method `@Outbound %s()`. " +
                     "Reason: method should return a Publisher instance", method.getName()));
         }
 
-        final String outboundPathTemplate = socketResource.value() + method.getAnnotation(Outbound.class).value();
+        final String outboundPathTemplate = resource.value() + method.getAnnotation(Outbound.class).value();
 
         final var webHandlerResourceDescriptor = Optional.ofNullable(this.descriptorRegistry.get(outboundPathTemplate))
                 .orElse(new WebHandlerResourceDescriptor<>(clazz));
@@ -216,16 +210,17 @@ public class WebSocketConfiguration {
                 .build();
     }
 
+    // TODO: How to change input/output to another session
     private Mono<Void> processConnection(final BasicWebSocketResource resource, final WebSocketSession session,
                                          final WebHandlerResourceDescriptor<?> configEntity,
                                          final WebSocketSessionContext webSocketSessionContext) {
 
         final var socketMessageFlux = this.processMethod(configEntity, resource, webSocketSessionContext);
 
-        final Mono<WebSocketMessage> webSocketMessageFlux = Mono.from(socketMessageFlux)
+        final Flux<WebSocketMessage> webSocketMessageFlux = Flux.from(socketMessageFlux)
                 .flatMap(any -> CloseStatus.class.isAssignableFrom(any.getClass())
                         ? session.close(TypeUtils.cast(any, CloseStatus.class)).cast(WebSocketMessage.class)
-                        : this.jsonMapper.applyWithMono(any).map(session::textMessage));
+                        : this.jsonMapper.applyWithFlux(any).map(session::textMessage));
 
         return session.send(webSocketMessageFlux);
     }
