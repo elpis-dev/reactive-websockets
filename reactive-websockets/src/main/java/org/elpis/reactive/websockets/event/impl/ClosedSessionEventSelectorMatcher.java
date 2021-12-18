@@ -13,7 +13,7 @@ import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ClosedSessionEventSelectorMatcher implements EventSelectorMatcher<ClientSessionClosedEvent, EventSelector> {
+public class ClosedSessionEventSelectorMatcher implements EventSelectorMatcher<ClientSessionClosedEvent> {
     private final ExpressionParser expressionParser = new SpelExpressionParser();
 
     @Override

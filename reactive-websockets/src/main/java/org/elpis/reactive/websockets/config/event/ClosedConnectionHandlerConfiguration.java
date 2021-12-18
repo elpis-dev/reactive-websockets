@@ -1,13 +1,13 @@
-package org.elpis.reactive.websockets.exception.handler;
+package org.elpis.reactive.websockets.config.event;
 
 import org.elpis.reactive.websockets.config.model.WebSocketCloseStatus;
 import org.elpis.reactive.websockets.event.EventSelectorMatcher;
+import org.elpis.reactive.websockets.event.annotation.CloseStatusHandler;
 import org.elpis.reactive.websockets.event.annotation.EventSelector;
+import org.elpis.reactive.websockets.event.annotation.SessionCloseStatus;
 import org.elpis.reactive.websockets.event.manager.WebSocketEventManager;
 import org.elpis.reactive.websockets.event.model.impl.ClientSessionClosedEvent;
 import org.elpis.reactive.websockets.exception.WebSocketConfigurationException;
-import org.elpis.reactive.websockets.exception.handler.annotation.CloseStatusHandler;
-import org.elpis.reactive.websockets.exception.handler.annotation.SessionCloseStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
@@ -34,13 +34,13 @@ public class ClosedConnectionHandlerConfiguration {
 
     private final ApplicationContext applicationContext;
     private final WebSocketEventManager<ClientSessionClosedEvent> closedEventWebSocketEventManager;
-    private final EventSelectorMatcher<ClientSessionClosedEvent, EventSelector> closedEventSelectorMatcher;
+    private final EventSelectorMatcher<ClientSessionClosedEvent> closedEventSelectorMatcher;
 
     private final Map<Integer, List<Consumer<ClientSessionClosedEvent>>> handlers = new ConcurrentHashMap<>();
 
     public ClosedConnectionHandlerConfiguration(final ApplicationContext applicationContext,
                                                 final WebSocketEventManager<ClientSessionClosedEvent> closedEventWebSocketEventManager,
-                                                final EventSelectorMatcher<ClientSessionClosedEvent, EventSelector> closedEventSelectorMatcher) {
+                                                final EventSelectorMatcher<ClientSessionClosedEvent> closedEventSelectorMatcher) {
 
         this.applicationContext = applicationContext;
         this.closedEventWebSocketEventManager = closedEventWebSocketEventManager;
