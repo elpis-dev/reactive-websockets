@@ -17,9 +17,9 @@ import java.lang.annotation.*;
  * would be mapped with {@link com.fasterxml.jackson.databind.ObjectMapper ObjectMapper} to JSON
  *
  * @author Alex Zharkov
- * @since 0.1.0
  * @see org.elpis.reactive.websockets.web.annotation.request.SocketMessageBody
  * @see SocketResource
+ * @since 0.1.0
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)

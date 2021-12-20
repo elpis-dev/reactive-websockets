@@ -5,7 +5,7 @@ import org.elpis.reactive.websockets.event.model.WebSocketEvent;
 
 /**
  * Extension of {@link EventSelectorProcessor} with {@link Boolean} result returned by default.
-
+ *
  * @author Alex Zharkov
  * @see EventSelectorProcessor
  * @see WebSocketEvent

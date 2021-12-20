@@ -10,11 +10,11 @@ import java.security.Principal;
  * {@link Principal Principal}-wrapper class that puts a custom {@link Object} into security context.
  * Usually will wrap any returned from {@link org.elpis.reactive.websockets.security.SocketHandshakeService#handshake(ServerWebExchange)}.
  *
- *<pre class="code">
- *public Mono<?> handshake(final ServerWebExchange exchange) {
+ * <pre class="code">
+ * public Mono<?> handshake(final ServerWebExchange exchange) {
  *   return Mono.just(new MyCustomObject());
- *}
- *</pre>
+ * }
+ * </pre>
  *
  * @author Alex Zharkov
  * @see Principal

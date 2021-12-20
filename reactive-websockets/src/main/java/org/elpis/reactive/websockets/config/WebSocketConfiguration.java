@@ -5,13 +5,12 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import org.elpis.reactive.websockets.config.annotation.SocketAnnotationEvaluatorFactory;
+import org.elpis.reactive.websockets.config.event.ClosedConnectionHandlerConfiguration;
 import org.elpis.reactive.websockets.config.event.EventManagerConfiguration;
 import org.elpis.reactive.websockets.config.model.WebSocketSessionContext;
 import org.elpis.reactive.websockets.config.registry.WebSessionRegistry;
 import org.elpis.reactive.websockets.config.registry.WebSocketSessionInfo;
-import org.elpis.reactive.websockets.exception.ValidationException;
 import org.elpis.reactive.websockets.exception.WebSocketConfigurationException;
-import org.elpis.reactive.websockets.config.event.ClosedConnectionHandlerConfiguration;
 import org.elpis.reactive.websockets.mapper.JsonMapper;
 import org.elpis.reactive.websockets.mertics.WebSocketMetricsService;
 import org.elpis.reactive.websockets.security.principal.Anonymous;
@@ -54,7 +53,7 @@ import static org.elpis.reactive.websockets.mertics.WebSocketMetricsService.Mete
         EventManagerConfiguration.class,
         ClosedConnectionHandlerConfiguration.class
 })
-public class WebSocketConfiguration {
+public final class WebSocketConfiguration {
     private static final Logger log = LoggerFactory.getLogger(WebSocketConfiguration.class);
 
     private static final int HANDLER_ORDER = 10;
@@ -118,7 +117,7 @@ public class WebSocketConfiguration {
                 .orElse(new WebHandlerResourceDescriptor<>(clazz));
 
         if (nonNull(webHandlerResourceDescriptor.getInboundMethod())) {
-            throw new ValidationException(String.format("Cannot register method `@Inbound %s()` on `%s` since " +
+            throw new WebSocketConfigurationException(String.format("Cannot register method `@Inbound %s()` on `%s` since " +
                             "`@Inbound %s()` was already registered on provided path", method.getName(), inboundPathTemplate,
                     webHandlerResourceDescriptor.getInboundMethod().getName()));
         }
@@ -130,7 +129,7 @@ public class WebSocketConfiguration {
 
     private void configurePublisher(final SocketResource resource, final Method method, final Class<? extends BasicWebSocketResource> clazz) {
         if (!Publisher.class.isAssignableFrom(method.getReturnType())) {
-            throw new ValidationException(String.format("Cannot register method `@Outbound %s()`. " +
+            throw new WebSocketConfigurationException(String.format("Cannot register method `@Outbound %s()`. " +
                     "Reason: method should return a Publisher instance", method.getName()));
         }
 
@@ -140,7 +139,7 @@ public class WebSocketConfiguration {
                 .orElse(new WebHandlerResourceDescriptor<>(clazz));
 
         if (nonNull(webHandlerResourceDescriptor.getOutboundMethod())) {
-            throw new ValidationException(String.format("Cannot register method `@Outbound %s()` on `%s` since " +
+            throw new WebSocketConfigurationException(String.format("Cannot register method `@Outbound %s()` on `%s` since " +
                             "`@Outbound %s()` was already registered on provided path", method.getName(), outboundPathTemplate,
                     webHandlerResourceDescriptor.getOutboundMethod().getName()));
         }
@@ -176,7 +175,7 @@ public class WebSocketConfiguration {
                             .switchIfEmpty(Mono.just(new Anonymous()))
                             .flatMap(principal -> {
                                 final WebSocketSessionContext webSocketSessionContext =
-                                        this.getWebSocketSessionContext(pathTemplate, session, handshakeInfo, principal);
+                                        this.getSessionContext(pathTemplate, session, handshakeInfo, principal);
 
                                 return stop.andThen(taskTime -> this.processConnection(resource, session, configEntity, webSocketSessionContext))
                                         .apply(SESSION_CONNECTION_TIME.getKey(), Tags.of(RESULT, SUCCESS));
@@ -189,11 +188,10 @@ public class WebSocketConfiguration {
                 });
     }
 
-    private WebSocketSessionContext getWebSocketSessionContext(final String pathTemplate, final WebSocketSession session,
-                                                               final HandshakeInfo handshakeInfo, final Principal principal) {
+    private WebSocketSessionContext getSessionContext(final String pathTemplate, final WebSocketSession session,
+                                                      final HandshakeInfo handshakeInfo, final Principal principal) {
 
         final String uriPath = handshakeInfo.getUri().getPath();
-
         final UriTemplate uriTemplate = new UriTemplate(pathTemplate);
 
         final var pathParameters = uriTemplate.match(uriPath);
@@ -277,7 +275,7 @@ public class WebSocketConfiguration {
                 .orElse(null)).toArray();
     }
 
-    private static class WebHandlerResourceDescriptor<T extends BasicWebSocketResource> {
+    private static final class WebHandlerResourceDescriptor<T extends BasicWebSocketResource> {
         @Getter
         @Setter
         private Method outboundMethod;

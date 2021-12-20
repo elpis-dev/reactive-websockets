@@ -2,6 +2,7 @@ package org.elpis.reactive.websockets.config.registry;
 
 import io.micrometer.core.instrument.Gauge;
 import lombok.NonNull;
+import org.elpis.reactive.websockets.config.annotation.SocketApiAnnotationEvaluator;
 import org.elpis.reactive.websockets.config.model.ClientSessionCloseInfo;
 import org.elpis.reactive.websockets.event.manager.WebSocketEventManager;
 import org.elpis.reactive.websockets.event.model.impl.ClientSessionClosedEvent;
@@ -17,8 +18,17 @@ import java.util.concurrent.Executors;
 
 import static org.elpis.reactive.websockets.mertics.WebSocketMetricsService.MeterConstants.ACTIVE_SESSIONS;
 
+/**
+ * Represents a registry of all the implementations of {@link SocketApiAnnotationEvaluator}. Registered as Spring Bean on application startup.
+ * <p>Supports custom {@link SocketApiAnnotationEvaluator} implementations.
+ * <p><strong>NOTE: </strong>{@link SocketApiAnnotationEvaluator} implementations with duplicate annotations are not permitted - only one implementation per one annotation.
+ *
+ * @author Alex Zharkov
+ * @see SocketApiAnnotationEvaluator
+ * @since 0.1.0
+ */
 @Component
-public class WebSessionRegistry extends ConcurrentHashMap<String, WebSocketSessionInfo> {
+public final class WebSessionRegistry extends ConcurrentHashMap<String, WebSocketSessionInfo> {
     private final transient ExecutorService executorService = Executors.newSingleThreadExecutor();
 
     private final transient WebSocketEventManager<SessionConnectedEvent> webSocketConnectionEvent;
@@ -47,10 +57,8 @@ public class WebSessionRegistry extends ConcurrentHashMap<String, WebSocketSessi
 
     @PostConstruct
     private void post() {
-        this.webSocketMetricsService.withGauge(this, (sessionInfoMap, meterRegistry) ->
-                Gauge.builder(ACTIVE_SESSIONS.getKey(), sessionInfoMap, Map::size)
-                        .description(ACTIVE_SESSIONS.getDescription())
-                        .register(meterRegistry));
+        this.webSocketMetricsService.withGauge(this, (sessionInfoMap) -> Gauge.builder(ACTIVE_SESSIONS.getKey(), sessionInfoMap, Map::size)
+                .description(ACTIVE_SESSIONS.getDescription()));
 
         this.executorService.submit(() -> this.webSocketConnectionEvent.asFlux()
                 .map(SessionConnectedEvent::payload)

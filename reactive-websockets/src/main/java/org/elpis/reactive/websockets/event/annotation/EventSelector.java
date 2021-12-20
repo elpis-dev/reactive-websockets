@@ -4,11 +4,11 @@ import java.lang.annotation.*;
 
 /**
  * Applies additional filtering on {@link org.elpis.reactive.websockets.event.model.WebSocketEvent WebSocketEvent} selection.
-
+ *
  * @author Alex Zharkov
- * @since 0.1.0
  * @see org.elpis.reactive.websockets.event.model.WebSocketEvent
  * @see org.elpis.reactive.websockets.event.EventSelectorProcessor
+ * @since 0.1.0
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)

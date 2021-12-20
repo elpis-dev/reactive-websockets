@@ -20,9 +20,9 @@ public interface SocketApiAnnotationEvaluator<A extends Annotation> {
      * Custom evaluation of annotated parameter.
      *
      * @param webSocketSessionContext session context object to process
-     * @param parameter method parameter marked with annotation of {@link A} type
-     * @param methodName the name of method with annotated parameter
-     * @param annotation the annotation instance
+     * @param parameter               method parameter marked with annotation of {@link A} type
+     * @param methodName              the name of method with annotated parameter
+     * @param annotation              the annotation instance
      * @return any object that should be passed to annotated parameter
      * @since 0.1.0
      */

@@ -14,7 +14,6 @@ import java.util.function.Function;
  * @param <U> the type of the second argument to the function
  * @param <V> the type of the third argument to the function
  * @param <R> the type of the result of the function
- *
  * @author Alex Zharkov
  * @see Function
  * @see java.util.function.BiFunction
@@ -40,8 +39,8 @@ public interface TriFunction<T, U, V, R> {
      * If evaluation of either function throws an exception, it is relayed to
      * the caller of the composed function.
      *
-     * @param <B> the type of output of the {@code after} function, and of the
-     *           composed function
+     * @param <B>   the type of output of the {@code after} function, and of the
+     *              composed function
      * @param after the function to apply after this function is applied
      * @return a composed function that first applies this function and then
      * applies the {@code after} function

@@ -22,6 +22,7 @@ public @interface SocketPathVariable {
 
     /**
      * Name alias.
+     *
      * @since 0.1.0
      */
     @AliasFor("name")
@@ -29,6 +30,7 @@ public @interface SocketPathVariable {
 
     /**
      * The name of the path variable to bind to.
+     *
      * @since 0.1.0
      */
     @AliasFor("value")
@@ -40,6 +42,7 @@ public @interface SocketPathVariable {
      * if the path variable is missing in the request uri. Switch this to
      * {@code false} if you prefer a {@code null} value if the path variable is
      * not present in the request.
+     *
      * @since 0.1.0
      */
     boolean required() default true;

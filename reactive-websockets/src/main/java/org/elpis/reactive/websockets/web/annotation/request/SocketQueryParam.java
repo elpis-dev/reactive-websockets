@@ -23,6 +23,7 @@ public @interface SocketQueryParam {
 
     /**
      * Name alias.
+     *
      * @since 0.1.0
      */
     @AliasFor("name")
@@ -30,6 +31,7 @@ public @interface SocketQueryParam {
 
     /**
      * The name of the query variable to bind to.
+     *
      * @since 0.1.0
      */
     @AliasFor("value")
@@ -43,6 +45,7 @@ public @interface SocketQueryParam {
      * not present in the request.
      * <p>Alternatively, provide a {@link #defaultValue}, which implicitly
      * sets this flag to {@code false}.
+     *
      * @since 0.1.0
      */
     boolean required() default true;
@@ -51,6 +54,7 @@ public @interface SocketQueryParam {
      * The default value to use as a fallback.
      * <p>Supplying a default value implicitly sets {@link #required} to
      * {@code false}.
+     *
      * @since 0.1.0
      */
     String defaultValue() default ValueConstants.DEFAULT_NONE;

@@ -11,13 +11,27 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.ValueConstants;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Parameter;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Implementation of {@link SocketApiAnnotationEvaluator} based on {@link SocketHeader @SocketHeader}.
+ *
+ * @author Alex Zharkov
+ * @see SocketApiAnnotationEvaluator
+ * @see SocketHeader
+ * @since 0.1.0
+ */
 @Component
 public class HeaderAnnotationEvaluator implements SocketApiAnnotationEvaluator<SocketHeader> {
 
+    /**
+     * See {@link SocketApiAnnotationEvaluator#evaluate(WebSocketSessionContext, Parameter, String, Annotation)}
+     *
+     * @since 0.1.0
+     */
     @Override
     public Object evaluate(@NonNull WebSocketSessionContext context, @NonNull Parameter parameter,
                            @NonNull String methodName, @NonNull SocketHeader annotation) {
@@ -39,12 +53,17 @@ public class HeaderAnnotationEvaluator implements SocketApiAnnotationEvaluator<S
         }
 
         return values.flatMap(list -> List.class.isAssignableFrom(parameterType)
-                    ? Optional.of(list)
-                    : list.stream().findFirst().map(v -> (Object) TypeUtils.convert(v, parameterType)))
+                        ? Optional.of(list)
+                        : list.stream().findFirst().map(v -> (Object) TypeUtils.convert(v, parameterType)))
                 .orElseGet(() -> defaultValue.map(v -> (Object) TypeUtils.convert(v, parameterType))
                         .orElse(TypeUtils.getDefaultValueForType(parameterType)));
     }
 
+    /**
+     * See {@link SocketApiAnnotationEvaluator#getAnnotationType()}
+     *
+     * @since 0.1.0
+     */
     @Override
     public Class<SocketHeader> getAnnotationType() {
         return SocketHeader.class;

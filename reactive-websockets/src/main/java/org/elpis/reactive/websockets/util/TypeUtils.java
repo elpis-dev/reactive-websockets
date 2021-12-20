@@ -7,15 +7,26 @@ import org.elpis.reactive.websockets.exception.ValidationException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UnknownFormatConversionException;
 import java.util.function.BiFunction;
 
 import static java.util.Objects.isNull;
 
+/**
+ * Utility class to support safe class casting and type converting.
+ *
+ * @author Alex Zharkov
+ * @since 0.1.0
+ */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @SuppressWarnings({"unchecked", "rawtypes"})
-public class TypeUtils {
+public final class TypeUtils {
+
+    /**
+     * Registry of possible conversions from {@link String} to any supported type.
+     *
+     * @since 0.1.0
+     */
     private static final Map<Class<?>, BiFunction<String, Class<?>, ?>> convertRegistry = Map.ofEntries(
             //Wrappers
             Map.entry(Integer.class, (data, type) -> Integer.valueOf(data)),
@@ -46,6 +57,11 @@ public class TypeUtils {
             Map.entry(Enum.class, (data, type) -> Enum.valueOf((Class<? extends Enum>) type, data))
     );
 
+    /**
+     * Registry default values for primitives.
+     *
+     * @since 0.1.0
+     */
     private static final Map<Class<?>, ?> defaultValuesRegistry = Map.ofEntries(
             Map.entry(boolean.class, false),
             Map.entry(byte.class, 0),
@@ -57,15 +73,29 @@ public class TypeUtils {
             Map.entry(double.class, 0.0d)
     );
 
+    /**
+     * Returns default value for primitives.
+     *
+     * @param clazz the primitive class
+     * @return default value for primitive
+     * @since 0.1.0
+     */
     public static Object getDefaultValueForType(final Class<?> clazz) {
         if (isNull(clazz)) {
             throw new ValidationException("Cannot process null source type");
         }
 
-        return Optional.ofNullable(defaultValuesRegistry.get(clazz))
-                .orElse(null);
+        return defaultValuesRegistry.get(clazz);
     }
 
+    /**
+     * Converts {@link String} to any supported data type.
+     *
+     * @param data  data to convert
+     * @param clazz the type to convert to
+     * @return conversion result
+     * @since 0.1.0
+     */
     public static <T> T convert(final String data, final Class<T> clazz) {
         if (isNull(data) || data.isEmpty()) {
             throw new ValidationException("Cannot convert empty or null source");
@@ -82,6 +112,14 @@ public class TypeUtils {
         return cast(convertFunction.apply(data, clazz), clazz);
     }
 
+    /**
+     * Casts any {@link Object} to selected type.
+     *
+     * @param data  data to cast
+     * @param clazz the type to cast to
+     * @return cast result
+     * @since 0.1.0
+     */
     public static <T> T cast(final Object data, final Class<T> clazz) {
         if (isNull(data)) {
             throw new ValidationException("Cannot cast empty or null source");
@@ -94,6 +132,13 @@ public class TypeUtils {
         }
     }
 
+    /**
+     * Casts any {@link Object} to generic type.
+     *
+     * @param data data to cast
+     * @return cast result
+     * @since 0.1.0
+     */
     public static <T> T cast(final Object data) {
         if (isNull(data)) {
             throw new ValidationException("Cannot cast empty or null source");

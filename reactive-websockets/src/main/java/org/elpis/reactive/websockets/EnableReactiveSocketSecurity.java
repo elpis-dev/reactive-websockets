@@ -11,8 +11,8 @@ import java.lang.annotation.*;
  * implementation and {@link org.springframework.security.web.server.SecurityWebFilterChain}
  *
  * @author Alex Zharkov
- * @since 0.1.0
  * @see org.springframework.context.annotation.Configuration
+ * @since 0.1.0
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
