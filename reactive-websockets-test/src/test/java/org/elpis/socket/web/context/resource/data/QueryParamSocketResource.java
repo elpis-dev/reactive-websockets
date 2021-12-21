@@ -1,6 +1,5 @@
 package org.elpis.socket.web.context.resource.data;
 
-import org.elpis.reactive.websockets.web.BasicWebSocketResource;
 import org.elpis.reactive.websockets.web.annotation.controller.Outbound;
 import org.elpis.reactive.websockets.web.annotation.controller.SocketResource;
 import org.elpis.reactive.websockets.web.annotation.request.SocketQueryParam;
@@ -14,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 @SocketResource("/query")
-public class QueryParamSocketResource implements BasicWebSocketResource {
+public class QueryParamSocketResource {
 
     @Outbound("/single/get/string")
     public Publisher<?> getWithStringQuery(@SocketQueryParam("id") final String id) {

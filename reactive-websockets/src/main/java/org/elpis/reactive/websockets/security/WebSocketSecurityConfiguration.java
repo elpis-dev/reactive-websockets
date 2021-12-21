@@ -23,7 +23,7 @@ import org.springframework.web.reactive.socket.server.support.WebSocketHandlerAd
  */
 @Lazy
 @Configuration
-public final class WebSocketSecurityConfiguration {
+public class WebSocketSecurityConfiguration {
 
     /**
      * Creates a new {@link Bean @Bean} of type {@link WebSocketHandlerAdapter} with custom {@link SocketHandshakeService} if available.

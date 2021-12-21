@@ -1,6 +1,5 @@
 package org.elpis.socket.web.context.resource.data;
 
-import org.elpis.reactive.websockets.web.BasicWebSocketResource;
 import org.elpis.reactive.websockets.web.annotation.controller.Inbound;
 import org.elpis.reactive.websockets.web.annotation.controller.SocketResource;
 import org.elpis.reactive.websockets.web.annotation.request.SocketMessageBody;
@@ -12,7 +11,7 @@ import reactor.core.publisher.Flux;
 import java.util.List;
 
 @SocketResource("/body")
-public class MessageBodySocketResource implements BasicWebSocketResource {
+public class MessageBodySocketResource {
     private static final Logger LOG = LoggerFactory.getLogger(MessageBodySocketResource.class);
 
     @Inbound("/post")

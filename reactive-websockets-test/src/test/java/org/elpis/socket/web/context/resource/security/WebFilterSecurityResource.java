@@ -1,7 +1,6 @@
 package org.elpis.socket.web.context.resource.security;
 
 import org.elpis.reactive.websockets.security.principal.WebSocketPrincipal;
-import org.elpis.reactive.websockets.web.BasicWebSocketResource;
 import org.elpis.reactive.websockets.web.annotation.controller.Outbound;
 import org.elpis.reactive.websockets.web.annotation.controller.SocketResource;
 import org.elpis.reactive.websockets.web.annotation.request.SocketAuthentication;
@@ -14,7 +13,7 @@ import java.security.Principal;
 import java.util.Map;
 
 @SocketResource("/auth/filter")
-public class WebFilterSecurityResource implements BasicWebSocketResource {
+public class WebFilterSecurityResource {
 
     @Outbound("/withPrincipal")
     public Publisher<?> withPrincipal(@SocketAuthentication final Principal principal) {

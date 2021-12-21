@@ -159,7 +159,6 @@ public abstract class SocketHandshakeService extends HandshakeWebSocketService {
 
         private BiFunction<ServerWebExchange, WebFilterChain, Mono<?>> handshakeWithWebFilter;
         private Function<ServerWebExchange, Mono<?>> handshakeWithServerWebExchange;
-
         private Function<ServerWebExchange, Mono<?>> principalExtractor;
 
         private Supplier<ServerWebExchangeMatcher> exchangeMatcher;

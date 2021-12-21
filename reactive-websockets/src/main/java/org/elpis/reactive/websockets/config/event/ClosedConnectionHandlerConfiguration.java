@@ -35,7 +35,7 @@ import java.util.stream.Stream;
  * @since 0.1.0
  */
 @Configuration
-public final class ClosedConnectionHandlerConfiguration {
+public class ClosedConnectionHandlerConfiguration {
     private static final Logger log = LoggerFactory.getLogger(ClosedConnectionHandlerConfiguration.class);
 
     private final ExecutorService executorService = Executors.newFixedThreadPool(Queues.XS_BUFFER_SIZE);

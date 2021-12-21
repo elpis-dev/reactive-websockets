@@ -1,6 +1,5 @@
 package org.elpis.socket.web.context.resource.data;
 
-import org.elpis.reactive.websockets.web.BasicWebSocketResource;
 import org.elpis.reactive.websockets.web.annotation.controller.Outbound;
 import org.elpis.reactive.websockets.web.annotation.controller.SocketResource;
 import org.elpis.reactive.websockets.web.annotation.request.SocketHeader;
@@ -14,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 @SocketResource("/header")
-public class HeaderSocketResource implements BasicWebSocketResource {
+public class HeaderSocketResource {
 
     @Outbound("/single/get/header")
     public Publisher<?> getWithStringHeader(@SocketHeader("id") final String id) {

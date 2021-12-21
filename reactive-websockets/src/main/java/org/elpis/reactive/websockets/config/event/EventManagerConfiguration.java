@@ -16,7 +16,7 @@ import org.springframework.context.annotation.Configuration;
  * @since 0.1.0
  */
 @Configuration
-public final class EventManagerConfiguration {
+public class EventManagerConfiguration {
 
     /**
      * {@link WebSocketEventManager} to observe {@link SessionConnectedEvent}.

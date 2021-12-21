@@ -1,6 +1,5 @@
 package org.elpis.socket.web;
 
-import org.elpis.reactive.websockets.web.BasicWebSocketResource;
 import org.elpis.reactive.websockets.web.annotation.controller.Inbound;
 import org.elpis.reactive.websockets.web.annotation.controller.Outbound;
 import org.elpis.reactive.websockets.web.annotation.controller.SocketResource;
@@ -19,7 +18,7 @@ import java.time.Duration;
 import java.util.Map;
 
 @SocketResource("/ws/chat")
-public class ChatWebSocketResource implements BasicWebSocketResource {
+public class ChatWebSocketResource {
     private static final Logger LOG = LoggerFactory.getLogger(ChatWebSocketResource.class);
 
     @Outbound("/listen/{chatId}")
