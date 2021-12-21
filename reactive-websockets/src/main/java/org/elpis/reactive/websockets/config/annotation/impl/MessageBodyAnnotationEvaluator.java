@@ -27,18 +27,18 @@ import java.lang.reflect.ParameterizedType;
 public class MessageBodyAnnotationEvaluator implements SocketApiAnnotationEvaluator<SocketMessageBody> {
 
     /**
-     * See {@link SocketApiAnnotationEvaluator#evaluate(WebSocketSessionContext, Parameter, String, Annotation)}
+     * See {@link SocketApiAnnotationEvaluator#evaluate(WebSocketSessionContext, Parameter, Annotation)}
      *
      * @since 0.1.0
      */
     @Override
     public Object evaluate(@NonNull final WebSocketSessionContext context, @NonNull final Parameter parameter,
-                           @NonNull final String methodName, @NonNull final SocketMessageBody annotation) {
+                           @NonNull final SocketMessageBody annotation) {
 
         final Class<?> parameterType = parameter.getType();
         if (!context.isInbound()) {
             throw new WebSocketConfigurationException(String.format("Unable register outbound method `@Outbound %s()` since " +
-                    "it cannot accept Flux<WebSocketMessage> or Mono<WebSocketMessage>", methodName));
+                    "it cannot accept Flux<WebSocketMessage> or Mono<WebSocketMessage>", parameter.getDeclaringExecutable().getName()));
         }
 
         final boolean isFlux = Flux.class.isAssignableFrom(parameterType);
@@ -46,7 +46,8 @@ public class MessageBodyAnnotationEvaluator implements SocketApiAnnotationEvalua
 
         if (!isFlux && !isMono) {
             throw new WebSocketConfigurationException(String.format("Unable register outbound method `@Inbound %s()` since " +
-                    "it should accept Flux<WebSocketMessage> or Mono<WebSocketMessage> instance, but `%s` was found instead", methodName, parameterType.getSimpleName()));
+                            "it should accept Flux<WebSocketMessage> or Mono<WebSocketMessage> instance, but `%s` was found instead",
+                    parameter.getDeclaringExecutable().getName(), parameterType.getSimpleName()));
         }
 
         final ParameterizedType parameterizedType = TypeUtils.cast(parameter.getParameterizedType());
@@ -54,7 +55,8 @@ public class MessageBodyAnnotationEvaluator implements SocketApiAnnotationEvalua
 
         if (!WebSocketMessage.class.isAssignableFrom(persistentClass)) {
             throw new WebSocketConfigurationException(String.format("Unable register outbound method `@Inbound %s()` since " +
-                    "it should accept Flux<WebSocketMessage> or Mono<WebSocketMessage> instance, but `%s<%s>` was found instead", methodName, parameterType.getSimpleName(), persistentClass.getSimpleName()));
+                            "it should accept Flux<WebSocketMessage> or Mono<WebSocketMessage> instance, but `%s<%s>` was found instead",
+                    parameter.getDeclaringExecutable().getName(), parameterType.getSimpleName(), persistentClass.getSimpleName()));
         }
 
         final Flux<WebSocketMessage> messageFlux = context.getMessageStream().get();

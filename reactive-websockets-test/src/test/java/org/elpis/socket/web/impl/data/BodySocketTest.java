@@ -52,7 +52,7 @@ public class BodySocketTest extends BaseWebSocketTest {
         //test
         this.withClient(path, session -> session.send(data.map(session::textMessage))
                 .thenMany(session.receive()
-                        .doOnNext(v -> sink.tryEmitNext(v.getPayloadAsText())))
+                        .doOnNext(value -> sink.tryEmitNext(value.getPayloadAsText())))
                 .then())
                 .subscribe();
 
@@ -78,7 +78,7 @@ public class BodySocketTest extends BaseWebSocketTest {
         //test
         this.withClient(path, session -> session.send(Mono.error(new RuntimeException(data)))
                 .thenMany(session.receive()
-                        .doOnNext(v -> sink.tryEmitNext(v.getPayloadAsText())))
+                        .doOnNext(value -> sink.tryEmitNext(value.getPayloadAsText())))
                 .then())
                 .doOnError(throwable -> errorSink.tryEmitValue(throwable.getMessage()))
                 .subscribe();
@@ -110,7 +110,7 @@ public class BodySocketTest extends BaseWebSocketTest {
         //test
         this.withClient(path, session -> session.send(Mono.just(data).map(session::textMessage))
                 .thenMany(session.receive()
-                        .doOnNext(v -> sink.tryEmitNext(v.getPayloadAsText())))
+                        .doOnNext(value -> sink.tryEmitNext(value.getPayloadAsText())))
                 .then())
                 .subscribe();
 
@@ -137,7 +137,7 @@ public class BodySocketTest extends BaseWebSocketTest {
         //test
         this.withClient(path, session -> session.send(Mono.just(data).map(session::textMessage))
                 .thenMany(session.receive()
-                        .doOnNext(v -> sink.tryEmitNext(v.getPayloadAsText())))
+                        .doOnNext(value -> sink.tryEmitNext(value.getPayloadAsText())))
                 .then())
                 .subscribe();
 

@@ -42,7 +42,7 @@ public class HeaderSocketTest extends BaseWebSocketTest {
         //test
         this.withClient(path, headers, (session) -> session.receive().map(WebSocketMessage::getPayloadAsText)
                 .log()
-                .doOnNext(v -> sink.tryEmitValue(v.replaceAll(" ", "")))
+                .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
                 .then()).subscribe();
 
         //verify
@@ -66,7 +66,7 @@ public class HeaderSocketTest extends BaseWebSocketTest {
         //test
         this.withClient(path, headers, (session) -> session.receive().map(WebSocketMessage::getPayloadAsText)
                 .log()
-                .doOnNext(v -> sink.tryEmitValue(v.replaceAll(" ", "")))
+                .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
                 .then()).subscribe();
 
         //verify
@@ -94,7 +94,7 @@ public class HeaderSocketTest extends BaseWebSocketTest {
         //test
         this.withClient(path, headers, (session) -> session.receive().map(WebSocketMessage::getPayloadAsText)
                 .log()
-                .doOnNext(v -> sink.tryEmitValue(v.replaceAll(" ", "")))
+                .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
                 .then()).subscribe();
 
         //verify
@@ -121,7 +121,7 @@ public class HeaderSocketTest extends BaseWebSocketTest {
         //test
         this.withClient(path, headers, (session) -> session.receive().map(WebSocketMessage::getPayloadAsText)
                 .log()
-                .doOnNext(v -> sink.tryEmitValue(v.replaceAll(" ", "")))
+                .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
                 .then()).subscribe();
 
         //verify
@@ -148,7 +148,7 @@ public class HeaderSocketTest extends BaseWebSocketTest {
         //test
         this.withClient(path, headers, (session) -> session.receive().map(WebSocketMessage::getPayloadAsText)
                 .log()
-                .doOnNext(v -> sink.tryEmitValue(v.replaceAll(" ", "")))
+                .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
                 .then()).subscribe();
 
         //verify
@@ -175,7 +175,7 @@ public class HeaderSocketTest extends BaseWebSocketTest {
         //test
         this.withClient(path, headers, (session) -> session.receive().map(WebSocketMessage::getPayloadAsText)
                 .log()
-                .doOnNext(v -> sink.tryEmitValue(v.replaceAll(" ", "")))
+                .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
                 .then()).subscribe();
 
         //verify
@@ -202,7 +202,7 @@ public class HeaderSocketTest extends BaseWebSocketTest {
         //test
         this.withClient(path, headers, (session) -> session.receive().map(WebSocketMessage::getPayloadAsText)
                 .log()
-                .doOnNext(v -> sink.tryEmitValue(v.replaceAll(" ", "")))
+                .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
                 .then()).subscribe();
 
         //verify
@@ -229,7 +229,7 @@ public class HeaderSocketTest extends BaseWebSocketTest {
         //test
         this.withClient(path, headers, (session) -> session.receive().map(WebSocketMessage::getPayloadAsText)
                 .log()
-                .doOnNext(v -> sink.tryEmitValue(v.replaceAll(" ", "")))
+                .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
                 .then()).subscribe();
 
         //verify
@@ -256,7 +256,7 @@ public class HeaderSocketTest extends BaseWebSocketTest {
         //test
         this.withClient(path, headers, (session) -> session.receive().map(WebSocketMessage::getPayloadAsText)
                 .log()
-                .doOnNext(v -> sink.tryEmitValue(v.replaceAll(" ", "")))
+                .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
                 .then()).subscribe();
 
         //verify
@@ -283,7 +283,7 @@ public class HeaderSocketTest extends BaseWebSocketTest {
         //test
         this.withClient(path, headers, (session) -> session.receive().map(WebSocketMessage::getPayloadAsText)
                 .log()
-                .doOnNext(v -> sink.tryEmitValue(v.replaceAll(" ", "")))
+                .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
                 .then()).subscribe();
 
         //verify
@@ -310,7 +310,7 @@ public class HeaderSocketTest extends BaseWebSocketTest {
         //test
         this.withClient(path, headers, (session) -> session.receive().map(WebSocketMessage::getPayloadAsText)
                 .log()
-                .doOnNext(v -> sink.tryEmitValue(v.replaceAll(" ", "")))
+                .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
                 .then()).subscribe();
 
         //verify
@@ -337,7 +337,7 @@ public class HeaderSocketTest extends BaseWebSocketTest {
         //test
         this.withClient(path, headers, (session) -> session.receive().map(WebSocketMessage::getPayloadAsText)
                 .log()
-                .doOnNext(v -> sink.tryEmitValue(v.replaceAll(" ", "")))
+                .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
                 .then()).subscribe();
 
         //verify
@@ -364,7 +364,7 @@ public class HeaderSocketTest extends BaseWebSocketTest {
         //test
         this.withClient(path, headers, (session) -> session.receive().map(WebSocketMessage::getPayloadAsText)
                 .log()
-                .doOnNext(v -> sink.tryEmitValue(v.replaceAll(" ", "")))
+                .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
                 .then()).subscribe();
 
         //verify
@@ -391,7 +391,7 @@ public class HeaderSocketTest extends BaseWebSocketTest {
         //test
         this.withClient(path, headers, (session) -> session.receive().map(WebSocketMessage::getPayloadAsText)
                 .log()
-                .doOnNext(v -> sink.tryEmitValue(v.replaceAll(" ", "")))
+                .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
                 .then()).subscribe();
 
         //verify
@@ -418,7 +418,7 @@ public class HeaderSocketTest extends BaseWebSocketTest {
         //test
         this.withClient(path, headers, (session) -> session.receive().map(WebSocketMessage::getPayloadAsText)
                 .log()
-                .doOnNext(v -> sink.tryEmitValue(v.replaceAll(" ", "")))
+                .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
                 .then()).subscribe();
 
         //verify
@@ -445,7 +445,7 @@ public class HeaderSocketTest extends BaseWebSocketTest {
         //test
         this.withClient(path, headers, (session) -> session.receive().map(WebSocketMessage::getPayloadAsText)
                 .log()
-                .doOnNext(v -> sink.tryEmitValue(v.replaceAll(" ", "")))
+                .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
                 .then()).subscribe();
 
         //verify
@@ -472,7 +472,7 @@ public class HeaderSocketTest extends BaseWebSocketTest {
         //test
         this.withClient(path, headers, (session) -> session.receive().map(WebSocketMessage::getPayloadAsText)
                 .log()
-                .doOnNext(v -> sink.tryEmitValue(v.replaceAll(" ", "")))
+                .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
                 .then()).subscribe();
 
         //verify
@@ -499,7 +499,7 @@ public class HeaderSocketTest extends BaseWebSocketTest {
         //test
         this.withClient(path, headers, (session) -> session.receive().map(WebSocketMessage::getPayloadAsText)
                 .log()
-                .doOnNext(v -> sink.tryEmitValue(v.replaceAll(" ", "")))
+                .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
                 .then()).subscribe();
 
         //verify
@@ -526,7 +526,7 @@ public class HeaderSocketTest extends BaseWebSocketTest {
         //test
         this.withClient(path, headers, (session) -> session.receive().map(WebSocketMessage::getPayloadAsText)
                 .log()
-                .doOnNext(v -> sink.tryEmitValue(v.replaceAll(" ", "")))
+                .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
                 .then()).subscribe();
 
         //verify
@@ -553,7 +553,7 @@ public class HeaderSocketTest extends BaseWebSocketTest {
         //test
         this.withClient(path, headers, (session) -> session.receive().map(WebSocketMessage::getPayloadAsText)
                 .log()
-                .doOnNext(v -> sink.tryEmitValue(v.replaceAll(" ", "")))
+                .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
                 .then()).subscribe();
 
         //verify
@@ -580,7 +580,7 @@ public class HeaderSocketTest extends BaseWebSocketTest {
         //test
         this.withClient(path, headers, (session) -> session.receive().map(WebSocketMessage::getPayloadAsText)
                 .log()
-                .doOnNext(v -> sink.tryEmitValue(v.replaceAll(" ", "")))
+                .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
                 .then()).subscribe();
 
         //verify
@@ -607,7 +607,7 @@ public class HeaderSocketTest extends BaseWebSocketTest {
         //test
         this.withClient(path, headers, (session) -> session.receive().map(WebSocketMessage::getPayloadAsText)
                 .log()
-                .doOnNext(v -> sink.tryEmitValue(v.replaceAll(" ", "")))
+                .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
                 .then()).subscribe();
 
         //verify
@@ -634,7 +634,7 @@ public class HeaderSocketTest extends BaseWebSocketTest {
         //test
         this.withClient(path, headers, (session) -> session.receive().map(WebSocketMessage::getPayloadAsText)
                 .log()
-                .doOnNext(v -> sink.tryEmitValue(v.replaceAll(" ", "")))
+                .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
                 .then()).subscribe();
 
         //verify
@@ -661,7 +661,117 @@ public class HeaderSocketTest extends BaseWebSocketTest {
         //test
         this.withClient(path, headers, (session) -> session.receive().map(WebSocketMessage::getPayloadAsText)
                 .log()
-                .doOnNext(v -> sink.tryEmitValue(v.replaceAll(" ", "")))
+                .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
+                .then()).subscribe();
+
+        //verify
+        StepVerifier.create(sink.asMono())
+                .expectNext(expected)
+                .expectComplete()
+                .log()
+                .verify(DEFAULT_GENERIC_TEST_FALLBACK);
+    }
+
+    @Test
+    public void getHttpHeadersTest() throws Exception {
+        //given
+        final String data = this.randomTextString(5);
+        final HttpHeaders headers = new HttpHeaders();
+        headers.add("id", data);
+
+        final String path = "/header/http";
+        final Sinks.One<String> sink = Sinks.one();
+
+        //expected
+        final String expected = "{\"header\":\"" + data + "\"}";
+
+        //test
+        this.withClient(path, headers, (session) -> session.receive().map(WebSocketMessage::getPayloadAsText)
+                .log()
+                .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
+                .then()).subscribe();
+
+        //verify
+        StepVerifier.create(sink.asMono())
+                .expectNext(expected)
+                .expectComplete()
+                .log()
+                .verify(DEFAULT_GENERIC_TEST_FALLBACK);
+    }
+
+    @Test
+    public void getMultiMapTest() throws Exception {
+        //given
+        final String data = this.randomTextString(5);
+        final HttpHeaders headers = new HttpHeaders();
+        headers.add("id", data);
+
+        final String path = "/header/multimap";
+        final Sinks.One<String> sink = Sinks.one();
+
+        //expected
+        final String expected = "{\"header\":\"" + data + "\"}";
+
+        //test
+        this.withClient(path, headers, (session) -> session.receive().map(WebSocketMessage::getPayloadAsText)
+                .log()
+                .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
+                .then()).subscribe();
+
+        //verify
+        StepVerifier.create(sink.asMono())
+                .expectNext(expected)
+                .expectComplete()
+                .log()
+                .verify(DEFAULT_GENERIC_TEST_FALLBACK);
+    }
+
+    @Test
+    public void getMultiMapBadTypeTest(final CapturedOutput output) throws Exception {
+        //given
+        final String data = this.randomTextString(5);
+        final HttpHeaders headers = new HttpHeaders();
+        headers.add("id", data);
+
+        final String path = "/header/multimap/bad";
+        final Sinks.One<String> sink = Sinks.one();
+
+        //expected
+        final String expected = "Request header `@SocketHeader` at method `getBadMultiValueMap()` should accept " +
+                "`MultiValueMap<String, String>`, but got `org.springframework.util.MultiValueMap<java.lang.String, java.lang.Long>`";
+
+        //test
+        this.withClient(path, headers, (session) -> session.receive().map(WebSocketMessage::getPayloadAsText)
+                .log()
+                .doOnNext(sink::tryEmitValue)
+                .then()).subscribe();
+
+        //verify
+        StepVerifier.create(sink.asMono().timeout(DEFAULT_FAST_TEST_FALLBACK))
+                .verifyError(TimeoutException.class);
+
+        assertThat(output).contains(expected);
+    }
+
+    @Test
+    public void getWithMultipleStringHeaderTest() throws Exception {
+        //given
+        final String id = this.randomTextString(5);
+        final String version = this.randomTextString(5);
+        final HttpHeaders headers = new HttpHeaders();
+        headers.add("id", id);
+        headers.add("version", version);
+
+        final String path = "/header/multiple/get/header";
+        final Sinks.One<String> sink = Sinks.one();
+
+        //expected
+        final String expected = "{\"header\":\"" + id + "_" + version + "\"}";
+
+        //test
+        this.withClient(path, headers, (session) -> session.receive().map(WebSocketMessage::getPayloadAsText)
+                .log()
+                .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
                 .then()).subscribe();
 
         //verify

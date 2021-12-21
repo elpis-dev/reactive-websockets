@@ -19,7 +19,6 @@ import java.lang.annotation.*;
 @Target(ElementType.PARAMETER)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-//TODO: Add ability to pass whole headers Map
 public @interface SocketHeader {
 
     /**
