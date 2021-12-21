@@ -8,6 +8,7 @@ import reactor.core.publisher.Sinks;
 
 /**
  * Contract for posting/receiving declared {@link WebSocketEvent}.
+ *
  * @author Alex Zharkov
  * @since 0.1.0
  */

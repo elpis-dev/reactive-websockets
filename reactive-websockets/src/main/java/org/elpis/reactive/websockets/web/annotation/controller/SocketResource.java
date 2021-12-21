@@ -9,12 +9,12 @@ import java.lang.annotation.*;
  *
  * <p>Annotation works in a similar way as {@link org.springframework.stereotype.Controller @Controller} but generally will be combined
  * with {@link Inbound @Inbound} and {@link Outbound @Outbound} annotations. Includes {@link Component @Component} to create a bean from annotated class
-
+ *
  * @author Alex Zharkov
- * @since 0.1.0
  * @see Inbound
  * @see Outbound
  * @see Component
+ * @since 0.1.0
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)

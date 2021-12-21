@@ -7,6 +7,7 @@ import org.elpis.reactive.websockets.event.model.WebSocketEvent;
 
 /**
  * Utils class with some pre-implemented {@link WebSocketEventManager}.
+ *
  * @author Alex Zharkov
  * @see WebSocketEvent
  * @see WebSocketEventManager
@@ -17,6 +18,7 @@ public class EventManagers {
 
     /**
      * Creates default {@link MulticastEventManager} with default queue size of {@link reactor.util.concurrent.Queues#SMALL_BUFFER_SIZE}.
+     *
      * @return {@link MulticastEventManager}
      * @since 0.1.0
      */
@@ -27,6 +29,7 @@ public class EventManagers {
 
     /**
      * Creates default {@link MulticastEventManager} with custom queue size.
+     *
      * @return {@link MulticastEventManager}
      * @since 0.1.0
      */

@@ -26,6 +26,14 @@ import java.util.function.Consumer;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+/**
+ * Configuration support {@link ClientSessionClosedEvent} handling for {@link CloseStatusHandler @CloseStatusHandler} annotated beans.
+ *
+ * @author Alex Zharkov
+ * @see org.springframework.context.annotation.Configuration
+ * @see CloseStatusHandler
+ * @since 0.1.0
+ */
 @Configuration
 public class ClosedConnectionHandlerConfiguration {
     private static final Logger log = LoggerFactory.getLogger(ClosedConnectionHandlerConfiguration.class);

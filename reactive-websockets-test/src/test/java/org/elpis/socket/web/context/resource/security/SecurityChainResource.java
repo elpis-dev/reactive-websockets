@@ -1,6 +1,5 @@
 package org.elpis.socket.web.context.resource.security;
 
-import org.elpis.reactive.websockets.web.BasicWebSocketResource;
 import org.elpis.reactive.websockets.web.annotation.controller.Outbound;
 import org.elpis.reactive.websockets.web.annotation.controller.SocketResource;
 import org.elpis.reactive.websockets.web.annotation.request.SocketAuthentication;
@@ -12,7 +11,7 @@ import java.security.Principal;
 import java.util.Map;
 
 @SocketResource("/auth/security")
-public class SecurityChainResource implements BasicWebSocketResource {
+public class SecurityChainResource {
 
     @Outbound("/withExtractedAuthentication")
     public Publisher<?> withExtractedAuthentication(@SocketAuthentication final String authentication) {

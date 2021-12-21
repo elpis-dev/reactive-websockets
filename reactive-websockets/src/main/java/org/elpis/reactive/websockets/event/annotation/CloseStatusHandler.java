@@ -10,12 +10,12 @@ import java.lang.annotation.*;
  *
  * <p>Annotation works in a similar way as {@link org.springframework.web.bind.annotation.ControllerAdvice @ControllerAdvice} is used for exception handling.
  * For effective use should be combined with {@link SessionCloseStatus @SessionCloseStatus} and {@link org.elpis.reactive.websockets.event.annotation.EventSelector @EventSelector} annotations. Includes {@link Component @Component} to create a bean from annotated class
-
+ *
  * @author Alex Zharkov
- * @since 0.1.0
  * @see SessionCloseStatus
  * @see org.elpis.reactive.websockets.event.annotation.EventSelector
  * @see Component
+ * @since 0.1.0
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)

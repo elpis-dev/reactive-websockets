@@ -24,6 +24,7 @@ public @interface SocketHeader {
 
     /**
      * Name alias.
+     *
      * @since 0.1.0
      */
     @AliasFor("name")
@@ -31,6 +32,7 @@ public @interface SocketHeader {
 
     /**
      * The name of the request header to bind to.
+     *
      * @since 0.1.0
      */
     @AliasFor("value")
@@ -44,6 +46,7 @@ public @interface SocketHeader {
      * not present in the request.
      * <p>Alternatively, provide a {@link #defaultValue}, which implicitly
      * sets this flag to {@code false}.
+     *
      * @since 0.1.0
      */
     boolean required() default true;
@@ -52,6 +55,7 @@ public @interface SocketHeader {
      * The default value to use as a fallback.
      * <p>Supplying a default value implicitly sets {@link #required} to
      * {@code false}.
+     *
      * @since 0.1.0
      */
     String defaultValue() default ValueConstants.DEFAULT_NONE;

@@ -1,6 +1,5 @@
 package org.elpis.socket.web.context.resource.data;
 
-import org.elpis.reactive.websockets.web.BasicWebSocketResource;
 import org.elpis.reactive.websockets.web.annotation.controller.Outbound;
 import org.elpis.reactive.websockets.web.annotation.controller.SocketResource;
 import org.elpis.reactive.websockets.web.annotation.request.SocketPathVariable;
@@ -11,7 +10,7 @@ import reactor.core.publisher.Flux;
 import java.util.Map;
 
 @SocketResource("/path")
-public class PathVariableSocketResource implements BasicWebSocketResource {
+public class PathVariableSocketResource {
 
     @Outbound("/single/get/string/{id}")
     public Publisher<?> getWithStringPath(@SocketPathVariable("id") final String id) {

@@ -13,7 +13,7 @@ import java.lang.annotation.*;
  *    //...
  * }
  * </pre>
- *
+ * <p>
  * Or same with Mono publisher:
  * <pre class="code">
  * &#064;Inbound
@@ -23,9 +23,9 @@ import java.lang.annotation.*;
  * </pre>
  *
  * @author Alex Zharkov
- * @since 0.1.0
  * @see org.elpis.reactive.websockets.web.annotation.request.SocketMessageBody
  * @see SocketResource
+ * @since 0.1.0
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)

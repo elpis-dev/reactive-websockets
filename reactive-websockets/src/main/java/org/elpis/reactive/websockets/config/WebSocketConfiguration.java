@@ -5,18 +5,16 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import org.elpis.reactive.websockets.config.annotation.SocketAnnotationEvaluatorFactory;
+import org.elpis.reactive.websockets.config.event.ClosedConnectionHandlerConfiguration;
 import org.elpis.reactive.websockets.config.event.EventManagerConfiguration;
 import org.elpis.reactive.websockets.config.model.WebSocketSessionContext;
 import org.elpis.reactive.websockets.config.registry.WebSessionRegistry;
 import org.elpis.reactive.websockets.config.registry.WebSocketSessionInfo;
-import org.elpis.reactive.websockets.exception.ValidationException;
 import org.elpis.reactive.websockets.exception.WebSocketConfigurationException;
-import org.elpis.reactive.websockets.config.event.ClosedConnectionHandlerConfiguration;
 import org.elpis.reactive.websockets.mapper.JsonMapper;
 import org.elpis.reactive.websockets.mertics.WebSocketMetricsService;
 import org.elpis.reactive.websockets.security.principal.Anonymous;
 import org.elpis.reactive.websockets.util.TypeUtils;
-import org.elpis.reactive.websockets.web.BasicWebSocketResource;
 import org.elpis.reactive.websockets.web.annotation.controller.Inbound;
 import org.elpis.reactive.websockets.web.annotation.controller.Outbound;
 import org.elpis.reactive.websockets.web.annotation.controller.SocketResource;
@@ -37,7 +35,6 @@ import reactor.core.publisher.Mono;
 
 import java.lang.reflect.Method;
 import java.security.Principal;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -47,6 +44,13 @@ import java.util.stream.Stream;
 import static java.util.Objects.nonNull;
 import static org.elpis.reactive.websockets.mertics.WebSocketMetricsService.MeterConstants.*;
 
+/**
+ * Configuration class that setups all the websocket endpoints and processes annotated methods.
+ *
+ * @author Alex Zharkov
+ * @see org.springframework.context.annotation.Configuration
+ * @since 0.1.0
+ */
 @Configuration
 @Import({
         SocketAnnotationEvaluatorFactory.class,
@@ -80,16 +84,23 @@ public class WebSocketConfiguration {
         this.jsonMapper = jsonMapper;
     }
 
+    /**
+     * {@link HandlerMapping} bean with all {@link Inbound @Inbound} and {@link Outbound @Outbound} resources.
+     *
+     * @return {@link HandlerMapping}
+     * @since 0.1.0
+     */
     @Bean
-    public HandlerMapping handlerMapping(@NonNull final List<? extends BasicWebSocketResource> webSocketResources) {
-        webSocketResources.forEach(resource -> {
-            final Class<? extends BasicWebSocketResource> clazz = resource.getClass();
+    public HandlerMapping handlerMapping(@NonNull final ApplicationContext applicationContext) {
+        applicationContext.getBeansWithAnnotation(SocketResource.class)
+                .forEach((name, bean) -> {
+                    final Class<?> clazz = bean.getClass();
 
-            Stream.of(clazz.getAnnotations())
-                    .findFirst()
-                    .map(annotation -> TypeUtils.cast(annotation, SocketResource.class))
-                    .ifPresent(socketResource -> this.registerMappings(socketResource, clazz));
-        });
+                    Stream.of(clazz.getAnnotations())
+                            .findFirst()
+                            .map(annotation -> TypeUtils.cast(annotation, SocketResource.class))
+                            .ifPresent(socketResource -> this.registerMappings(socketResource, clazz));
+                });
 
         final Map<String, WebSocketHandler> webSocketHandlers = this.descriptorRegistry.entrySet()
                 .stream()
@@ -98,7 +109,7 @@ public class WebSocketConfiguration {
         return new SimpleUrlHandlerMapping(webSocketHandlers, HANDLER_ORDER);
     }
 
-    private void registerMappings(final SocketResource socketResource, final Class<? extends BasicWebSocketResource> clazz) {
+    private void registerMappings(final SocketResource socketResource, final Class<?> clazz) {
         Stream.of(clazz.getDeclaredMethods())
                 .forEach(method -> {
                     if (method.isAnnotationPresent(Outbound.class)) {
@@ -111,14 +122,14 @@ public class WebSocketConfiguration {
                 });
     }
 
-    private void configureListener(final SocketResource resource, final Method method, final Class<? extends BasicWebSocketResource> clazz) {
+    private void configureListener(final SocketResource resource, final Method method, final Class<?> clazz) {
         final String inboundPathTemplate = resource.value() + method.getAnnotation(Inbound.class).value();
 
         final var webHandlerResourceDescriptor = Optional.ofNullable(this.descriptorRegistry.get(inboundPathTemplate))
                 .orElse(new WebHandlerResourceDescriptor<>(clazz));
 
         if (nonNull(webHandlerResourceDescriptor.getInboundMethod())) {
-            throw new ValidationException(String.format("Cannot register method `@Inbound %s()` on `%s` since " +
+            throw new WebSocketConfigurationException(String.format("Cannot register method `@Inbound %s()` on `%s` since " +
                             "`@Inbound %s()` was already registered on provided path", method.getName(), inboundPathTemplate,
                     webHandlerResourceDescriptor.getInboundMethod().getName()));
         }
@@ -128,9 +139,9 @@ public class WebSocketConfiguration {
         this.descriptorRegistry.put(inboundPathTemplate, webHandlerResourceDescriptor);
     }
 
-    private void configurePublisher(final SocketResource resource, final Method method, final Class<? extends BasicWebSocketResource> clazz) {
+    private void configurePublisher(final SocketResource resource, final Method method, final Class<?> clazz) {
         if (!Publisher.class.isAssignableFrom(method.getReturnType())) {
-            throw new ValidationException(String.format("Cannot register method `@Outbound %s()`. " +
+            throw new WebSocketConfigurationException(String.format("Cannot register method `@Outbound %s()`. " +
                     "Reason: method should return a Publisher instance", method.getName()));
         }
 
@@ -140,7 +151,7 @@ public class WebSocketConfiguration {
                 .orElse(new WebHandlerResourceDescriptor<>(clazz));
 
         if (nonNull(webHandlerResourceDescriptor.getOutboundMethod())) {
-            throw new ValidationException(String.format("Cannot register method `@Outbound %s()` on `%s` since " +
+            throw new WebSocketConfigurationException(String.format("Cannot register method `@Outbound %s()` on `%s` since " +
                             "`@Outbound %s()` was already registered on provided path", method.getName(), outboundPathTemplate,
                     webHandlerResourceDescriptor.getOutboundMethod().getName()));
         }
@@ -154,7 +165,7 @@ public class WebSocketConfiguration {
         return session ->
                 this.webSocketMetricsService.withTimer(stop -> {
                     final HandshakeInfo handshakeInfo = session.getHandshakeInfo();
-                    final BasicWebSocketResource resource = this.applicationContext.getBean(configEntity.getClazz());
+                    final Object resource = this.applicationContext.getBean(configEntity.getClazz());
 
                     log.trace("Establishing WebSocketSession: id => {}, uri => {}, address => {}", session.getId(), handshakeInfo.getUri(),
                             handshakeInfo.getRemoteAddress());
@@ -176,7 +187,7 @@ public class WebSocketConfiguration {
                             .switchIfEmpty(Mono.just(new Anonymous()))
                             .flatMap(principal -> {
                                 final WebSocketSessionContext webSocketSessionContext =
-                                        this.getWebSocketSessionContext(pathTemplate, session, handshakeInfo, principal);
+                                        this.getSessionContext(pathTemplate, session, handshakeInfo, principal);
 
                                 return stop.andThen(taskTime -> this.processConnection(resource, session, configEntity, webSocketSessionContext))
                                         .apply(SESSION_CONNECTION_TIME.getKey(), Tags.of(RESULT, SUCCESS));
@@ -189,11 +200,10 @@ public class WebSocketConfiguration {
                 });
     }
 
-    private WebSocketSessionContext getWebSocketSessionContext(final String pathTemplate, final WebSocketSession session,
-                                                               final HandshakeInfo handshakeInfo, final Principal principal) {
+    private WebSocketSessionContext getSessionContext(final String pathTemplate, final WebSocketSession session,
+                                                      final HandshakeInfo handshakeInfo, final Principal principal) {
 
         final String uriPath = handshakeInfo.getUri().getPath();
-
         final UriTemplate uriTemplate = new UriTemplate(pathTemplate);
 
         final var pathParameters = uriTemplate.match(uriPath);
@@ -210,8 +220,7 @@ public class WebSocketConfiguration {
                 .build();
     }
 
-    // TODO: How to change input/output to another session
-    private Mono<Void> processConnection(final BasicWebSocketResource resource, final WebSocketSession session,
+    private Mono<Void> processConnection(final Object resource, final WebSocketSession session,
                                          final WebHandlerResourceDescriptor<?> configEntity,
                                          final WebSocketSessionContext webSocketSessionContext) {
 
@@ -225,8 +234,7 @@ public class WebSocketConfiguration {
         return session.send(webSocketMessageFlux);
     }
 
-    private Publisher<?> processMethod(final WebHandlerResourceDescriptor<?> configEntity,
-                                       final BasicWebSocketResource resource,
+    private Publisher<?> processMethod(final WebHandlerResourceDescriptor<?> configEntity, final Object resource,
                                        final WebSocketSessionContext webSocketSessionContext) {
 
         final Optional<Method> outbound = Optional.ofNullable(configEntity.getOutboundMethod());
@@ -277,7 +285,7 @@ public class WebSocketConfiguration {
                 .orElse(null)).toArray();
     }
 
-    private static class WebHandlerResourceDescriptor<T extends BasicWebSocketResource> {
+    private static final class WebHandlerResourceDescriptor<T> {
         @Getter
         @Setter
         private Method outboundMethod;

@@ -9,13 +9,27 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Parameter;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * Implementation of {@link SocketApiAnnotationEvaluator} based on {@link SocketPathVariable @SocketPathVariable}.
+ *
+ * @author Alex Zharkov
+ * @see SocketApiAnnotationEvaluator
+ * @see SocketPathVariable
+ * @since 0.1.0
+ */
 @Component
 public class PathVariableAnnotationEvaluator implements SocketApiAnnotationEvaluator<SocketPathVariable> {
 
+    /**
+     * See {@link SocketApiAnnotationEvaluator#evaluate(WebSocketSessionContext, Parameter, String, Annotation)}
+     *
+     * @since 0.1.0
+     */
     @Override
     public Object evaluate(@NonNull final WebSocketSessionContext context, @NonNull final Parameter parameter,
                            @NonNull final String methodName, @NonNull final SocketPathVariable annotation) {
@@ -34,6 +48,11 @@ public class PathVariableAnnotationEvaluator implements SocketApiAnnotationEvalu
                 .orElse(TypeUtils.getDefaultValueForType(parameterType));
     }
 
+    /**
+     * See {@link SocketApiAnnotationEvaluator#getAnnotationType()}
+     *
+     * @since 0.1.0
+     */
     @Override
     public Class<SocketPathVariable> getAnnotationType() {
         return SocketPathVariable.class;
