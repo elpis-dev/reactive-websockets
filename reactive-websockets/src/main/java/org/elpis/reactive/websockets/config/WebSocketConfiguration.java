@@ -11,6 +11,8 @@ import org.elpis.reactive.websockets.config.model.WebSocketSessionContext;
 import org.elpis.reactive.websockets.config.registry.WebSessionRegistry;
 import org.elpis.reactive.websockets.config.registry.WebSocketSessionInfo;
 import org.elpis.reactive.websockets.exception.WebSocketConfigurationException;
+import org.elpis.reactive.websockets.exception.WebSocketInboundException;
+import org.elpis.reactive.websockets.exception.WebSocketOutboundException;
 import org.elpis.reactive.websockets.mapper.JsonMapper;
 import org.elpis.reactive.websockets.mertics.WebSocketMetricsService;
 import org.elpis.reactive.websockets.security.principal.Anonymous;
@@ -248,8 +250,7 @@ public class WebSocketConfiguration {
             try {
                 return TypeUtils.cast(method.invoke(resource, parameters), Publisher.class);
             } catch (Exception e) {
-                //TODO: Use another exception
-                throw new WebSocketConfigurationException("Unable to invoke method `@Outbound %s()` with request parameters %s",
+                throw new WebSocketOutboundException("Unable to invoke method `@Outbound %s()` with request parameters %s",
                         method.getName(), e.getMessage());
             }
         }).orElseGet(Flux::never);
@@ -261,7 +262,7 @@ public class WebSocketConfiguration {
                 try {
                     method.invoke(resource, parameters);
                 } catch (Exception e) {
-                    throw new WebSocketConfigurationException("Unable to invoke method `@Inbound %s()` with request parameters " +
+                    throw new WebSocketInboundException("Unable to invoke method `@Inbound %s()` with request parameters " +
                             "and message publisher instance %s", method.getName(), e.getMessage());
                 }
             });
