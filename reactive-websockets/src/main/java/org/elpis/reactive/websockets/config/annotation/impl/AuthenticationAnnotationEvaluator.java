@@ -46,8 +46,8 @@ public class AuthenticationAnnotationEvaluator implements SocketApiAnnotationEva
             final WebSocketPrincipal<?> webSocketPrincipal = TypeUtils.cast(principal, WebSocketPrincipal.class);
 
             if (!Principal.class.isAssignableFrom(parameterType) && !parameterType.isAssignableFrom(webSocketPrincipal.getAuthentication().getClass())) {
-                throw new WebSocketConfigurationException(String.format("Unable register method `%s()`. Requested @SocketAuthentication type: %s, found: %s",
-                        parameter.getDeclaringExecutable().getName(), parameterType.getName(), webSocketPrincipal.getAuthentication().getClass().getName()));
+                throw new WebSocketConfigurationException("Unable register method `%s()`. Requested @SocketAuthentication type: %s, found: %s",
+                        parameter.getDeclaringExecutable().getName(), parameterType.getName(), webSocketPrincipal.getAuthentication().getClass().getName());
             }
 
             return Principal.class.isAssignableFrom(parameterType)

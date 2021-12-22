@@ -37,26 +37,26 @@ public class MessageBodyAnnotationEvaluator implements SocketApiAnnotationEvalua
 
         final Class<?> parameterType = parameter.getType();
         if (!context.isInbound()) {
-            throw new WebSocketConfigurationException(String.format("Unable register outbound method `@Outbound %s()` since " +
-                    "it cannot accept Flux<WebSocketMessage> or Mono<WebSocketMessage>", parameter.getDeclaringExecutable().getName()));
+            throw new WebSocketConfigurationException("Unable register outbound method `@Outbound %s()` since " +
+                    "it cannot accept Flux<WebSocketMessage> or Mono<WebSocketMessage>", parameter.getDeclaringExecutable().getName());
         }
 
         final boolean isFlux = Flux.class.isAssignableFrom(parameterType);
         final boolean isMono = Mono.class.isAssignableFrom(parameterType);
 
         if (!isFlux && !isMono) {
-            throw new WebSocketConfigurationException(String.format("Unable register outbound method `@Inbound %s()` since " +
+            throw new WebSocketConfigurationException("Unable register outbound method `@Inbound %s()` since " +
                             "it should accept Flux<WebSocketMessage> or Mono<WebSocketMessage> instance, but `%s` was found instead",
-                    parameter.getDeclaringExecutable().getName(), parameterType.getSimpleName()));
+                            parameter.getDeclaringExecutable().getName(), parameterType.getSimpleName());
         }
 
         final ParameterizedType parameterizedType = TypeUtils.cast(parameter.getParameterizedType());
         final Class<?> persistentClass = TypeUtils.cast(parameterizedType.getActualTypeArguments()[0]);
 
         if (!WebSocketMessage.class.isAssignableFrom(persistentClass)) {
-            throw new WebSocketConfigurationException(String.format("Unable register outbound method `@Inbound %s()` since " +
+            throw new WebSocketConfigurationException("Unable register outbound method `@Inbound %s()` since " +
                             "it should accept Flux<WebSocketMessage> or Mono<WebSocketMessage> instance, but `%s<%s>` was found instead",
-                    parameter.getDeclaringExecutable().getName(), parameterType.getSimpleName(), persistentClass.getSimpleName()));
+                    parameter.getDeclaringExecutable().getName(), parameterType.getSimpleName(), persistentClass.getSimpleName());
         }
 
         final Flux<WebSocketMessage> messageFlux = context.getMessageStream().get();
