@@ -22,9 +22,10 @@
         <maven.install.version>3.0.0-M1</maven.install.version>
 
         <spring.boot.version>2.6.1</spring.boot.version>
-        <reactor.test.version>3.4.12</reactor.test.version>
+        <reactor.test.version>3.4.13</reactor.test.version>
 
         <log4j2.version>2.17.0</log4j2.version>
+        <logcaptor.version>2.7.4</logcaptor.version>
 
         <skipTests>true</skipTests>
     </properties>
@@ -45,7 +46,7 @@
         <dependency>
             <groupId>org.elpis.reactive</groupId>
             <artifactId>websockets</artifactId>
-            <version>0.0.1</version>
+            <version>0.1.0</version>
         </dependency>
 
         <!-- Spring -->
@@ -76,18 +77,6 @@
         </dependency>
 
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.junit.vintage</groupId>
-                    <artifactId>junit-vintage-engine</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
             <groupId>io.projectreactor</groupId>
             <artifactId>reactor-test</artifactId>
             <version>${reactor.test.version}</version>
@@ -97,7 +86,7 @@
         <dependency>
             <groupId>io.github.hakky54</groupId>
             <artifactId>logcaptor</artifactId>
-            <version>2.7.2</version>
+            <version>${logcaptor.version}</version>
             <scope>test</scope>
         </dependency>
 
@@ -118,6 +107,18 @@
             <artifactId>log4j-to-slf4j</artifactId>
             <version>${log4j2.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.junit.vintage</groupId>
+                    <artifactId>junit-vintage-engine</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
     </dependencies>
 
     <build>
@@ -131,10 +132,10 @@
                         <id>install-external</id>
                         <phase>clean</phase>
                         <configuration>
-                            <file>${basedir}/../reactive-websockets/target/websockets-0.0.1.jar</file>
+                            <file>${basedir}/../reactive-websockets/target/websockets-0.1.0.jar</file>
                             <groupId>org.elpis.reactive</groupId>
                             <artifactId>websockets</artifactId>
-                            <version>0.0.1</version>
+                            <version>0.1.0</version>
                             <packaging>jar</packaging>
                             <generatePom>true</generatePom>
                         </configuration>

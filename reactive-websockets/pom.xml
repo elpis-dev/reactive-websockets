@@ -6,7 +6,7 @@
 
     <groupId>org.elpis.reactive</groupId>
 	<artifactId>websockets</artifactId>
-    <version>0.0.1</version>
+    <version>0.1.0</version>
 
     <packaging>jar</packaging>
 
