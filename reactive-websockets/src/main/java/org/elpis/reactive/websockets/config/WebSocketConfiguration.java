@@ -250,7 +250,7 @@ public class WebSocketConfiguration {
             try {
                 return TypeUtils.cast(method.invoke(resource, parameters), Publisher.class);
             } catch (Exception e) {
-                throw new WebSocketConfigurationException("Unable to invoke method `@Outbound " + method.getName() + "()` with request parameters" + e.getMessage());
+                throw new WebSocketConfigurationException("Unable to invoke method `@Outbound " + method.getName() + "()` with request parameters: " + e.getMessage());
             }
         }).orElseGet(Flux::never);
 

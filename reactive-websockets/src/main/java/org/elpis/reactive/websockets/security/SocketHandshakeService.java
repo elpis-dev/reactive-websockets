@@ -136,8 +136,7 @@ public abstract class SocketHandshakeService extends HandshakeWebSocketService {
                 .filterWhen(serverWebExchange -> this.exchangeMatcher().matches(serverWebExchange).map(ServerWebExchangeMatcher.MatchResult::isMatch))
                 .switchIfEmpty(Mono.error(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Security chain failed")))
                 .onErrorResume(throwable -> this.errorHandler().handle(exchange, throwable).then(Mono.empty()))
-                .flatMap(this::handshake)
-                .switchIfEmpty(Mono.just(TypeUtils.cast(new Anonymous())))
+                .flatMap(serverWebExchange -> this.handshake(serverWebExchange).switchIfEmpty(Mono.just(TypeUtils.cast(new Anonymous()))))
                 .map(credentials -> Principal.class.isAssignableFrom(credentials.getClass())
                         ? (Principal) credentials
                         : new WebSocketPrincipal<>(credentials))
