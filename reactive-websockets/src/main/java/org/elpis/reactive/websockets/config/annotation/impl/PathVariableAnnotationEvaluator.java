@@ -26,13 +26,13 @@ import java.util.Optional;
 public class PathVariableAnnotationEvaluator implements SocketApiAnnotationEvaluator<SocketPathVariable> {
 
     /**
-     * See {@link SocketApiAnnotationEvaluator#evaluate(WebSocketSessionContext, Parameter, String, Annotation)}
+     * See {@link SocketApiAnnotationEvaluator#evaluate(WebSocketSessionContext, Parameter, Annotation)}
      *
      * @since 0.1.0
      */
     @Override
     public Object evaluate(@NonNull final WebSocketSessionContext context, @NonNull final Parameter parameter,
-                           @NonNull final String methodName, @NonNull final SocketPathVariable annotation) {
+                           @NonNull final SocketPathVariable annotation) {
 
         final Class<?> parameterType = parameter.getType();
         final Map<String, String> pathParameters = context.getPathParameters();
@@ -41,7 +41,7 @@ public class PathVariableAnnotationEvaluator implements SocketApiAnnotationEvalu
 
         if (annotation.required() && value.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("Path parameter `@SocketPathVariable %s` at method `%s()` " +
-                    "was marked as `required` but was not found on request", annotation.value(), methodName));
+                    "was marked as `required` but was not found on request", annotation.value(), parameter.getDeclaringExecutable().getName()));
         }
 
         return value.map(v -> (Object) TypeUtils.convert(v, parameterType))

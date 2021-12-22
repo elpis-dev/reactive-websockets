@@ -5,12 +5,16 @@ import org.elpis.reactive.websockets.web.annotation.controller.SocketResource;
 import org.elpis.reactive.websockets.web.annotation.request.SocketHeader;
 import org.elpis.socket.web.context.BootStarter;
 import org.reactivestreams.Publisher;
+import org.springframework.http.HttpHeaders;
+import org.springframework.util.MultiValueMap;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @SocketResource("/header")
 public class HeaderSocketResource {
@@ -133,6 +137,28 @@ public class HeaderSocketResource {
     @Outbound("/single/get/list")
     public Publisher<?> getListHeader(@SocketHeader("ids") final List<String> ids) {
         return Flux.just(Map.of("header", ids.toString()));
+    }
+
+    @Outbound("/multiple/get/header")
+    public Publisher<?> getWithMultipleStringHeader(@SocketHeader("id") final String id,
+                                                    @SocketHeader("version") final String version) {
+
+        return Flux.just(Map.of("header", id + "_" + version));
+    }
+
+    @Outbound("/http")
+    public Publisher<?> getHttpHeaders(@SocketHeader final HttpHeaders headers) {
+        return Mono.justOrEmpty(Optional.ofNullable(headers.getFirst("id")).map(header -> Map.of("header", header)));
+    }
+
+    @Outbound("/multimap")
+    public Publisher<?> getMultiValueMap(@SocketHeader final MultiValueMap<String, String> headers) {
+        return Mono.justOrEmpty(Optional.ofNullable(headers.getFirst("id")).map(header -> Map.of("header", header)));
+    }
+
+    @Outbound("/multimap/bad")
+    public Publisher<?> getBadMultiValueMap(@SocketHeader final MultiValueMap<String, Long> headers) {
+        return Mono.justOrEmpty(Optional.ofNullable(headers.getFirst("id")).map(header -> Map.of("header", header)));
     }
 
 }

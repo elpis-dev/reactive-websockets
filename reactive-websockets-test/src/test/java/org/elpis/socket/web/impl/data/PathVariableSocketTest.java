@@ -38,7 +38,7 @@ public class PathVariableSocketTest extends BaseWebSocketTest {
         //test
         this.withClient(path, (session) -> session.receive().map(WebSocketMessage::getPayloadAsText)
                 .log()
-                .doOnNext(v -> sink.tryEmitValue(v.replaceAll(" ", "")))
+                .doOnNext(value -> sink.tryEmitValue(value.replaceAll (" ", "")))
                 .then()).subscribe();
 
         //verify
@@ -60,7 +60,7 @@ public class PathVariableSocketTest extends BaseWebSocketTest {
         //test
         this.withClient(path, (session) -> session.receive().map(WebSocketMessage::getPayloadAsText)
                 .log()
-                .doOnNext(v -> sink.tryEmitValue(v.replaceAll(" ", "")))
+                .doOnNext(value -> sink.tryEmitValue(value.replaceAll (" ", "")))
                 .then()).subscribe();
 
         //verify
@@ -86,7 +86,7 @@ public class PathVariableSocketTest extends BaseWebSocketTest {
         //test
         this.withClient(path, (session) -> session.receive().map(WebSocketMessage::getPayloadAsText)
                 .log()
-                .doOnNext(v -> sink.tryEmitValue(v.replaceAll(" ", "")))
+                .doOnNext(value -> sink.tryEmitValue(value.replaceAll (" ", "")))
                 .then()).subscribe();
 
         //verify
@@ -111,7 +111,7 @@ public class PathVariableSocketTest extends BaseWebSocketTest {
         //test
         this.withClient(path, (session) -> session.receive().map(WebSocketMessage::getPayloadAsText)
                 .log()
-                .doOnNext(v -> sink.tryEmitValue(v.replaceAll(" ", "")))
+                .doOnNext(value -> sink.tryEmitValue(value.replaceAll (" ", "")))
                 .then()).subscribe();
 
         //verify
@@ -136,7 +136,7 @@ public class PathVariableSocketTest extends BaseWebSocketTest {
         //test
         this.withClient(path, (session) -> session.receive().map(WebSocketMessage::getPayloadAsText)
                 .log()
-                .doOnNext(v -> sink.tryEmitValue(v.replaceAll(" ", "")))
+                .doOnNext(value -> sink.tryEmitValue(value.replaceAll (" ", "")))
                 .then()).subscribe();
 
         //verify
@@ -161,7 +161,7 @@ public class PathVariableSocketTest extends BaseWebSocketTest {
         //test
         this.withClient(path, (session) -> session.receive().map(WebSocketMessage::getPayloadAsText)
                 .log()
-                .doOnNext(v -> sink.tryEmitValue(v.replaceAll(" ", "")))
+                .doOnNext(value -> sink.tryEmitValue(value.replaceAll (" ", "")))
                 .then()).subscribe();
 
         //verify
@@ -186,7 +186,7 @@ public class PathVariableSocketTest extends BaseWebSocketTest {
         //test
         this.withClient(path, (session) -> session.receive().map(WebSocketMessage::getPayloadAsText)
                 .log()
-                .doOnNext(v -> sink.tryEmitValue(v.replaceAll(" ", "")))
+                .doOnNext(value -> sink.tryEmitValue(value.replaceAll (" ", "")))
                 .then()).subscribe();
 
         //verify
@@ -211,7 +211,7 @@ public class PathVariableSocketTest extends BaseWebSocketTest {
         //test
         this.withClient(path, (session) -> session.receive().map(WebSocketMessage::getPayloadAsText)
                 .log()
-                .doOnNext(v -> sink.tryEmitValue(v.replaceAll(" ", "")))
+                .doOnNext(value -> sink.tryEmitValue(value.replaceAll (" ", "")))
                 .then()).subscribe();
 
         //verify
@@ -236,7 +236,7 @@ public class PathVariableSocketTest extends BaseWebSocketTest {
         //test
         this.withClient(path, (session) -> session.receive().map(WebSocketMessage::getPayloadAsText)
                 .log()
-                .doOnNext(v -> sink.tryEmitValue(v.replaceAll(" ", "")))
+                .doOnNext(value -> sink.tryEmitValue(value.replaceAll (" ", "")))
                 .then()).subscribe();
 
         //verify
@@ -261,7 +261,7 @@ public class PathVariableSocketTest extends BaseWebSocketTest {
         //test
         this.withClient(path, (session) -> session.receive().map(WebSocketMessage::getPayloadAsText)
                 .log()
-                .doOnNext(v -> sink.tryEmitValue(v.replaceAll(" ", "")))
+                .doOnNext(value -> sink.tryEmitValue(value.replaceAll (" ", "")))
                 .then()).subscribe();
 
         //verify
@@ -286,7 +286,7 @@ public class PathVariableSocketTest extends BaseWebSocketTest {
         //test
         this.withClient(path, (session) -> session.receive().map(WebSocketMessage::getPayloadAsText)
                 .log()
-                .doOnNext(v -> sink.tryEmitValue(v.replaceAll(" ", "")))
+                .doOnNext(value -> sink.tryEmitValue(value.replaceAll (" ", "")))
                 .then()).subscribe();
 
         //verify
@@ -311,7 +311,7 @@ public class PathVariableSocketTest extends BaseWebSocketTest {
         //test
         this.withClient(path, (session) -> session.receive().map(WebSocketMessage::getPayloadAsText)
                 .log()
-                .doOnNext(v -> sink.tryEmitValue(v.replaceAll(" ", "")))
+                .doOnNext(value -> sink.tryEmitValue(value.replaceAll (" ", "")))
                 .then()).subscribe();
 
         //verify
@@ -336,7 +336,7 @@ public class PathVariableSocketTest extends BaseWebSocketTest {
         //test
         this.withClient(path, (session) -> session.receive().map(WebSocketMessage::getPayloadAsText)
                 .log()
-                .doOnNext(v -> sink.tryEmitValue(v.replaceAll(" ", "")))
+                .doOnNext(value -> sink.tryEmitValue(value.replaceAll (" ", "")))
                 .then()).subscribe();
 
         //verify
@@ -361,7 +361,7 @@ public class PathVariableSocketTest extends BaseWebSocketTest {
         //test
         this.withClient(path, (session) -> session.receive().map(WebSocketMessage::getPayloadAsText)
                 .log()
-                .doOnNext(v -> sink.tryEmitValue(v.replaceAll(" ", "")))
+                .doOnNext(value -> sink.tryEmitValue(value.replaceAll (" ", "")))
                 .then()).subscribe();
 
         //verify

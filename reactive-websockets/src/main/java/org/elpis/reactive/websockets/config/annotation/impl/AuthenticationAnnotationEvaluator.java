@@ -27,13 +27,13 @@ import java.security.Principal;
 public class AuthenticationAnnotationEvaluator implements SocketApiAnnotationEvaluator<SocketAuthentication> {
 
     /**
-     * See {@link SocketApiAnnotationEvaluator#evaluate(WebSocketSessionContext, Parameter, String, Annotation)}
+     * See {@link SocketApiAnnotationEvaluator#evaluate(WebSocketSessionContext, Parameter, Annotation)}
      *
      * @since 0.1.0
      */
     @Override
     public Object evaluate(@NonNull final WebSocketSessionContext context, @NonNull final Parameter parameter,
-                           @NonNull final String methodName, @NonNull final SocketAuthentication annotation) {
+                           @NonNull final SocketAuthentication annotation) {
 
         final Class<?> parameterType = parameter.getType();
 
@@ -47,7 +47,7 @@ public class AuthenticationAnnotationEvaluator implements SocketApiAnnotationEva
 
             if (!Principal.class.isAssignableFrom(parameterType) && !parameterType.isAssignableFrom(webSocketPrincipal.getAuthentication().getClass())) {
                 throw new WebSocketConfigurationException(String.format("Unable register method `%s()`. Requested @SocketAuthentication type: %s, found: %s",
-                        methodName, parameterType.getName(), webSocketPrincipal.getAuthentication().getClass().getName()));
+                        parameter.getDeclaringExecutable().getName(), parameterType.getName(), webSocketPrincipal.getAuthentication().getClass().getName()));
             }
 
             return Principal.class.isAssignableFrom(parameterType)

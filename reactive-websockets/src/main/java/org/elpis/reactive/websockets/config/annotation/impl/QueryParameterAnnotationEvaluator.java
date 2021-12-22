@@ -28,13 +28,13 @@ import java.util.Optional;
 public class QueryParameterAnnotationEvaluator implements SocketApiAnnotationEvaluator<SocketQueryParam> {
 
     /**
-     * See {@link SocketApiAnnotationEvaluator#evaluate(WebSocketSessionContext, Parameter, String, Annotation)}
+     * See {@link SocketApiAnnotationEvaluator#evaluate(WebSocketSessionContext, Parameter, Annotation)}
      *
      * @since 0.1.0
      */
     @Override
     public Object evaluate(@NonNull final WebSocketSessionContext context, @NonNull final Parameter parameter,
-                           @NonNull final String methodName, @NonNull final SocketQueryParam annotation) {
+                           @NonNull final SocketQueryParam annotation) {
 
         final Class<?> parameterType = parameter.getType();
         final MultiValueMap<String, String> queryParameters = context.getQueryParameters();
@@ -48,7 +48,7 @@ public class QueryParameterAnnotationEvaluator implements SocketApiAnnotationEva
 
         if (isRequired && values.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("Request parameter `@SocketQueryParam %s` at method `%s()` " +
-                    "was marked as `required` but was not found on request", annotation.value(), methodName));
+                    "was marked as `required` but was not found on request", annotation.value(), parameter.getDeclaringExecutable().getName()));
         }
 
         return values.flatMap(l -> List.class.isAssignableFrom(parameterType)

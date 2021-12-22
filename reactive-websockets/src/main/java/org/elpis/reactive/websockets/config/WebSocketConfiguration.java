@@ -275,13 +275,11 @@ public class WebSocketConfiguration {
 
     @SuppressWarnings("unchecked")
     private Object[] processMethodParameters(final Method method, final WebSocketSessionContext webSocketSessionContext) {
-        final String methodName = method.getName();
-
         webSocketSessionContext.setInbound(method.isAnnotationPresent(Inbound.class));
         webSocketSessionContext.setOutbound(method.isAnnotationPresent(Outbound.class));
 
         return Stream.of(method.getParameters()).map(parameter -> this.socketAnnotationEvaluatorFactory.getEvaluator(parameter.getAnnotations())
-                .map(evaluator -> evaluator.evaluate(webSocketSessionContext, parameter, methodName, parameter.getAnnotation(evaluator.getAnnotationType())))
+                .map(evaluator -> evaluator.evaluate(webSocketSessionContext, parameter, parameter.getAnnotation(evaluator.getAnnotationType())))
                 .orElse(null)).toArray();
     }
 
