@@ -125,40 +125,38 @@ public class WebSocketConfiguration {
     private void configureListener(final SocketResource resource, final Method method, final Class<?> clazz) {
         final String inboundPathTemplate = resource.value() + method.getAnnotation(Inbound.class).value();
 
-        final var webHandlerResourceDescriptor = Optional.ofNullable(this.descriptorRegistry.get(inboundPathTemplate))
+        final var resourceDescriptor = Optional.ofNullable(this.descriptorRegistry.get(inboundPathTemplate))
                 .orElse(new WebHandlerResourceDescriptor<>(clazz));
 
-        if (nonNull(webHandlerResourceDescriptor.getInboundMethod())) {
-            throw new WebSocketConfigurationException(String.format("Cannot register method `@Inbound %s()` on `%s` since " +
-                            "`@Inbound %s()` was already registered on provided path", method.getName(), inboundPathTemplate,
-                    webHandlerResourceDescriptor.getInboundMethod().getName()));
+        if (nonNull(resourceDescriptor.getInboundMethod())) {
+            throw new WebSocketConfigurationException("Cannot register method `@Inbound %s()` on `%s` since `@Inbound %s()` " +
+                    "was already registered on provided path", method.getName(), inboundPathTemplate, resourceDescriptor.getInboundMethod().getName());
         }
 
-        webHandlerResourceDescriptor.setInboundMethod(method);
+        resourceDescriptor.setInboundMethod(method);
 
-        this.descriptorRegistry.put(inboundPathTemplate, webHandlerResourceDescriptor);
+        this.descriptorRegistry.put(inboundPathTemplate, resourceDescriptor);
     }
 
     private void configurePublisher(final SocketResource resource, final Method method, final Class<?> clazz) {
         if (!Publisher.class.isAssignableFrom(method.getReturnType())) {
-            throw new WebSocketConfigurationException(String.format("Cannot register method `@Outbound %s()`. " +
-                    "Reason: method should return a Publisher instance", method.getName()));
+            throw new WebSocketConfigurationException("Cannot register method `@Outbound %s()`. Reason: method should " +
+                    "return a Publisher instance", method.getName());
         }
 
         final String outboundPathTemplate = resource.value() + method.getAnnotation(Outbound.class).value();
 
-        final var webHandlerResourceDescriptor = Optional.ofNullable(this.descriptorRegistry.get(outboundPathTemplate))
+        final var resourceDescriptor = Optional.ofNullable(this.descriptorRegistry.get(outboundPathTemplate))
                 .orElse(new WebHandlerResourceDescriptor<>(clazz));
 
-        if (nonNull(webHandlerResourceDescriptor.getOutboundMethod())) {
-            throw new WebSocketConfigurationException(String.format("Cannot register method `@Outbound %s()` on `%s` since " +
-                            "`@Outbound %s()` was already registered on provided path", method.getName(), outboundPathTemplate,
-                    webHandlerResourceDescriptor.getOutboundMethod().getName()));
+        if (nonNull(resourceDescriptor.getOutboundMethod())) {
+            throw new WebSocketConfigurationException("Cannot register method `@Outbound %s()` on `%s` since `@Outbound %s()` " +
+                    "was already registered on provided path", method.getName(), outboundPathTemplate, resourceDescriptor.getOutboundMethod().getName());
         }
 
-        webHandlerResourceDescriptor.setOutboundMethod(method);
+        resourceDescriptor.setOutboundMethod(method);
 
-        this.descriptorRegistry.put(outboundPathTemplate, webHandlerResourceDescriptor);
+        this.descriptorRegistry.put(outboundPathTemplate, resourceDescriptor);
     }
 
     private WebSocketHandler handle(final String pathTemplate, final WebHandlerResourceDescriptor<?> configEntity) {
@@ -250,7 +248,9 @@ public class WebSocketConfiguration {
             try {
                 return TypeUtils.cast(method.invoke(resource, parameters), Publisher.class);
             } catch (Exception e) {
-                throw new WebSocketConfigurationException("Unable to invoke method `@Outbound " + method.getName() + "()` with request parameters: " + e.getMessage());
+                //TODO: Use another exception
+                throw new WebSocketConfigurationException("Unable to invoke method `@Outbound %s()` with request parameters %s",
+                        method.getName(), e.getMessage());
             }
         }).orElseGet(Flux::never);
 
@@ -261,8 +261,8 @@ public class WebSocketConfiguration {
                 try {
                     method.invoke(resource, parameters);
                 } catch (Exception e) {
-                    throw new WebSocketConfigurationException("Unable to invoke method `@Inbound " + method.getName() + "()` with request parameters " +
-                            "and message publisher instance" + e.getMessage());
+                    throw new WebSocketConfigurationException("Unable to invoke method `@Inbound %s()` with request parameters " +
+                            "and message publisher instance %s", method.getName(), e.getMessage());
                 }
             });
         }

@@ -64,9 +64,9 @@ public class ClosedConnectionHandlerConfiguration {
                         .filter(method -> method.isAnnotationPresent(SessionCloseStatus.class))
                         .forEach(method -> {
                             if (method.getParameterCount() > 1) {
-                                throw new WebSocketConfigurationException(String.format("Found two or more parameters on " +
-                                                "@SessionCloseStatus `%s.%s(...)` - one or none are only supported",
-                                        closeStatusHandler.getClass().getSimpleName(), method.getName()));
+                                throw new WebSocketConfigurationException("Found two or more parameters on " +
+                                        "@SessionCloseStatus `%s.%s(...)` - one or none are only supported",
+                                        closeStatusHandler.getClass().getSimpleName(), method.getName());
                             }
 
                             final SessionCloseStatus sessionCloseStatus = method.getAnnotation(SessionCloseStatus.class);
@@ -109,8 +109,8 @@ public class ClosedConnectionHandlerConfiguration {
             IntStream.of(manualCodes)
                     .forEach(code -> {
                         if (!WebSocketCloseStatus.isValidCode(code)) {
-                            throw new WebSocketConfigurationException(String.format("Cannot process `@SessionCloseStatus({%s})` " +
-                                    "- code %s is not valid. Valid error code range is from 1000 to 4999", Arrays.toString(manualCodes), code));
+                            throw new WebSocketConfigurationException("Cannot process `@SessionCloseStatus({%s})` " +
+                                    "- code %s is not valid. Valid error code range is from 1000 to 4999", Arrays.toString(manualCodes), code);
                         }
                     });
 

@@ -46,9 +46,10 @@ public class HeaderAnnotationEvaluator implements SocketApiAnnotationEvaluator<S
             return headers;
         } else if (MultiValueMap.class.isAssignableFrom(parameterType)) {
             if (!this.isMultimapParamValid(parameter)) {
-                throw new WebSocketConfigurationException(String.format("Request header `@SocketHeader` at method `%s()` " +
-                        "should accept `MultiValueMap<String, String>`, but got `%s`",
-                        parameter.getDeclaringExecutable().getName(), parameter.getParameterizedType().toString()));
+                throw new WebSocketConfigurationException("Request header `@SocketHeader` at method `%s()` should accept " +
+                        "`MultiValueMap<String, String>`, but got `%s`",
+                        parameter.getDeclaringExecutable().getName(),
+                        parameter.getParameterizedType().toString());
             }
 
             return headers;

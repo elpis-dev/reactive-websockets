@@ -113,7 +113,7 @@ public class ExchangeMatcherTest extends BaseWebSocketTest {
         @Bean
         public SocketHandshakeService socketHandshakeService() {
             return SocketHandshakeService.builder()
-                    .exchangeMatcher(this::serverWebExchangeMatcher)
+                    .exchangeMatcher(this.serverWebExchangeMatcher())
                     .handshake(serverWebExchange -> Mono.justOrEmpty(Optional.ofNullable(serverWebExchange.getRequest().getHeaders().get(TestConstants.PRINCIPAL))
                             .flatMap(headers -> headers.stream().findFirst())))
                     .build();

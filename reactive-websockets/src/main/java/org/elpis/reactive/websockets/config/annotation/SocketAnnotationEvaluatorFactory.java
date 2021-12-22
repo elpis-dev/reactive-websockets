@@ -6,11 +6,10 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.stereotype.Component;
 
 import java.lang.annotation.Annotation;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -26,23 +25,25 @@ import java.util.stream.Stream;
 @Component
 @ComponentScan(basePackageClasses = SocketApiAnnotationEvaluator.class)
 public final class SocketAnnotationEvaluatorFactory {
-    private final Set<Class<? extends Annotation>> supportedAnnotations;
-    private final Map<Class<? extends Annotation>, SocketApiAnnotationEvaluator<?>> annotationEvaluators;
+    private final Map<Class<? extends Annotation>, SocketApiAnnotationEvaluator<?>> annotationEvaluators = new HashMap<>();
 
-    //TODO: Don't allow duplicates
     public SocketAnnotationEvaluatorFactory(@NonNull final List<SocketApiAnnotationEvaluator<?>> annotationEvaluators) {
-        this.supportedAnnotations = annotationEvaluators.stream()
-                .map(SocketApiAnnotationEvaluator::getAnnotationType)
-                .collect(Collectors.toSet());
+        annotationEvaluators.forEach(socketApiAnnotationEvaluator -> {
+            final Class<? extends Annotation> annotationType = socketApiAnnotationEvaluator.getAnnotationType();
+            if (this.annotationEvaluators.containsKey(annotationType)) {
+                throw new WebSocketConfigurationException("Cannot register a `%s<%s>`, since there's `%s` " +
+                        "already implemented with same annotation type.", socketApiAnnotationEvaluator.getClass().getName(),
+                        annotationType.getName(), this.annotationEvaluators.get(annotationType).getClass().getName());
+            }
 
-        this.annotationEvaluators = annotationEvaluators.stream()
-                .collect(Collectors.toMap(SocketApiAnnotationEvaluator::getAnnotationType, Function.identity()));
+            this.annotationEvaluators.put(annotationType, socketApiAnnotationEvaluator);
+        });
     }
 
     @SuppressWarnings("rawtypes")
     public Optional<SocketApiAnnotationEvaluator> getEvaluator(@NonNull final Annotation[] annotations) {
         final List<Annotation> annotationsFiltered = Stream.of(annotations)
-                .filter(annotation -> supportedAnnotations.contains(annotation.annotationType()))
+                .filter(annotation -> this.annotationEvaluators.containsKey(annotation.annotationType()))
                 .collect(Collectors.toList());
 
         if (annotationsFiltered.size() > 1) {
@@ -50,8 +51,7 @@ public final class SocketAnnotationEvaluatorFactory {
                     .map(annotation -> "@" + annotation.getClass().getName())
                     .collect(Collectors.joining(","));
 
-            throw new WebSocketConfigurationException("Ambiguous WebSocket annotations found " + failedAnnotations
-                    + ". Only one declared annotation is legal");
+            throw new WebSocketConfigurationException("Ambiguous WebSocket annotations found %s. Only one declared annotation is legal", failedAnnotations);
         }
 
         return annotationsFiltered.stream()
