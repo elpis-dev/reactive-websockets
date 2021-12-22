@@ -161,7 +161,7 @@ public abstract class SocketHandshakeService extends HandshakeWebSocketService {
         private Function<ServerWebExchange, Mono<?>> handshakeWithServerWebExchange;
         private Function<ServerWebExchange, Mono<?>> principalExtractor;
 
-        private Supplier<ServerWebExchangeMatcher> exchangeMatcher;
+        private ServerWebExchangeMatcher exchangeMatcher;
 
         private TriFunction<SocketHandshakeService, ServerWebExchange, WebSocketHandler, Mono<Void>> requestHandler;
 
@@ -251,16 +251,15 @@ public abstract class SocketHandshakeService extends HandshakeWebSocketService {
          * Base for {@link SocketHandshakeService#exchangeMatcher()}.
          * <pre>
          * ...
-         * .exchangeMatcher(() -> exchange -> ServerWebExchangeMatcher.MatchResult.match())
+         * .exchangeMatcher(exchange -> ServerWebExchangeMatcher.MatchResult.match())
          * ...
          * </pre>
          *
-         * @param exchangeMatcher {@link ServerWebExchangeMatcher} supplier
+         * @param exchangeMatcher {@link ServerWebExchangeMatcher}
          * @return {@link Builder}
          * @since 0.1.0
          */
-        public Builder exchangeMatcher(Supplier<ServerWebExchangeMatcher> exchangeMatcher) {
-            // TODO: No supplier
+        public Builder exchangeMatcher(ServerWebExchangeMatcher exchangeMatcher) {
             this.exchangeMatcher = exchangeMatcher;
 
             return this;
@@ -345,9 +344,7 @@ public abstract class SocketHandshakeService extends HandshakeWebSocketService {
                 @Override
                 @lombok.NonNull
                 public ServerWebExchangeMatcher exchangeMatcher() {
-                    return nonNull(exchangeMatcher)
-                            ? exchangeMatcher.get()
-                            : super.exchangeMatcher();
+                    return nonNull(exchangeMatcher) ? exchangeMatcher : super.exchangeMatcher();
                 }
 
                 @Override
