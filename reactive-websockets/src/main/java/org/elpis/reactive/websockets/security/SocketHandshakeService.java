@@ -3,6 +3,7 @@ package org.elpis.reactive.websockets.security;
 import org.elpis.reactive.websockets.security.principal.Anonymous;
 import org.elpis.reactive.websockets.security.principal.WebSocketPrincipal;
 import org.elpis.reactive.websockets.util.TriFunction;
+import org.elpis.reactive.websockets.util.TypeUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatcher;
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers;
@@ -79,7 +80,6 @@ public abstract class SocketHandshakeService extends HandshakeWebSocketService {
      */
     @lombok.NonNull
     public Mono<?> handshake(@lombok.NonNull final ServerWebExchange exchange) {
-        // TODO: Anonymous if empty
         return Mono.just(new Anonymous());
     }
 
@@ -136,7 +136,7 @@ public abstract class SocketHandshakeService extends HandshakeWebSocketService {
                 .filterWhen(serverWebExchange -> this.exchangeMatcher().matches(serverWebExchange).map(ServerWebExchangeMatcher.MatchResult::isMatch))
                 .switchIfEmpty(Mono.error(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Security chain failed")))
                 .onErrorResume(throwable -> this.errorHandler().handle(exchange, throwable).then(Mono.empty()))
-                .flatMap(this::handshake)
+                .flatMap(serverWebExchange -> this.handshake(serverWebExchange).switchIfEmpty(Mono.just(TypeUtils.cast(new Anonymous()))))
                 .map(credentials -> Principal.class.isAssignableFrom(credentials.getClass())
                         ? (Principal) credentials
                         : new WebSocketPrincipal<>(credentials))
