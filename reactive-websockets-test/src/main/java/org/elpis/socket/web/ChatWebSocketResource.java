@@ -19,7 +19,7 @@ import java.util.Map;
 
 @SocketResource("/ws/chat")
 public class ChatWebSocketResource {
-    private static final Logger LOG = LoggerFactory.getLogger(ChatWebSocketResource.class);
+    private static final Logger log = LoggerFactory.getLogger(ChatWebSocketResource.class);
 
     @Outbound("/listen/{chatId}")
     public Publisher<?> handleOutbound(@SocketHeader("userName") final String userName,
@@ -41,7 +41,7 @@ public class ChatWebSocketResource {
                               @SocketMessageBody final Flux<WebSocketMessage> messageFlux) {
 
         messageFlux.subscribe(webSocketMessage ->
-                LOG.info("Received message to `{}` on chat `{}` with identity `{}` and message `{}`", userName, chatId,
+                log.info("Received message to `{}` on chat `{}` with identity `{}` and message `{}`", userName, chatId,
                         principal, webSocketMessage.getPayloadAsText()));
     }
 
@@ -54,7 +54,7 @@ public class ChatWebSocketResource {
                                     @SocketMessageBody final Flux<WebSocketMessage> messageFlux) {
 
         return messageFlux.doOnNext(webSocketMessage ->
-                LOG.info("Received message to `{}` on chat `{}` with identity `{}` and message `{}`", userName, chatId,
+                log.info("Received message to `{}` on chat `{}` with identity `{}` and message `{}`", userName, chatId,
                         principal, webSocketMessage.getPayloadAsText()))
                 .map(socketMessage -> Map.of("chatId", chatId, "message", socketMessage.getPayloadAsText(), "userName", userName));
     }
@@ -70,7 +70,7 @@ public class ChatWebSocketResource {
     @Inbound("/listen/me")
     public void handle(@SocketMessageBody final Flux<WebSocketMessage> webSocketMessages) {
         webSocketMessages.map(WebSocketMessage::getPayloadAsText)
-                .subscribe(LOG::info);
+                .subscribe(log::info);
     }
 
 }

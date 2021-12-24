@@ -10,17 +10,17 @@ import org.slf4j.LoggerFactory;
 
 @CloseStatusHandler
 public class CloseStatusHandlers {
-    private static final Logger LOG = LoggerFactory.getLogger(CloseStatusHandlers.class);
+    private static final Logger log = LoggerFactory.getLogger(CloseStatusHandlers.class);
 
     @SessionCloseStatus(WebSocketCloseStatus.ALL)
     @EventSelector("sessionInfo.path.contains('/listen/me')")
     public void allCloseEventsHandle(final ClientSessionClosedEvent clientSessionClosedEvent) {
-        LOG.info("Got close event from '/listen/me' - {}", clientSessionClosedEvent);
+        log.info("Got close event from '/listen/me' - {}", clientSessionClosedEvent);
     }
 
     @SessionCloseStatus(WebSocketCloseStatus.GOING_AWAY)
     @EventSelector("sessionInfo.id eq '12345'")
     public void goingAwayHandler(final ClientSessionClosedEvent clientSessionClosedEvent) {
-        LOG.info("Got close event from session with id '12345' - {}", clientSessionClosedEvent);
+        log.info("Got close event from session with id '12345' - {}", clientSessionClosedEvent);
     }
 }

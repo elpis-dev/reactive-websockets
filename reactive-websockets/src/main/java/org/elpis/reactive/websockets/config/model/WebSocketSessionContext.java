@@ -38,6 +38,9 @@ public class WebSocketSessionContext {
     @Builder.Default
     private Supplier<Flux<WebSocketMessage>> messageStream = Flux::never;
 
+    @NonNull
+    private String sessionId;
+
     private boolean inbound;
 
     private boolean outbound;

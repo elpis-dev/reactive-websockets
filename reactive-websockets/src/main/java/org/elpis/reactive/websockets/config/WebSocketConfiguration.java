@@ -217,6 +217,7 @@ public class WebSocketConfiguration {
                 .queryParameters(queryParameters)
                 .headers(headers)
                 .messageStream(session::receive)
+                .sessionId(session.getId())
                 .build();
     }
 
