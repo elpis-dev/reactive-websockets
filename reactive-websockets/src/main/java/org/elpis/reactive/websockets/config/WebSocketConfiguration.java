@@ -1,6 +1,5 @@
 package org.elpis.reactive.websockets.config;
 
-import io.micrometer.core.instrument.Tags;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
@@ -14,7 +13,6 @@ import org.elpis.reactive.websockets.exception.WebSocketConfigurationException;
 import org.elpis.reactive.websockets.exception.WebSocketInboundException;
 import org.elpis.reactive.websockets.exception.WebSocketOutboundException;
 import org.elpis.reactive.websockets.mapper.JsonMapper;
-import org.elpis.reactive.websockets.mertics.WebSocketMetricsService;
 import org.elpis.reactive.websockets.security.principal.Anonymous;
 import org.elpis.reactive.websockets.util.TypeUtils;
 import org.elpis.reactive.websockets.web.annotation.controller.Inbound;
@@ -44,7 +42,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.Objects.nonNull;
-import static org.elpis.reactive.websockets.mertics.WebSocketMetricsService.MeterConstants.*;
 
 /**
  * Configuration class that setups all the websocket endpoints and processes annotated methods.
@@ -56,7 +53,6 @@ import static org.elpis.reactive.websockets.mertics.WebSocketMetricsService.Mete
 @Configuration
 @Import({
         SocketAnnotationEvaluatorFactory.class,
-        WebSocketMetricsService.class,
         EventManagerConfiguration.class,
         ClosedConnectionHandlerConfiguration.class
 })
@@ -69,19 +65,16 @@ public class WebSocketConfiguration {
 
     private final ApplicationContext applicationContext;
     private final SocketAnnotationEvaluatorFactory socketAnnotationEvaluatorFactory;
-    private final WebSocketMetricsService webSocketMetricsService;
     private final WebSessionRegistry sessionRegistry;
     private final JsonMapper jsonMapper;
 
     public WebSocketConfiguration(final ApplicationContext applicationContext,
                                   final SocketAnnotationEvaluatorFactory socketAnnotationEvaluatorFactory,
-                                  final WebSocketMetricsService webSocketMetricsService,
                                   final WebSessionRegistry sessionRegistry,
                                   final JsonMapper jsonMapper) {
 
         this.applicationContext = applicationContext;
         this.socketAnnotationEvaluatorFactory = socketAnnotationEvaluatorFactory;
-        this.webSocketMetricsService = webSocketMetricsService;
         this.sessionRegistry = sessionRegistry;
         this.jsonMapper = jsonMapper;
     }
@@ -125,19 +118,23 @@ public class WebSocketConfiguration {
     }
 
     private void configureListener(final SocketResource resource, final Method method, final Class<?> clazz) {
-        final String inboundPathTemplate = resource.value() + method.getAnnotation(Inbound.class).value();
+        Stream.of(method.getAnnotation(Inbound.class).value())
+                .map(path -> resource.value() + path)
+                .forEach(inboundPathTemplate -> {
 
-        final var resourceDescriptor = Optional.ofNullable(this.descriptorRegistry.get(inboundPathTemplate))
-                .orElse(new WebHandlerResourceDescriptor<>(clazz));
 
-        if (nonNull(resourceDescriptor.getInboundMethod())) {
-            throw new WebSocketConfigurationException("Cannot register method `@Inbound %s()` on `%s` since `@Inbound %s()` " +
-                    "was already registered on provided path", method.getName(), inboundPathTemplate, resourceDescriptor.getInboundMethod().getName());
-        }
+                    final var resourceDescriptor = Optional.ofNullable(this.descriptorRegistry.get(inboundPathTemplate))
+                            .orElse(new WebHandlerResourceDescriptor<>(clazz));
 
-        resourceDescriptor.setInboundMethod(method);
+                    if (nonNull(resourceDescriptor.getInboundMethod())) {
+                        throw new WebSocketConfigurationException("Cannot register method `@Inbound %s()` on `%s` since `@Inbound %s()` " +
+                                "was already registered on provided path", method.getName(), inboundPathTemplate, resourceDescriptor.getInboundMethod().getName());
+                    }
 
-        this.descriptorRegistry.put(inboundPathTemplate, resourceDescriptor);
+                    resourceDescriptor.setInboundMethod(method);
+
+                    this.descriptorRegistry.put(inboundPathTemplate, resourceDescriptor);
+                });
     }
 
     private void configurePublisher(final SocketResource resource, final Method method, final Class<?> clazz) {
@@ -146,58 +143,54 @@ public class WebSocketConfiguration {
                     "return a Publisher instance", method.getName());
         }
 
-        final String outboundPathTemplate = resource.value() + method.getAnnotation(Outbound.class).value();
+        Stream.of(method.getAnnotation(Outbound.class).value())
+                .map(path -> resource.value() + path)
+                .forEach(outboundPathTemplate -> {
+                    final var resourceDescriptor = Optional.ofNullable(this.descriptorRegistry.get(outboundPathTemplate))
+                            .orElse(new WebHandlerResourceDescriptor<>(clazz));
 
-        final var resourceDescriptor = Optional.ofNullable(this.descriptorRegistry.get(outboundPathTemplate))
-                .orElse(new WebHandlerResourceDescriptor<>(clazz));
+                    if (nonNull(resourceDescriptor.getOutboundMethod())) {
+                        throw new WebSocketConfigurationException("Cannot register method `@Outbound %s()` on `%s` since `@Outbound %s()` " +
+                                "was already registered on provided path", method.getName(), outboundPathTemplate, resourceDescriptor.getOutboundMethod().getName());
+                    }
 
-        if (nonNull(resourceDescriptor.getOutboundMethod())) {
-            throw new WebSocketConfigurationException("Cannot register method `@Outbound %s()` on `%s` since `@Outbound %s()` " +
-                    "was already registered on provided path", method.getName(), outboundPathTemplate, resourceDescriptor.getOutboundMethod().getName());
-        }
+                    resourceDescriptor.setOutboundMethod(method);
 
-        resourceDescriptor.setOutboundMethod(method);
-
-        this.descriptorRegistry.put(outboundPathTemplate, resourceDescriptor);
+                    this.descriptorRegistry.put(outboundPathTemplate, resourceDescriptor);
+                });
     }
 
     private WebSocketHandler handle(final String pathTemplate, final WebHandlerResourceDescriptor<?> configEntity) {
-        return session ->
-                this.webSocketMetricsService.withTimer(stop -> {
-                    final HandshakeInfo handshakeInfo = session.getHandshakeInfo();
-                    final Object resource = this.applicationContext.getBean(configEntity.getClazz());
+        return session -> {
+            final HandshakeInfo handshakeInfo = session.getHandshakeInfo();
+            final Object resource = this.applicationContext.getBean(configEntity.getClazz());
 
-                    log.trace("Establishing WebSocketSession: id => {}, uri => {}, address => {}", session.getId(), handshakeInfo.getUri(),
-                            handshakeInfo.getRemoteAddress());
+            log.trace("Establishing WebSocketSession: id => {}, uri => {}, address => {}", session.getId(), handshakeInfo.getUri(),
+                    handshakeInfo.getRemoteAddress());
 
-                    final WebSocketSessionInfo webSocketSessionInfo = WebSocketSessionInfo.builder()
-                            .isOpen(session::isOpen)
-                            .protocol(handshakeInfo.getSubProtocol())
-                            .id(session.getId())
-                            .host(handshakeInfo.getUri().getHost())
-                            .port(handshakeInfo.getUri().getPort())
-                            .path(pathTemplate)
-                            .remoteAddress(handshakeInfo.getRemoteAddress())
-                            .closeStatus(session.closeStatus())
-                            .build();
+            final WebSocketSessionInfo webSocketSessionInfo = WebSocketSessionInfo.builder()
+                    .isOpen(session::isOpen)
+                    .protocol(handshakeInfo.getSubProtocol())
+                    .id(session.getId())
+                    .host(handshakeInfo.getUri().getHost())
+                    .port(handshakeInfo.getUri().getPort())
+                    .path(pathTemplate)
+                    .remoteAddress(handshakeInfo.getRemoteAddress())
+                    .closeStatus(session.closeStatus())
+                    .build();
 
-                    this.sessionRegistry.put(session.getId(), webSocketSessionInfo);
+            this.sessionRegistry.put(session.getId(), webSocketSessionInfo);
 
-                    return session.getHandshakeInfo().getPrincipal()
-                            .switchIfEmpty(Mono.just(new Anonymous()))
-                            .flatMap(principal -> {
-                                final WebSocketSessionContext webSocketSessionContext =
-                                        this.getSessionContext(pathTemplate, session, handshakeInfo, principal);
+            return session.getHandshakeInfo().getPrincipal()
+                    .switchIfEmpty(Mono.just(new Anonymous()))
+                    .flatMap(principal -> {
+                        final WebSocketSessionContext webSocketSessionContext =
+                                this.getSessionContext(pathTemplate, session, handshakeInfo, principal);
 
-                                return stop.andThen(taskTime -> this.processConnection(resource, session, configEntity, webSocketSessionContext))
-                                        .apply(SESSION_CONNECTION_TIME.getKey(), Tags.of(RESULT, SUCCESS));
-                            })
-                            .doOnError(throwable -> {
-                                stop.apply(SESSION_CONNECTION_TIME.getKey(), Tags.of(RESULT, FAILURE));
-
-                                log.error(throwable.getMessage());
-                            });
-                });
+                        return this.processConnection(resource, session, configEntity, webSocketSessionContext);
+                    })
+                    .doOnError(throwable -> log.error(throwable.getMessage()));
+        };
     }
 
     private WebSocketSessionContext getSessionContext(final String pathTemplate, final WebSocketSession session,

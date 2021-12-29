@@ -1,22 +1,17 @@
 package org.elpis.reactive.websockets.config.registry;
 
-import io.micrometer.core.instrument.Gauge;
 import lombok.NonNull;
 import org.elpis.reactive.websockets.config.annotation.SocketApiAnnotationEvaluator;
 import org.elpis.reactive.websockets.config.model.ClientSessionCloseInfo;
 import org.elpis.reactive.websockets.event.manager.WebSocketEventManager;
 import org.elpis.reactive.websockets.event.model.impl.ClientSessionClosedEvent;
 import org.elpis.reactive.websockets.event.model.impl.SessionConnectedEvent;
-import org.elpis.reactive.websockets.mertics.WebSocketMetricsService;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
-import static org.elpis.reactive.websockets.mertics.WebSocketMetricsService.MeterConstants.ACTIVE_SESSIONS;
 
 /**
  * Represents a registry of all the implementations of {@link SocketApiAnnotationEvaluator}. Registered as Spring Bean on application startup.
@@ -33,15 +28,12 @@ public final class WebSessionRegistry extends ConcurrentHashMap<String, WebSocke
 
     private final transient WebSocketEventManager<SessionConnectedEvent> webSocketConnectionEvent;
     private final transient WebSocketEventManager<ClientSessionClosedEvent> closedEventWebSocketEventManager;
-    private final transient WebSocketMetricsService webSocketMetricsService;
 
     public WebSessionRegistry(final WebSocketEventManager<SessionConnectedEvent> webSocketConnectionEvent,
-                              final WebSocketEventManager<ClientSessionClosedEvent> closedEventWebSocketEventManager,
-                              final WebSocketMetricsService webSocketMetricsService) {
+                              final WebSocketEventManager<ClientSessionClosedEvent> closedEventWebSocketEventManager) {
 
         this.webSocketConnectionEvent = webSocketConnectionEvent;
         this.closedEventWebSocketEventManager = closedEventWebSocketEventManager;
-        this.webSocketMetricsService = webSocketMetricsService;
     }
 
     @Override
@@ -57,9 +49,6 @@ public final class WebSessionRegistry extends ConcurrentHashMap<String, WebSocke
 
     @PostConstruct
     private void post() {
-        this.webSocketMetricsService.withGauge(this, (sessionInfoMap) -> Gauge.builder(ACTIVE_SESSIONS.getKey(), sessionInfoMap, Map::size)
-                .description(ACTIVE_SESSIONS.getDescription()));
-
         this.executorService.submit(() -> this.webSocketConnectionEvent.asFlux()
                 .map(SessionConnectedEvent::payload)
                 .subscribe(webSocketSessionInfo -> webSocketSessionInfo.getCloseStatus()

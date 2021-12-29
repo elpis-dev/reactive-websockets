@@ -12,4 +12,5 @@ public class ClientSessionClosedEvent implements WebSocketEvent<ClientSessionClo
     public ClientSessionCloseInfo payload() {
         return clientSessionCloseInfo;
     }
+
 }
