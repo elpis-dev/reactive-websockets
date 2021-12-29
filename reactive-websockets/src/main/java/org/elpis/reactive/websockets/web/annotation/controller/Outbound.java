@@ -49,6 +49,5 @@ public @interface Outbound {
      *
      * @since 0.1.0
      */
-    //TODO: Support multiple
-    String value() default "";
+    String[] value() default {};
 }

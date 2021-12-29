@@ -1,6 +1,7 @@
 package org.elpis.reactive.websockets.event.model.impl;
 
 import lombok.Builder;
+import lombok.NonNull;
 import org.elpis.reactive.websockets.config.registry.WebSocketSessionInfo;
 import org.elpis.reactive.websockets.event.model.WebSocketEvent;
 
@@ -12,4 +13,5 @@ public class SessionConnectedEvent implements WebSocketEvent<WebSocketSessionInf
     public WebSocketSessionInfo payload() {
         return webSocketSessionInfo;
     }
+
 }

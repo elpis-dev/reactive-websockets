@@ -14,4 +14,5 @@ public interface WebSocketEvent<T> {
      * @since 0.1.0
      */
     T payload();
+
 }
