@@ -39,12 +39,12 @@ public class QueryParameterAnnotationEvaluator implements SocketApiAnnotationEva
         final Class<?> parameterType = parameter.getType();
         final MultiValueMap<String, String> queryParameters = context.getQueryParameters();
         final Optional<String> defaultValue = Optional.of(annotation.defaultValue())
-                .filter(s -> !s.isEmpty() && !ValueConstants.DEFAULT_NONE.equals(s));
+                .filter(value -> !value.isEmpty() && !ValueConstants.DEFAULT_NONE.equals(value));
 
         final boolean isRequired = defaultValue.isEmpty() && annotation.required();
 
         final Optional<List<String>> values = Optional.ofNullable(queryParameters.get(annotation.value()))
-                .filter(l -> !l.isEmpty());
+                .filter(list -> !list.isEmpty());
 
         if (isRequired && values.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("Request parameter `@SocketQueryParam %s` at method `%s()` " +
@@ -53,8 +53,8 @@ public class QueryParameterAnnotationEvaluator implements SocketApiAnnotationEva
 
         return values.flatMap(l -> List.class.isAssignableFrom(parameterType)
                         ? Optional.of(l)
-                        : l.stream().findFirst().map(v -> (Object) TypeUtils.convert(v, parameterType)))
-                .orElseGet(() -> defaultValue.map(v -> (Object) TypeUtils.convert(v, parameterType))
+                        : l.stream().findFirst().map(value -> (Object) TypeUtils.convert(value, parameterType)))
+                .orElseGet(() -> defaultValue.map(value -> (Object) TypeUtils.convert(value, parameterType))
                         .orElse(TypeUtils.getDefaultValueForType(parameterType)));
     }
 

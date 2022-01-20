@@ -55,7 +55,7 @@ public class HeaderAnnotationEvaluator implements SocketApiAnnotationEvaluator<S
             return headers;
         } else {
             final Optional<String> defaultValue = Optional.of(annotation.defaultValue())
-                    .filter(s -> !s.isEmpty() && !ValueConstants.DEFAULT_NONE.equals(s));
+                    .filter(value -> !value.isEmpty() && !ValueConstants.DEFAULT_NONE.equals(value));
 
             final boolean isRequired = defaultValue.isEmpty() && annotation.required();
 
@@ -69,8 +69,8 @@ public class HeaderAnnotationEvaluator implements SocketApiAnnotationEvaluator<S
 
             return values.flatMap(list -> List.class.isAssignableFrom(parameterType)
                             ? Optional.of(list)
-                            : list.stream().findFirst().map(v -> (Object) TypeUtils.convert(v, parameterType)))
-                    .orElseGet(() -> defaultValue.map(v -> (Object) TypeUtils.convert(v, parameterType))
+                            : list.stream().findFirst().map(value -> (Object) TypeUtils.convert(value, parameterType)))
+                    .orElseGet(() -> defaultValue.map(value -> (Object) TypeUtils.convert(value, parameterType))
                             .orElse(TypeUtils.getDefaultValueForType(parameterType)));
         }
     }
