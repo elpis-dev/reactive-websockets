@@ -88,14 +88,12 @@ public class ClosedConnectionHandlerConfiguration {
                 final boolean isValid = !method.isAnnotationPresent(EventSelector.class) ||
                         this.closedEventSelectorMatcher.select(event, method.getAnnotation(EventSelector.class));
 
-                if (!isValid) {
-                    return;
-                }
-
-                if (method.getParameterCount() == 0) {
-                    method.invoke(closeStatusHandler);
-                } else {
-                    method.invoke(closeStatusHandler, event);
+                if (isValid) {
+                    if (method.getParameterCount() == 0) {
+                        method.invoke(closeStatusHandler);
+                    } else {
+                        method.invoke(closeStatusHandler, event);
+                    }
                 }
             } catch (IllegalAccessException | InvocationTargetException exception) {
                 log.error(String.format("Cannot call `@SessionCloseStatus %s.%s()` due occurred exception",

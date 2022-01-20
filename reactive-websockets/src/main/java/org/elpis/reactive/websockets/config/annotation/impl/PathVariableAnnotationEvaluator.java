@@ -37,14 +37,14 @@ public class PathVariableAnnotationEvaluator implements SocketApiAnnotationEvalu
         final Class<?> parameterType = parameter.getType();
         final Map<String, String> pathParameters = context.getPathParameters();
         final Optional<String> value = Optional.ofNullable(pathParameters.get(annotation.value()))
-                .filter(s -> !s.isEmpty());
+                .filter(data -> !data.isEmpty());
 
         if (annotation.required() && value.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("Path parameter `@SocketPathVariable %s` at method `%s()` " +
                     "was marked as `required` but was not found on request", annotation.value(), parameter.getDeclaringExecutable().getName()));
         }
 
-        return value.map(v -> (Object) TypeUtils.convert(v, parameterType))
+        return value.map(data -> (Object) TypeUtils.convert(data, parameterType))
                 .orElse(TypeUtils.getDefaultValueForType(parameterType));
     }
 

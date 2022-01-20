@@ -22,10 +22,10 @@
         <maven.install.version>3.0.0-M1</maven.install.version>
 
         <spring.boot.version>2.6.1</spring.boot.version>
-        <reactor.test.version>3.4.13</reactor.test.version>
+        <reactor.test.version>3.4.14</reactor.test.version>
 
-        <log4j2.version>2.17.0</log4j2.version>
-        <logcaptor.version>2.7.4</logcaptor.version>
+        <log4j2.version>2.17.1</log4j2.version>
+        <logcaptor.version>2.7.7</logcaptor.version>
 
         <skipTests>true</skipTests>
     </properties>
