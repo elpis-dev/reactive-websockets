@@ -4,7 +4,6 @@ import org.elpis.reactive.websockets.security.principal.Anonymous;
 import org.elpis.reactive.websockets.security.principal.WebSocketPrincipal;
 import org.elpis.reactive.websockets.util.TriFunction;
 import org.elpis.reactive.websockets.util.TypeUtils;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatcher;
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers;
 import org.springframework.web.reactive.socket.WebSocketHandler;
@@ -47,7 +46,6 @@ public abstract class SocketHandshakeService extends HandshakeWebSocketService {
      * @return any {@link WebExceptionHandler} implementation.
      * @since 0.1.0
      */
-    @lombok.NonNull
     public WebExceptionHandler errorHandler() {
         return new ResponseStatusExceptionHandler();
     }
@@ -78,8 +76,7 @@ public abstract class SocketHandshakeService extends HandshakeWebSocketService {
      * @return {@link Mono}
      * @since 0.1.0
      */
-    @lombok.NonNull
-    public Mono<?> handshake(@lombok.NonNull final ServerWebExchange exchange) {
+    public Mono<?> handshake(final ServerWebExchange exchange) {
         return Mono.just(new Anonymous());
     }
 
@@ -105,7 +102,6 @@ public abstract class SocketHandshakeService extends HandshakeWebSocketService {
      * @return any {@link ServerWebExchangeMatcher} implementation
      * @since 0.1.0
      */
-    @lombok.NonNull
     public ServerWebExchangeMatcher exchangeMatcher() {
         return ServerWebExchangeMatchers.anyExchange();
     }
@@ -128,13 +124,10 @@ public abstract class SocketHandshakeService extends HandshakeWebSocketService {
      * @since 0.1.0
      */
     @Override
-    @lombok.NonNull
-    public Mono<Void> handleRequest(@lombok.NonNull final ServerWebExchange exchange,
-                                    @lombok.NonNull final WebSocketHandler handler) {
-
+    public Mono<Void> handleRequest(final ServerWebExchange exchange, final WebSocketHandler handler) {
         return Mono.just(exchange)
                 .filterWhen(serverWebExchange -> this.exchangeMatcher().matches(serverWebExchange).map(ServerWebExchangeMatcher.MatchResult::isMatch))
-                .switchIfEmpty(Mono.error(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Security chain failed")))
+                .switchIfEmpty(Mono.error(() -> new RuntimeException("Security chain failed")))
                 .onErrorResume(throwable -> this.errorHandler().handle(exchange, throwable).then(Mono.empty()))
                 .flatMap(serverWebExchange -> this.handshake(serverWebExchange).switchIfEmpty(Mono.just(TypeUtils.cast(new Anonymous()))))
                 .map(credentials -> Principal.class.isAssignableFrom(credentials.getClass())
@@ -315,26 +308,24 @@ public abstract class SocketHandshakeService extends HandshakeWebSocketService {
                         : serverWebExchange.getPrincipal();
 
                 @Override
-                @lombok.NonNull
                 public WebExceptionHandler errorHandler() {
                     return Optional.ofNullable(errorHandler).map(Supplier::get).orElseGet(super::errorHandler);
                 }
 
                 @Override
-                @lombok.NonNull
-                public Mono<?> handshake(@lombok.NonNull ServerWebExchange exchange) {
+                public Mono<?> handshake(ServerWebExchange exchange) {
                     if (nonNull(handshakeWithWebFilter)) {
                         final List<Object> principals = new ArrayList<>();
                         final Flux<?> flux = Flux.fromIterable(principals);
 
                         return handshakeWithWebFilter.apply(exchange, serverWebExchange -> exchangeProcessor.apply(serverWebExchange)
-                                        .switchIfEmpty(Mono.error(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Cannot get a Principal from request")))
+                                        .switchIfEmpty(Mono.error(() -> new RuntimeException("Cannot get a Principal from request")))
                                         .onErrorResume(throwable -> this.errorHandler().handle(exchange, throwable).then(Mono.empty()))
                                         .doOnNext(principals::add).then())
                                 .then(flux.next());
                     } else if (nonNull(handshakeWithServerWebExchange)) {
                         return handshakeWithServerWebExchange.apply(exchange)
-                                .switchIfEmpty(Mono.error(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Cannot get a Principal from request")))
+                                .switchIfEmpty(Mono.error(() -> new RuntimeException("Cannot get a Principal from request")))
                                 .onErrorResume(throwable -> this.errorHandler().handle(exchange, throwable).then(Mono.empty()));
                     } else {
                         return super.handshake(exchange);
@@ -342,14 +333,12 @@ public abstract class SocketHandshakeService extends HandshakeWebSocketService {
                 }
 
                 @Override
-                @lombok.NonNull
                 public ServerWebExchangeMatcher exchangeMatcher() {
                     return nonNull(exchangeMatcher) ? exchangeMatcher : super.exchangeMatcher();
                 }
 
                 @Override
-                @lombok.NonNull
-                public Mono<Void> handleRequest(@lombok.NonNull ServerWebExchange exchange, @lombok.NonNull WebSocketHandler handler) {
+                public Mono<Void> handleRequest(ServerWebExchange exchange, WebSocketHandler handler) {
                     return Optional.ofNullable(requestHandler)
                             .map(func -> func.apply(this, exchange, handler))
                             .orElseGet(() -> super.handleRequest(exchange, handler));

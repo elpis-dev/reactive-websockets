@@ -1,6 +1,5 @@
 package org.elpis.reactive.websockets.event.impl;
 
-import lombok.NonNull;
 import org.elpis.reactive.websockets.config.model.ClientSessionCloseInfo;
 import org.elpis.reactive.websockets.event.EventSelectorMatcher;
 import org.elpis.reactive.websockets.event.annotation.EventSelector;
@@ -17,7 +16,7 @@ public class ClosedSessionEventSelectorMatcher implements EventSelectorMatcher<C
     private final ExpressionParser expressionParser = new SpelExpressionParser();
 
     @Override
-    public Boolean select(@NonNull final ClientSessionClosedEvent event, @NonNull final EventSelector annotation) {
+    public Boolean select(final ClientSessionClosedEvent event, final EventSelector annotation) {
         final ClientSessionCloseInfo clientSessionCloseInfo = event.payload();
         final Expression expression = expressionParser.parseExpression(annotation.value());
         final EvaluationContext context = new StandardEvaluationContext(ClientSessionCloseInfo.builder()

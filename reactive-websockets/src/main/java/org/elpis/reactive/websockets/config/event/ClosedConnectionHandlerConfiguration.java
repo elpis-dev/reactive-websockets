@@ -1,5 +1,6 @@
 package org.elpis.reactive.websockets.config.event;
 
+import jakarta.annotation.PostConstruct;
 import org.elpis.reactive.websockets.config.model.WebSocketCloseStatus;
 import org.elpis.reactive.websockets.event.EventSelectorMatcher;
 import org.elpis.reactive.websockets.event.annotation.CloseStatusHandler;
@@ -15,7 +16,6 @@ import org.springframework.context.annotation.Configuration;
 import reactor.core.scheduler.Schedulers;
 import reactor.util.concurrent.Queues;
 
-import javax.annotation.PostConstruct;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;

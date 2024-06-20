@@ -44,7 +44,7 @@ public class WebSocketSecurityConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean(SocketHandshakeService.class)
-    public WebSocketHandlerAdapter webSocketHandlerAdapter() {
+    public WebSocketHandlerAdapter defaultWebSocketHandlerAdapter() {
         return new WebSocketHandlerAdapter();
     }
 

@@ -1,9 +1,8 @@
 package org.elpis.reactive.websockets.util;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
-import org.elpis.reactive.websockets.exception.ValidationException;
+import org.elpis.reactive.websockets.exception.WebSocketValidationException;
 
+import javax.lang.model.type.TypeKind;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Map;
@@ -18,9 +17,10 @@ import static java.util.Objects.isNull;
  * @author Alex Zharkov
  * @since 0.1.0
  */
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
 @SuppressWarnings({"unchecked", "rawtypes"})
 public final class TypeUtils {
+    private TypeUtils() {
+    }
 
     /**
      * Registry of possible conversions from {@link String} to any supported type.
@@ -73,6 +73,17 @@ public final class TypeUtils {
             Map.entry(double.class, 0.0d)
     );
 
+    private static final Map<TypeKind, ?> defaultValuesKindRegistry = Map.ofEntries(
+            Map.entry(TypeKind.BOOLEAN, false),
+            Map.entry(TypeKind.BYTE, 0),
+            Map.entry(TypeKind.SHORT, 0),
+            Map.entry(TypeKind.INT, 0),
+            Map.entry(TypeKind.LONG, 0L),
+            Map.entry(TypeKind.CHAR, '\u0000'),
+            Map.entry(TypeKind.FLOAT, 0.0f),
+            Map.entry(TypeKind.DOUBLE, 0.0d)
+    );
+
     /**
      * Returns default value for primitives.
      *
@@ -80,12 +91,27 @@ public final class TypeUtils {
      * @return default value for primitive
      * @since 0.1.0
      */
-    public static Object getDefaultValueForType(final Class<?> clazz) {
+    public static <T> T getDefaultValueForType(final Class<T> clazz) {
         if (isNull(clazz)) {
-            throw new ValidationException("Cannot process null source type");
+            throw new WebSocketValidationException("Cannot process null source type");
         }
 
-        return defaultValuesRegistry.get(clazz);
+        return (T) defaultValuesRegistry.get(clazz);
+    }
+
+    /**
+     * Returns default value for primitives.
+     *
+     * @param type the primitive class
+     * @return default value for primitive
+     * @since 0.1.0
+     */
+    public static <T> T getDefaultValueForType(final TypeKind type) {
+        if (isNull(type)) {
+            throw new WebSocketValidationException("Cannot process null source type");
+        }
+
+        return (T) defaultValuesKindRegistry.get(type);
     }
 
     /**
@@ -98,7 +124,7 @@ public final class TypeUtils {
      */
     public static <T> T convert(final String data, final Class<T> clazz) {
         if (isNull(data) || data.isEmpty()) {
-            throw new ValidationException("Cannot convert empty or null source");
+            throw new WebSocketValidationException("Cannot convert empty or null source");
         }
 
         final BiFunction<String, Class<?>, ?> convertFunction = Enum.class.isAssignableFrom(clazz)
@@ -122,7 +148,7 @@ public final class TypeUtils {
      */
     public static <T> T cast(final Object data, final Class<T> clazz) {
         if (isNull(data)) {
-            throw new ValidationException("Cannot cast empty or null source");
+            throw new WebSocketValidationException("Cannot cast empty or null source");
         }
 
         try {
@@ -141,7 +167,7 @@ public final class TypeUtils {
      */
     public static <T> T cast(final Object data) {
         if (isNull(data)) {
-            throw new ValidationException("Cannot cast empty or null source");
+            throw new WebSocketValidationException("Cannot cast empty or null source");
         }
 
         return (T) data;

@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.elpis.reactive</groupId>
-	<artifactId>websockets</artifactId>
+    <artifactId>websockets</artifactId>
     <version>0.1.0</version>
 
     <packaging>jar</packaging>
@@ -19,16 +19,15 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <maven.compiler.version>3.8.1</maven.compiler.version>
+        <maven.compiler.version>3.13.0</maven.compiler.version>
 
-        <spring.boot.starter.version>2.6.2</spring.boot.starter.version>
+        <spring.boot.starter.version>3.3.0</spring.boot.starter.version>
         <spring.security.version>5.4.5</spring.security.version>
-        <spring.webflux.version>5.3.14</spring.webflux.version>
+        <spring.webflux.version>6.1.7</spring.webflux.version>
 
         <micrometer.version>1.8.1</micrometer.version>
-        <lombok.version>1.18.22</lombok.version>
 
-        <log4j2.version>2.17.1</log4j2.version>
+        <log4j2.version>2.23.1</log4j2.version>
     </properties>
 
     <dependencies>
@@ -70,13 +69,6 @@
         </dependency>
 
         <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <version>${lombok.version}</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-core</artifactId>
             <version>${micrometer.version}</version>
@@ -105,6 +97,18 @@
             <artifactId>log4j-to-slf4j</artifactId>
             <version>${log4j2.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.reflections</groupId>
+            <artifactId>reflections</artifactId>
+            <version>0.9.11</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.squareup</groupId>
+            <artifactId>javapoet</artifactId>
+            <version>1.13.0</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -117,6 +121,7 @@
                     <source>${maven.compiler.source}</source>
                     <target>${maven.compiler.target}</target>
                     <release>${maven.compiler.release}</release>
+                    <compilerArgument>-proc:none</compilerArgument>
                 </configuration>
             </plugin>
 

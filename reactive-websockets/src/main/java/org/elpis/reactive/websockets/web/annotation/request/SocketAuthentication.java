@@ -1,9 +1,11 @@
 package org.elpis.reactive.websockets.web.annotation.request;
 
+import org.elpis.reactive.websockets.web.annotation.controller.SocketMapping;
+
 import java.lang.annotation.*;
 
 /**
- * Marks a {@link org.elpis.reactive.websockets.web.annotation.controller.Inbound @Inbound} and {@link org.elpis.reactive.websockets.web.annotation.controller.Outbound @Outbound} annotated method parameter to grab a user {@link java.security.Principal Principal} from security context.
+ * Marks a {@link SocketMapping @ReceiveMapping} annotated method parameter to grab a user {@link java.security.Principal Principal} from security context.
  * <p> Accepts {@link java.security.Principal Principal}, {@link org.springframework.security.core.Authentication Authentication} or custom implementation of those. Could also
  * accept any {@link Object} which will default to calling {@link org.springframework.security.core.Authentication#getDetails() Authentication.getDetails}:
  * <pre class="code">
@@ -31,7 +33,6 @@ import java.lang.annotation.*;
  * @author Alex Zharkov
  * @see java.security.Principal
  * @see org.springframework.security.core.Authentication
- * @see org.elpis.reactive.websockets.config.annotation.impl.AuthenticationAnnotationEvaluator
  * @since 0.1.0
  */
 @Target(ElementType.PARAMETER)

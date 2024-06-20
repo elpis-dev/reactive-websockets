@@ -1,7 +1,6 @@
 package org.elpis.reactive.websockets.config.registry;
 
-import lombok.NonNull;
-import org.elpis.reactive.websockets.config.annotation.SocketApiAnnotationEvaluator;
+import jakarta.annotation.PostConstruct;
 import org.elpis.reactive.websockets.config.model.ClientSessionCloseInfo;
 import org.elpis.reactive.websockets.event.manager.WebSocketEventManager;
 import org.elpis.reactive.websockets.event.model.impl.ClientSessionClosedEvent;
@@ -11,20 +10,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Sinks;
 
-import javax.annotation.PostConstruct;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-/**
- * Represents a registry of all the implementations of {@link SocketApiAnnotationEvaluator}. Registered as Spring Bean on application startup.
- * <p>Supports custom {@link SocketApiAnnotationEvaluator} implementations.
- * <p><strong>NOTE: </strong>{@link SocketApiAnnotationEvaluator} implementations with duplicate annotations are not permitted - only one implementation per one annotation.
- *
- * @author Alex Zharkov
- * @see SocketApiAnnotationEvaluator
- * @since 0.1.0
- */
 @Component
 public final class WebSessionRegistry extends ConcurrentHashMap<String, WebSocketSessionInfo> {
     private static final Logger log = LoggerFactory.getLogger(WebSessionRegistry.class);
@@ -42,7 +31,7 @@ public final class WebSessionRegistry extends ConcurrentHashMap<String, WebSocke
     }
 
     @Override
-    public WebSocketSessionInfo put(@NonNull String key, @NonNull WebSocketSessionInfo value) {
+    public WebSocketSessionInfo put(String key, WebSocketSessionInfo value) {
         final WebSocketSessionInfo webSocketSessionInfo = super.put(key, value);
 
         final Sinks.EmitResult result = webSocketConnectionEvent.fire(SessionConnectedEvent.builder()
@@ -83,5 +72,15 @@ public final class WebSessionRegistry extends ConcurrentHashMap<String, WebSocke
                             this.remove(webSocketSessionInfo.getId());
                         }))
         );
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        return super.equals(o);
+    }
+
+    @Override
+    public int hashCode() {
+        return super.hashCode();
     }
 }

@@ -1,47 +1,144 @@
 package org.elpis.reactive.websockets.config.model;
 
-import lombok.Builder;
-import lombok.Data;
-import lombok.NonNull;
 import org.elpis.reactive.websockets.security.principal.Anonymous;
+import org.elpis.reactive.websockets.util.TypeUtils;
 import org.springframework.http.HttpHeaders;
+import org.springframework.security.core.Authentication;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.reactive.socket.WebSocketMessage;
-import reactor.core.publisher.Flux;
 
 import java.security.Principal;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.function.Supplier;
+import java.util.*;
+import java.util.stream.Collectors;
 
-@Data
-@Builder(toBuilder = true)
 public class WebSocketSessionContext {
-    @NonNull
-    @Builder.Default
     private Map<String, String> pathParameters = new HashMap<>();
 
-    @NonNull
-    @Builder.Default
     private MultiValueMap<String, String> queryParameters = new LinkedMultiValueMap<>();
 
-    @NonNull
-    @Builder.Default
     private HttpHeaders headers = new HttpHeaders();
 
-    @NonNull
-    @Builder.Default
     private Principal authentication = new Anonymous();
 
-    @NonNull
-    @Builder.Default
-    private Supplier<Flux<WebSocketMessage>> messageStream = Flux::never;
-
-    @NonNull
     private String sessionId;
 
-    private boolean inbound;
+    public Map<String, String> getPathParameters() {
+        return pathParameters;
+    }
 
-    private boolean outbound;
+    public void setPathParameters(Map<String, String> pathParameters) {
+        this.pathParameters = pathParameters;
+    }
+
+    public MultiValueMap<String, String> getQueryParameters() {
+        return queryParameters;
+    }
+
+    public void setQueryParameters(MultiValueMap<String, String> queryParameters) {
+        this.queryParameters = queryParameters;
+    }
+
+    public HttpHeaders getHeaders() {
+        return headers;
+    }
+
+    public void setHeaders(HttpHeaders headers) {
+        this.headers = headers;
+    }
+
+    public Principal getAuthentication() {
+        return authentication;
+    }
+
+    public void setAuthentication(Principal authentication) {
+        this.authentication = authentication;
+    }
+
+    public String getSessionId() {
+        return sessionId;
+    }
+
+    public void setSessionId(String sessionId) {
+        this.sessionId = sessionId;
+    }
+
+    public <T> Optional<T> getPathVariable(final String header, final Class<T> type) {
+        return Optional.ofNullable(this.pathParameters.get(header))
+                .map(value -> TypeUtils.convert(value, type));
+    }
+
+    public <T> Optional<T> getQueryParam(final String queryParam, final String defaultValue, final Class<T> type) {
+        return Optional.ofNullable(this.queryParameters.get(queryParam))
+                .map(h -> h.stream().findFirst())
+                .orElse(Optional.ofNullable(defaultValue))
+                .map(value -> TypeUtils.convert(value, type));
+    }
+
+    public <T> List<T> getQueryParams(final String queryParam, final String defaultValue, final Class<T> type) {
+        return Optional.ofNullable(this.headers.get(queryParam))
+                .filter(headerList -> !headerList.isEmpty())
+                .orElse(Optional.ofNullable(defaultValue).map(List::of).orElseGet(List::of))
+                .stream()
+                .filter(Objects::nonNull)
+                .map(value -> TypeUtils.convert(value, type))
+                .collect(Collectors.toList());
+    }
+
+    public <T> Optional<T> getHeader(final String header, final String defaultValue, final Class<T> type) {
+        return Optional.ofNullable(this.headers.get(header))
+                .map(h -> h.stream().findFirst())
+                .orElse(Optional.ofNullable(defaultValue))
+                .map(value -> TypeUtils.convert(value, type));
+    }
+
+    public <T> List<T> getHeaders(final String header, final String defaultValue, final Class<T> type) {
+        return Optional.ofNullable(this.headers.get(header))
+                .filter(headerList -> !headerList.isEmpty())
+                .orElse(Optional.ofNullable(defaultValue).map(List::of).orElseGet(List::of))
+                .stream()
+                .filter(Objects::nonNull)
+                .map(value -> TypeUtils.convert(value, type))
+                .collect(Collectors.toList());
+    }
+
+    private Object getPrincipalDetails(final Authentication authentication, final Class<?> parameterType) {
+        return Principal.class.isAssignableFrom(parameterType) ? authentication.getPrincipal() : authentication.getDetails();
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static class Builder {
+        private final WebSocketSessionContext context = new WebSocketSessionContext();
+
+        public Builder pathParameters(Map<String, String> pathParameters) {
+            this.context.setPathParameters(pathParameters);
+            return this;
+        }
+
+        public Builder queryParameters(MultiValueMap<String, String> queryParameters) {
+            this.context.setQueryParameters(queryParameters);
+            return this;
+        }
+
+        public Builder headers(HttpHeaders headers) {
+            this.context.setHeaders(headers);
+            return this;
+        }
+
+        public Builder authentication(Principal authentication) {
+            this.context.setAuthentication(authentication);
+            return this;
+        }
+
+        public Builder sessionId(String sessionId) {
+            this.context.setSessionId(sessionId);
+            return this;
+        }
+
+        public WebSocketSessionContext build() {
+            return this.context;
+        }
+    }
 }

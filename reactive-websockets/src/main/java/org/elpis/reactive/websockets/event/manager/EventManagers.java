@@ -1,7 +1,5 @@
 package org.elpis.reactive.websockets.event.manager;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
 import org.elpis.reactive.websockets.event.manager.impl.MulticastEventManager;
 import org.elpis.reactive.websockets.event.model.WebSocketEvent;
 
@@ -13,8 +11,9 @@ import org.elpis.reactive.websockets.event.model.WebSocketEvent;
  * @see WebSocketEventManager
  * @since 0.1.0
  */
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class EventManagers {
+    private EventManagers() {
+    }
 
     /**
      * Creates default {@link MulticastEventManager} with default queue size of {@link reactor.util.concurrent.Queues#SMALL_BUFFER_SIZE}.
