@@ -5,7 +5,6 @@ import org.elpis.reactive.websockets.config.registry.WebSessionRegistry;
 import org.elpis.reactive.websockets.config.registry.WebSocketSessionInfo;
 import org.elpis.reactive.websockets.mapper.JsonMapper;
 import org.elpis.reactive.websockets.security.principal.Anonymous;
-import org.elpis.reactive.websockets.util.TypeUtils;
 import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,7 +79,7 @@ public abstract class BaseWebSocketHandler implements WebSocketHandler {
                     if (any instanceof WebSocketMessage) {
                         return Flux.just((WebSocketMessage) any);
                     } else if (CloseStatus.class.isAssignableFrom(any.getClass())) {
-                        return session.close(TypeUtils.cast(any, CloseStatus.class)).cast(WebSocketMessage.class);
+                        return session.close((CloseStatus) any).cast(WebSocketMessage.class);
                     } else if (any instanceof byte[]) {
                         return Mono.just(session.binaryMessage(factory -> factory.wrap((byte[]) any)));
                     } else if (InputStream.class.isAssignableFrom(any.getClass())) {

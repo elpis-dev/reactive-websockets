@@ -3,7 +3,6 @@ package org.elpis.reactive.websockets.security;
 import org.elpis.reactive.websockets.security.principal.Anonymous;
 import org.elpis.reactive.websockets.security.principal.WebSocketPrincipal;
 import org.elpis.reactive.websockets.util.TriFunction;
-import org.elpis.reactive.websockets.util.TypeUtils;
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatcher;
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers;
 import org.springframework.web.reactive.socket.WebSocketHandler;
@@ -129,7 +128,7 @@ public abstract class SocketHandshakeService extends HandshakeWebSocketService {
                 .filterWhen(serverWebExchange -> this.exchangeMatcher().matches(serverWebExchange).map(ServerWebExchangeMatcher.MatchResult::isMatch))
                 .switchIfEmpty(Mono.error(() -> new RuntimeException("Security chain failed")))
                 .onErrorResume(throwable -> this.errorHandler().handle(exchange, throwable).then(Mono.empty()))
-                .flatMap(serverWebExchange -> this.handshake(serverWebExchange).switchIfEmpty(Mono.just(TypeUtils.cast(new Anonymous()))))
+                .flatMap(serverWebExchange -> this.handshake(serverWebExchange).switchIfEmpty(Mono.just(this.cast(new Anonymous()))))
                 .map(credentials -> Principal.class.isAssignableFrom(credentials.getClass())
                         ? (Principal) credentials
                         : new WebSocketPrincipal<>(credentials))
@@ -345,5 +344,9 @@ public abstract class SocketHandshakeService extends HandshakeWebSocketService {
                 }
             };
         }
+    }
+
+    private <T> T cast(Object o) {
+        return (T) o;
     }
 }

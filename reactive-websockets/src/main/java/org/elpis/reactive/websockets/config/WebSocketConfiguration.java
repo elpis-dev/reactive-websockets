@@ -3,8 +3,9 @@ package org.elpis.reactive.websockets.config;
 import org.elpis.reactive.websockets.config.event.ClosedConnectionHandlerConfiguration;
 import org.elpis.reactive.websockets.config.event.EventManagerConfiguration;
 import org.elpis.reactive.websockets.config.handler.BaseWebSocketHandler;
-import org.elpis.reactive.websockets.web.annotation.controller.SocketMapping;
+import org.elpis.reactive.websockets.web.annotation.SocketMapping;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.web.reactive.HandlerMapping;
@@ -24,6 +25,7 @@ import java.util.stream.Collectors;
  */
 @Configuration
 @Import({EventManagerConfiguration.class, ClosedConnectionHandlerConfiguration.class})
+@ComponentScan("org.elpis.reactive.websockets.generated")
 public class WebSocketConfiguration {
 
     private static final int HANDLER_ORDER = 10;

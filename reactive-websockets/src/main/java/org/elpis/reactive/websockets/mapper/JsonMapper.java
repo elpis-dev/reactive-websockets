@@ -3,7 +3,6 @@ package org.elpis.reactive.websockets.mapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.RuntimeJsonMappingException;
-import org.elpis.reactive.websockets.util.TypeUtils;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -28,7 +27,7 @@ public class JsonMapper {
     public String applyWithFallback(final Object object) {
         try {
             return String.class.isAssignableFrom(object.getClass())
-                    ? TypeUtils.cast(object, String.class)
+                    ? (String) object
                     : this.objectMapper.writeValueAsString(object);
         } catch (JsonProcessingException e) {
             throw new RuntimeJsonMappingException("Unable to translate " + object.getClass() + " instance to String.class");
@@ -44,7 +43,7 @@ public class JsonMapper {
     public String applyWithDefault(final Object object, final String defaultValue) {
         try {
             return String.class.isAssignableFrom(object.getClass())
-                    ? TypeUtils.cast(object, String.class)
+                    ? (String) object
                     : this.objectMapper.writeValueAsString(object);
         } catch (JsonProcessingException e) {
             return defaultValue;
@@ -60,7 +59,7 @@ public class JsonMapper {
     public Mono<String> applyWithMono(final Object object) {
         try {
             final String value = String.class.isAssignableFrom(object.getClass())
-                    ? TypeUtils.cast(object, String.class)
+                    ? (String) object
                     : this.objectMapper.writeValueAsString(object);
 
             return Mono.just(value);
@@ -79,7 +78,7 @@ public class JsonMapper {
     public Flux<String> applyWithFlux(final Object object) {
         try {
             final String value = String.class.isAssignableFrom(object.getClass())
-                    ? TypeUtils.cast(object, String.class)
+                    ? (String) object
                     : this.objectMapper.writeValueAsString(object);
 
             return Flux.just(value);

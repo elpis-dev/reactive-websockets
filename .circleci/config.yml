@@ -7,11 +7,17 @@ jobs:
     steps:
       - checkout
       - run:
+          name: Build Models
+          command: mvn -f reactive-websockets-model/pom.xml clean install
+      - run:
+          name: Build Annotation Processor
+          command: mvn -f reactive-websockets-annotation-processor/pom.xml clean install
+      - run:
           name: Build Source 
           command: mvn -f reactive-websockets/pom.xml clean install
       - run:
           name: Build Test 
-          command: mvn -f reactive-websockets-test/pom.xml clean install -DskipTests=false
+          command: mvn -f functional-tests/pom.xml clean install -DskipTests=false
       - run:
           name: Save test results
           command: |

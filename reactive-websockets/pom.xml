@@ -31,6 +31,12 @@
     </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>org.elpis</groupId>
+            <artifactId>reactive-websockets-model</artifactId>
+            <version>0.1.0</version>
+        </dependency>
+
         <!-- Spring -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -121,7 +127,6 @@
                     <source>${maven.compiler.source}</source>
                     <target>${maven.compiler.target}</target>
                     <release>${maven.compiler.release}</release>
-                    <compilerArgument>-proc:none</compilerArgument>
                 </configuration>
             </plugin>
 
