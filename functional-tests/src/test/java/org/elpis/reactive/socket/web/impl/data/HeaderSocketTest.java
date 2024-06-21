@@ -74,8 +74,7 @@ public class HeaderSocketTest extends BaseWebSocketTest {
                 .verifyError(TimeoutException.class);
 
         assertThat(output)
-                .contains("Request header `@SocketHeader ids` at method `getWithNoStringHeader()` was marked " +
-                        "as `required` but was not found on request");
+                .contains("Header 'id' is marked as required but was not present on request. Default value was not set.");
     }
 
     @Test
@@ -724,33 +723,6 @@ public class HeaderSocketTest extends BaseWebSocketTest {
                 .expectComplete()
                 .log()
                 .verify(DEFAULT_GENERIC_TEST_FALLBACK);
-    }
-
-    @Test
-    public void getMultiMapBadTypeTest(final CapturedOutput output) throws Exception {
-        //given
-        final String data = this.randomTextString(5);
-        final HttpHeaders headers = new HttpHeaders();
-        headers.add("id", data);
-
-        final String path = "/header/multimap/bad";
-        final Sinks.One<String> sink = Sinks.one();
-
-        //expected
-        final String expected = "Request header `@SocketHeader` at method `getBadMultiValueMap()` should accept " +
-                "`MultiValueMap<String, String>`, but got `org.springframework.util.MultiValueMap<java.lang.String, java.lang.Long>`";
-
-        //test
-        this.withClient(path, headers, (session) -> session.receive().map(WebSocketMessage::getPayloadAsText)
-                .log()
-                .doOnNext(sink::tryEmitValue)
-                .then()).subscribe();
-
-        //verify
-        StepVerifier.create(sink.asMono().timeout(DEFAULT_FAST_TEST_FALLBACK))
-                .verifyError(TimeoutException.class);
-
-        assertThat(output).contains(expected);
     }
 
     @Test

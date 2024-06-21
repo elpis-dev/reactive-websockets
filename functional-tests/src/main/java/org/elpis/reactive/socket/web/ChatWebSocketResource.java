@@ -19,7 +19,7 @@ import java.io.IOException;
 import java.time.Duration;
 import java.util.Map;
 
-@SocketController("/ws/chat")
+//@SocketController("/ws/chat")
 public class ChatWebSocketResource {
     private static final Logger log = LoggerFactory.getLogger(ChatWebSocketResource.class);
 

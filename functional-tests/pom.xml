@@ -49,7 +49,7 @@
     <dependencies>
         <dependency>
             <groupId>org.elpis</groupId>
-            <artifactId>reactive-websockets</artifactId>
+            <artifactId>reactive-websockets-starter</artifactId>
             <version>${reactive-websockets.version}</version>
         </dependency>
 
