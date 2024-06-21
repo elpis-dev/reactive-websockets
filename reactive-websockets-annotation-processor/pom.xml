@@ -17,19 +17,23 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <maven.compiler.version>3.13.0</maven.compiler.version>
-        <maven.surefire.version>3.0.0-M5</maven.surefire.version>
-        <maven.install.version>3.0.0-M1</maven.install.version>
 
-        <spring.webflux.version>6.1.7</spring.webflux.version>
+        <spring.webflux.version>6.1.9</spring.webflux.version>
         <spring.boot.starter.version>3.3.0</spring.boot.starter.version>
-        <spring.security.version>5.4.5</spring.security.version>
+
+        <javapoet.version>1.13.0</javapoet.version>
+
+        <reactive-websockets-model.version>0.1.0</reactive-websockets-model.version>
+
+        <spring.security.version>6.3.0</spring.security.version>
+        <spring.security.oauth2.version>6.1.7</spring.security.oauth2.version>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>org.elpis</groupId>
             <artifactId>reactive-websockets-model</artifactId>
-            <version>0.1.0</version>
+            <version>${reactive-websockets-model.version}</version>
             <scope>compile</scope>
         </dependency>
 
@@ -41,16 +45,23 @@
         </dependency>
 
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-security</artifactId>
-            <version>${spring.boot.starter.version}</version>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-core</artifactId>
+            <version>${spring.security.version}</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-web</artifactId>
+            <version>${spring.security.version}</version>
             <scope>compile</scope>
         </dependency>
 
         <dependency>
             <groupId>com.squareup</groupId>
             <artifactId>javapoet</artifactId>
-            <version>1.13.0</version>
+            <version>${javapoet.version}</version>
         </dependency>
     </dependencies>
 
@@ -75,5 +86,4 @@
             </plugin>
         </plugins>
     </build>
-
 </project>

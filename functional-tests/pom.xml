@@ -24,10 +24,12 @@
         <maven.install.version>3.0.0-M1</maven.install.version>
 
         <spring.boot.version>2.6.1</spring.boot.version>
-        <reactor.test.version>3.4.14</reactor.test.version>
+        <reactor.test.version>3.6.7</reactor.test.version>
 
-        <log4j2.version>2.17.1</log4j2.version>
+        <log4j2.version>2.23.1</log4j2.version>
         <logcaptor.version>2.7.7</logcaptor.version>
+
+        <reactive-websockets.version>0.1.0</reactive-websockets.version>
 
         <skipTests>true</skipTests>
     </properties>
@@ -46,9 +48,9 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.elpis.reactive</groupId>
-            <artifactId>websockets</artifactId>
-            <version>0.1.0</version>
+            <groupId>org.elpis</groupId>
+            <artifactId>reactive-websockets</artifactId>
+            <version>${reactive-websockets.version}</version>
         </dependency>
 
         <!-- Spring -->
@@ -137,7 +139,7 @@
                         <path>
                             <groupId>org.elpis</groupId>
                             <artifactId>reactive-websockets-annotation-processor</artifactId>
-                            <version>0.1.0</version>
+                            <version>${reactive-websockets.version}</version>
                         </path>
                     </annotationProcessorPaths>
                 </configuration>
