@@ -1,7 +1,6 @@
 package org.elpis.reactive.socket.web;
 
 import org.elpis.reactive.websockets.config.model.Mode;
-import org.elpis.reactive.websockets.web.annotation.SocketController;
 import org.elpis.reactive.websockets.web.annotation.SocketMapping;
 import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
@@ -28,7 +27,6 @@ public class ChatWebSocketResource {
     public Publisher<Map<String, Object>> handleOutbound(@RequestHeader("userName") final String userName,
                                                          @PathVariable(value = "chatIds", required = false) final Long chatId,
                                                          @RequestParam("last") final Integer lastMessages) {
-
         return Flux.interval(Duration.ofSeconds(5))
                 .share()
                 .takeLast(lastMessages)

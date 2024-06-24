@@ -1,5 +1,6 @@
 package org.elpis.reactive.websockets.security;
 
+import io.netty.handler.codec.http.websocketx.WebSocketClientHandshakeException;
 import org.elpis.reactive.websockets.security.principal.Anonymous;
 import org.elpis.reactive.websockets.security.principal.WebSocketPrincipal;
 import org.elpis.reactive.websockets.util.TriFunction;
@@ -126,7 +127,7 @@ public abstract class SocketHandshakeService extends HandshakeWebSocketService {
     public Mono<Void> handleRequest(final ServerWebExchange exchange, final WebSocketHandler handler) {
         return Mono.just(exchange)
                 .filterWhen(serverWebExchange -> this.exchangeMatcher().matches(serverWebExchange).map(ServerWebExchangeMatcher.MatchResult::isMatch))
-                .switchIfEmpty(Mono.error(() -> new RuntimeException("Security chain failed")))
+                .switchIfEmpty(Mono.error(() -> new WebSocketClientHandshakeException("Security chain failed")))
                 .onErrorResume(throwable -> this.errorHandler().handle(exchange, throwable).then(Mono.empty()))
                 .flatMap(serverWebExchange -> this.handshake(serverWebExchange).switchIfEmpty(Mono.just(this.cast(new Anonymous()))))
                 .map(credentials -> Principal.class.isAssignableFrom(credentials.getClass())
@@ -318,13 +319,13 @@ public abstract class SocketHandshakeService extends HandshakeWebSocketService {
                         final Flux<?> flux = Flux.fromIterable(principals);
 
                         return handshakeWithWebFilter.apply(exchange, serverWebExchange -> exchangeProcessor.apply(serverWebExchange)
-                                        .switchIfEmpty(Mono.error(() -> new RuntimeException("Cannot get a Principal from request")))
+                                        .switchIfEmpty(Mono.just(cast(new Anonymous())))
                                         .onErrorResume(throwable -> this.errorHandler().handle(exchange, throwable).then(Mono.empty()))
                                         .doOnNext(principals::add).then())
                                 .then(flux.next());
                     } else if (nonNull(handshakeWithServerWebExchange)) {
                         return handshakeWithServerWebExchange.apply(exchange)
-                                .switchIfEmpty(Mono.error(() -> new RuntimeException("Cannot get a Principal from request")))
+                                .switchIfEmpty(Mono.just(cast(new Anonymous())))
                                 .onErrorResume(throwable -> this.errorHandler().handle(exchange, throwable).then(Mono.empty()));
                     } else {
                         return super.handshake(exchange);
@@ -346,7 +347,7 @@ public abstract class SocketHandshakeService extends HandshakeWebSocketService {
         }
     }
 
-    private <T> T cast(Object o) {
+    <T> T cast(Object o) {
         return (T) o;
     }
 }

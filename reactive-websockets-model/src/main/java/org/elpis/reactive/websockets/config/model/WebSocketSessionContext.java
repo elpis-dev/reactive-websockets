@@ -2,15 +2,20 @@ package org.elpis.reactive.websockets.config.model;
 
 import org.elpis.reactive.websockets.security.principal.Anonymous;
 import org.elpis.reactive.websockets.util.TypeUtils;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.http.HttpHeaders;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.util.StringUtils;
 
 import java.security.Principal;
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class WebSocketSessionContext {
+    private static final SpelExpressionParser SPEL_EXPRESSION_PARSER = new SpelExpressionParser();
+
     private Map<String, String> pathParameters = new HashMap<>();
 
     private MultiValueMap<String, String> queryParameters = new LinkedMultiValueMap<>();
@@ -74,7 +79,7 @@ public class WebSocketSessionContext {
     }
 
     public <T> List<T> getQueryParams(final String queryParam, final String defaultValue, final Class<T> type) {
-        return Optional.ofNullable(this.headers.get(queryParam))
+        return Optional.ofNullable(this.queryParameters.get(queryParam))
                 .filter(headerList -> !headerList.isEmpty())
                 .orElse(Optional.ofNullable(defaultValue).map(List::of).orElseGet(List::of))
                 .stream()
@@ -98,6 +103,29 @@ public class WebSocketSessionContext {
                 .filter(Objects::nonNull)
                 .map(value -> TypeUtils.convert(value, type))
                 .collect(Collectors.toList());
+    }
+
+    public <T> T getPrincipal(final String expression, final boolean errorOnInvalidType, final Class<T> type) {
+        final Principal principal = StringUtils.hasLength(expression)
+                ? this.parseExpression(expression)
+                : this.getAuthentication();
+
+        if (principal != null && !type.isAssignableFrom(principal.getClass())) {
+            if (errorOnInvalidType) {
+                throw new ClassCastException(principal + " is not assignable to " + type);
+            } else {
+                return null;
+            }
+        }
+
+        return (T) principal;
+    }
+
+    private Principal parseExpression(final String expression) {
+        StandardEvaluationContext context = new StandardEvaluationContext();
+        context.setRootObject(this.getAuthentication());
+        context.setVariable("this", this.getAuthentication());
+        return SPEL_EXPRESSION_PARSER.parseExpression(expression).getValue(context, Principal.class);
     }
 
     public static Builder builder() {

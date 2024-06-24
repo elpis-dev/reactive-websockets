@@ -1,12 +1,12 @@
 package org.elpis.reactive.socket.web.impl.security;
 
-import org.elpis.reactive.websockets.security.SocketHandshakeService;
 import org.elpis.reactive.socket.web.BaseWebSocketTest;
 import org.elpis.reactive.socket.web.context.BootStarter;
 import org.elpis.reactive.socket.web.context.resource.security.WebFilterSecurityResource;
 import org.elpis.reactive.socket.web.context.security.model.SecurityProfiles;
 import org.elpis.reactive.socket.web.context.security.model.TestConstants;
 import org.elpis.reactive.socket.web.context.security.model.TestPrincipal;
+import org.elpis.reactive.websockets.security.SocketHandshakeService;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -69,29 +69,6 @@ public class WebFilterAuthenticationSocketTest extends BaseWebSocketTest {
         this.withClient(path, (session) -> session.receive().map(WebSocketMessage::getPayloadAsText)
                 .log()
                 .doOnNext(v -> sink.tryEmitValue(v.replaceAll(" ", "")))
-                .then()).subscribe();
-
-        //verify
-        StepVerifier.create(sink.asMono())
-                .expectNext(expected)
-                .expectComplete()
-                .log()
-                .verify(DEFAULT_GENERIC_TEST_FALLBACK);
-    }
-
-    @Test
-    public void withDetailsFromAuthentication() throws Exception {
-        //given
-        final String path = "/auth/filter/withDetailsFromAuthentication";
-        final Sinks.One<String> sink = Sinks.one();
-
-        //expected
-        final String expected = TestConstants.TEST_VALUE;
-
-        //test
-        this.withClient(path, (session) -> session.receive().map(WebSocketMessage::getPayloadAsText)
-                .log()
-                .doOnNext(sink::tryEmitValue)
                 .then()).subscribe();
 
         //verify

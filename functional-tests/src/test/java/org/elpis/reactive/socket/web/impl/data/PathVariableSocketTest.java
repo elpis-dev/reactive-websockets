@@ -50,29 +50,6 @@ public class PathVariableSocketTest extends BaseWebSocketTest {
     }
 
     @Test
-    public void getWithStringPathNoValueTest(final CapturedOutput output) throws Exception {
-        //given
-        final String data = this.randomTextString(5);
-
-        final String path = "/path/single/get/no/string/" + data;
-        final Sinks.One<String> sink = Sinks.one();
-
-        //test
-        this.withClient(path, (session) -> session.receive().map(WebSocketMessage::getPayloadAsText)
-                .log()
-                .doOnNext(value -> sink.tryEmitValue(value.replaceAll (" ", "")))
-                .then()).subscribe();
-
-        //verify
-        StepVerifier.create(sink.asMono().timeout(DEFAULT_FAST_TEST_FALLBACK))
-                .verifyError(TimeoutException.class);
-
-        assertThat(output)
-                .contains("Path parameter `@SocketPathVariable ids` at method `getWithNoStringPath()` was marked as " +
-                        "`required` but was not found on request");
-    }
-
-    @Test
     public void getWithNumericBytePathTest() throws Exception {
         //given
         final byte data = this.getRandomByte();

@@ -74,7 +74,7 @@ public class HeaderSocketTest extends BaseWebSocketTest {
                 .verifyError(TimeoutException.class);
 
         assertThat(output)
-                .contains("Header 'id' is marked as required but was not present on request. Default value was not set.");
+                .contains("@RequestHeader java.lang.String id is marked as required but was not present on request. Default value was not set.");
     }
 
     @Test

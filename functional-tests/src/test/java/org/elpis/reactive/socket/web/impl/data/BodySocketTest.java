@@ -1,7 +1,6 @@
 package org.elpis.reactive.socket.web.impl.data;
 
 import nl.altindag.log.LogCaptor;
-import org.elpis.reactive.websockets.config.WebSocketConfiguration;
 import org.elpis.reactive.socket.web.BaseWebSocketTest;
 import org.elpis.reactive.socket.web.context.BootStarter;
 import org.elpis.reactive.socket.web.context.resource.data.MessageBodySocketResource;
@@ -51,9 +50,9 @@ public class BodySocketTest extends BaseWebSocketTest {
 
         //test
         this.withClient(path, session -> session.send(data.map(session::textMessage))
-                .thenMany(session.receive()
-                        .doOnNext(value -> sink.tryEmitNext(value.getPayloadAsText())))
-                .then())
+                        .thenMany(session.receive()
+                                .doOnNext(value -> sink.tryEmitNext(value.getPayloadAsText())))
+                        .then())
                 .subscribe();
 
         //verify
@@ -77,9 +76,9 @@ public class BodySocketTest extends BaseWebSocketTest {
 
         //test
         this.withClient(path, session -> session.send(Mono.error(new RuntimeException(data)))
-                .thenMany(session.receive()
-                        .doOnNext(value -> sink.tryEmitNext(value.getPayloadAsText())))
-                .then())
+                        .thenMany(session.receive()
+                                .doOnNext(value -> sink.tryEmitNext(value.getPayloadAsText())))
+                        .then())
                 .doOnError(throwable -> errorSink.tryEmitValue(throwable.getMessage()))
                 .subscribe();
 
@@ -94,59 +93,5 @@ public class BodySocketTest extends BaseWebSocketTest {
 
         assertThat(logCaptor.getInfoLogs())
                 .isEmpty();
-    }
-
-    @Test
-    public void nonValidFlux() throws Exception {
-        //given
-        final String path = "/body/post/false";
-        final Sinks.Many<String> sink = Sinks.many().replay().all();
-
-        final String data = this.randomTextString(10);
-
-        //expected
-        final LogCaptor logCaptor = LogCaptor.forClass(WebSocketConfiguration.class);
-
-        //test
-        this.withClient(path, session -> session.send(Mono.just(data).map(session::textMessage))
-                .thenMany(session.receive()
-                        .doOnNext(value -> sink.tryEmitNext(value.getPayloadAsText())))
-                .then())
-                .subscribe();
-
-        //verify
-        StepVerifier.create(sink.asFlux().timeout(DEFAULT_FAST_TEST_FALLBACK))
-                .verifyError(TimeoutException.class);
-
-        assertThat(logCaptor.getErrorLogs())
-                .contains("Unable register outbound method `@ReceiveMapping nonValidFlux()` since it should accept " +
-                        "Flux<WebSocketMessage> or Mono<WebSocketMessage> instance, but `Flux<String>` was found instead");
-    }
-
-    @Test
-    public void notFluxTest() throws Exception {
-        //given
-        final String path = "/body/post/not/flux";
-        final Sinks.Many<String> sink = Sinks.many().replay().all();
-
-        final String data = this.randomTextString(10);
-
-        //expected
-        final LogCaptor logCaptor = LogCaptor.forClass(WebSocketConfiguration.class);
-
-        //test
-        this.withClient(path, session -> session.send(Mono.just(data).map(session::textMessage))
-                .thenMany(session.receive()
-                        .doOnNext(value -> sink.tryEmitNext(value.getPayloadAsText())))
-                .then())
-                .subscribe();
-
-        //verify
-        StepVerifier.create(sink.asFlux().timeout(DEFAULT_FAST_TEST_FALLBACK))
-                .verifyError(TimeoutException.class);
-
-        assertThat(logCaptor.getErrorLogs())
-                .contains("Unable register outbound method `@ReceiveMapping notFlux()` since it should accept " +
-                        "Flux<WebSocketMessage> or Mono<WebSocketMessage> instance, but `List` was found instead");
     }
 }

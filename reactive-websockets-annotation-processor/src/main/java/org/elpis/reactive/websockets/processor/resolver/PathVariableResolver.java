@@ -8,14 +8,14 @@ import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 
-public final class PathVariableAnnotationResolver extends SocketApiAnnotationResolver<PathVariable> {
+public final class PathVariableResolver extends SocketApiAnnotationResolver<PathVariable> {
     private static final String CODE_FOR_GET_PATH_REQUIRED = "final $T $L = context.getPathVariable($S, $T.class)\n" +
             ".orElseThrow(() -> new org.elpis.reactive.websockets.exception.WebSocketProcessingException($S));\n";
 
     private static final String CODE_FOR_GET_SINGLE_PATH = "final $T $L = context.getPathVariable($S, $T.class)\n" +
             ".orElseGet(() -> org.elpis.reactive.websockets.util.TypeUtils.getDefaultValueForType($T.class));\n";
 
-    PathVariableAnnotationResolver(Elements elements, Types types) {
+    PathVariableResolver(Elements elements, Types types) {
         super(elements, types);
     }
 
@@ -31,7 +31,8 @@ public final class PathVariableAnnotationResolver extends SocketApiAnnotationRes
                     parameter.getSimpleName().toString(),
                     annotation.value(),
                     parameterType,
-                    "Header is marked as required but was not present on request. Default value was not set.");
+                    String.format("@PathVariable %s %s is marked as required but was not present on request. Default value was not set.",
+                            parameter.asType().toString(), parameter.getSimpleName().toString()));
         } else {
             return CodeBlock.of(CODE_FOR_GET_SINGLE_PATH,
                     parameterType,

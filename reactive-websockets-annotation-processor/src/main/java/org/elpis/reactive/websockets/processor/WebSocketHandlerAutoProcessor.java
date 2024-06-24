@@ -1,10 +1,10 @@
 package org.elpis.reactive.websockets.processor;
 
 import com.squareup.javapoet.*;
-import org.elpis.reactive.websockets.processor.resolver.SocketAnnotationResolverFactory;
 import org.elpis.reactive.websockets.config.model.Mode;
 import org.elpis.reactive.websockets.config.model.WebSocketSessionContext;
-import org.elpis.reactive.websockets.exception.WebSocketConfigurationException;
+import org.elpis.reactive.websockets.processor.exception.WebSocketProcessorException;
+import org.elpis.reactive.websockets.processor.resolver.SocketAnnotationResolverFactory;
 import org.elpis.reactive.websockets.util.TypeUtils;
 import org.elpis.reactive.websockets.web.annotation.PingPong;
 import org.elpis.reactive.websockets.web.annotation.SocketController;
@@ -24,13 +24,15 @@ import javax.lang.model.element.*;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import java.io.IOException;
+import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.stream.Collectors;
 
 @SupportedAnnotationTypes({"org.elpis.reactive.websockets.web.annotation.SocketController"})
 @SupportedSourceVersion(SourceVersion.RELEASE_11)
 public class WebSocketHandlerAutoProcessor extends AbstractProcessor {
-    private final Random random = new Random();
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
@@ -45,7 +47,7 @@ public class WebSocketHandlerAutoProcessor extends AbstractProcessor {
                         try {
                             javaFile.writeTo(processingEnv.getFiler());
                         } catch (IOException e) {
-                            throw new WebSocketConfigurationException("Cannot initiate new class: %s", e.getMessage());
+                            throw new WebSocketProcessorException("Cannot initiate new class: %s", e.getMessage());
                         }
                     });
         }
@@ -81,8 +83,7 @@ public class WebSocketHandlerAutoProcessor extends AbstractProcessor {
 
         final MethodSpec suitableMethod = this.getSuitableMethod(descriptor);
 
-        return TypeSpec.classBuilder("WebSocketHandler$" + descriptor.getClazz().getSimpleName().toString() +
-                        "$Generated_" + this.randomPostfix())
+        return TypeSpec.classBuilder("WebSocketHandler$Generated_" + descriptor.getPostfix())
                 .superclass(ClassName.bestGuess(this.getHandlerType(descriptor.getMode())))
                 .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
                 .addAnnotation(Component.class)
@@ -120,9 +121,9 @@ public class WebSocketHandlerAutoProcessor extends AbstractProcessor {
 
         codeBlocks.values().forEach(codeBlock -> codeBlock.ifPresent(methodBuilder::addCode));
 
-        final String code = (descriptor.useReturn ? "return " : "") +
-                "this.socketResource.$L(" + String.join(",", parameterPlaces) + ");";
+        final String methodSignature = "this.socketResource.$L(" + String.join(",", parameterPlaces) + ");";
 
+        final String code = (descriptor.useReturn ? "return " : "") + methodSignature;
         return methodBuilder.addCode(code, parameters.toArray())
                 .build();
     }
@@ -157,7 +158,7 @@ public class WebSocketHandlerAutoProcessor extends AbstractProcessor {
                 return "org.elpis.reactive.websockets.config.handler.BroadcastWebSocketResourceHandler";
         }
 
-        throw new WebSocketConfigurationException("Cannot find WebSocketHandler implementation for mode %s", mode);
+        throw new WebSocketProcessorException("Cannot find WebSocketHandler implementation for mode %s", mode);
     }
 
     private WebHandlerResourceDescriptor configure(final SocketController resource,
@@ -179,23 +180,23 @@ public class WebSocketHandlerAutoProcessor extends AbstractProcessor {
                 .isAssignable(processingEnv.getTypeUtils().erasure(returnType),
                         processingEnv.getTypeUtils().erasure(publisher.asType())))) {
 
-            throw new WebSocketConfigurationException("Cannot register method `@SocketMapping %s()`. Reason: method should " +
+            throw new WebSocketProcessorException("Cannot register method `@SocketMapping %s()`. Reason: method should " +
                     "return any of implementation Publisher type. Found `%s`", method.getSimpleName(), method.getReturnType());
         }
 
         return descriptor;
     }
 
-    private String randomPostfix() {
-        char[] chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRST".toCharArray();
+    private String toHexString(byte[] hash) {
+        BigInteger number = new BigInteger(1, hash);
 
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < 20; i++) {
-            char c = chars[random.nextInt(chars.length)];
-            sb.append(c);
+        StringBuilder hexString = new StringBuilder(number.toString(16));
+
+        while (hexString.length() < 64) {
+            hexString.insert(0, '0');
         }
 
-        return sb.toString();
+        return hexString.toString().toLowerCase();
     }
 
     private static final class WebHandlerResourceDescriptor {
@@ -248,17 +249,29 @@ public class WebSocketHandlerAutoProcessor extends AbstractProcessor {
             return pingPongInterval;
         }
 
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            WebHandlerResourceDescriptor that = (WebHandlerResourceDescriptor) o;
-            return Objects.equals(pathTemplate, that.pathTemplate);
+        private String getPostfix() {
+            final String uniqueKey = pathTemplate + "." + clazz.getSimpleName().toString() +
+                    "." + method.getSimpleName().toString() + "." + method.getParameters().stream().map(parameter -> parameter.asType().toString())
+                    .collect(Collectors.joining(","));
+            try {
+                MessageDigest digest = MessageDigest.getInstance("SHA-256");
+                byte[] hash = digest.digest(uniqueKey.getBytes());
+                return this.toHexString(hash);
+            } catch (NoSuchAlgorithmException e) {
+                throw new WebSocketProcessorException(e.getMessage());
+            }
         }
 
-        @Override
-        public int hashCode() {
-            return Objects.hash(pathTemplate);
+        private String toHexString(byte[] hash) {
+            BigInteger number = new BigInteger(1, hash);
+
+            StringBuilder hexString = new StringBuilder(number.toString(16));
+
+            while (hexString.length() < 64) {
+                hexString.insert(0, '0');
+            }
+
+            return hexString.toString();
         }
 
     }

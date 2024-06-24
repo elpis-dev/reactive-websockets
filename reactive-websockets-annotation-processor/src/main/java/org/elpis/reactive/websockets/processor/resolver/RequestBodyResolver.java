@@ -1,7 +1,7 @@
 package org.elpis.reactive.websockets.processor.resolver;
 
 import com.squareup.javapoet.CodeBlock;
-import org.elpis.reactive.websockets.exception.WebSocketConfigurationException;
+import org.elpis.reactive.websockets.processor.exception.WebSocketResolverException;
 import org.springframework.web.bind.annotation.RequestBody;
 import reactor.core.publisher.Flux;
 
@@ -11,10 +11,10 @@ import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 
-public class SocketMessageBodyAnnotationResolver extends SocketApiAnnotationResolver<RequestBody> {
+public class RequestBodyResolver extends SocketApiAnnotationResolver<RequestBody> {
     private static final String GET_BODY = "final Flux<WebSocketMessage> $L = messages;\n";
 
-    SocketMessageBodyAnnotationResolver(Elements elements, Types types) {
+    RequestBodyResolver(Elements elements, Types types) {
         super(elements, types);
     }
 
@@ -26,7 +26,7 @@ public class SocketMessageBodyAnnotationResolver extends SocketApiAnnotationReso
         if (!this.getTypes().isSameType(this.getTypes().erasure(parameterType),
                 this.getTypes().erasure(publisherType.asType()))) {
 
-            throw new WebSocketConfigurationException("@RequestBody should be used with Flux type. Found: %s", parameterType);
+            throw new WebSocketResolverException("@RequestBody should be used with Flux type. Found: %s", parameterType);
         }
 
         return CodeBlock.of(GET_BODY, parameter.getSimpleName());

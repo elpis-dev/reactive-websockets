@@ -81,7 +81,7 @@ public class ExchangeMatcherTest extends BaseWebSocketTest {
         StepVerifier.create(sink.asMono().timeout(DEFAULT_FAST_TEST_FALLBACK))
                 .verifyError(TimeoutException.class);
 
-        assertThat(output).contains("Invalid handshake response getStatus: 401 Unauthorized");
+        assertThat(output).contains("Security chain failed");
     }
 
 
@@ -101,10 +101,11 @@ public class ExchangeMatcherTest extends BaseWebSocketTest {
                 .then()).subscribe();
 
         //verify
-        StepVerifier.create(sink.asMono().timeout(DEFAULT_FAST_TEST_FALLBACK))
-                .verifyError(TimeoutException.class);
-
-        assertThat(output).contains("Unable register method `withExtractedAuthentication()`. Requested @SocketAuthentication type: java.lang.Void, found: java.lang.String");
+        StepVerifier.create(sink.asMono())
+                .expectNext("true")
+                .expectComplete()
+                .log()
+                .verify(DEFAULT_GENERIC_TEST_FALLBACK);
     }
 
     @TestConfiguration

@@ -4,7 +4,7 @@ import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
-import org.elpis.reactive.websockets.exception.WebSocketConfigurationException;
+import org.elpis.reactive.websockets.processor.exception.WebSocketResolverException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -19,7 +19,7 @@ import javax.lang.model.util.Types;
 import java.util.List;
 import java.util.Optional;
 
-public final class HeaderAnnotationResolver extends SocketApiAnnotationResolver<RequestHeader> {
+public final class RequestHeaderResolver extends SocketApiAnnotationResolver<RequestHeader> {
     private static final String CODE_FOR_GET_HEADERS = "final $T $L = context.getHeaders();\n";
 
     private static final String CODE_FOR_GET_LIST_HEADER_REQUIRED = "final $T $L = context.getHeaders($S, $S, $T.class);\n"
@@ -33,7 +33,7 @@ public final class HeaderAnnotationResolver extends SocketApiAnnotationResolver<
     private static final String CODE_FOR_GET_SINGLE_HEADER = "final $T $L = context.getHeader($S, $S, $T.class)\n" +
             ".orElseGet(() -> org.elpis.reactive.websockets.util.TypeUtils.getDefaultValueForType($T.class));\n";
 
-    HeaderAnnotationResolver(Elements elements, Types types) {
+    RequestHeaderResolver(Elements elements, Types types) {
         super(elements, types);
     }
 
@@ -54,7 +54,7 @@ public final class HeaderAnnotationResolver extends SocketApiAnnotationResolver<
             return CodeBlock.of(CODE_FOR_GET_HEADERS, HttpHeaders.class, parameter.getSimpleName().toString());
         } else if (this.getTypes().isAssignable(this.getTypes().erasure(parameterType), multiValueMapType.asType())) {
             if (!this.isMultimapParamValid(parameterType)) {
-                throw new WebSocketConfigurationException("Request header `@SocketHeader %s %s` should accept " +
+                throw new WebSocketResolverException("Request header `@RequestHeader %s %s` should accept " +
                         "`org.springframework.util.MultiValueMap<java.lang.String, java.lang.String>`, but got `%s`", parameterType, parameter.getSimpleName(), parameterType);
             }
 
@@ -64,7 +64,7 @@ public final class HeaderAnnotationResolver extends SocketApiAnnotationResolver<
             return CodeBlock.of(CODE_FOR_GET_HEADERS, multiValueMapTypeName, parameter.getSimpleName().toString());
         } else if (this.getTypes().isAssignable(this.getTypes().erasure(parameterType), listType.asType())) {
             if (annotation.value().isEmpty()) {
-                throw new WebSocketConfigurationException("Value cannot be empty at @SocketHeader %s %s",
+                throw new WebSocketResolverException("Value cannot be empty at @RequestHeader %s %s",
                         parameterType, parameter.getSimpleName().toString());
             }
 
@@ -80,7 +80,8 @@ public final class HeaderAnnotationResolver extends SocketApiAnnotationResolver<
                             defaultValue,
                             listDeclaredType,
                             parameter.getSimpleName().toString(),
-                            "Header is marked as required but was not present on request. Default value was not set.");
+                            String.format("@RequestHeader %s %s is marked as required but was not present on request. " +
+                                    "Default value was not set.", parameter.asType().toString(), parameter.getSimpleName().toString()));
                 } else {
                     return CodeBlock.of(CODE_FOR_GET_LIST_HEADER,
                             parameterType,
@@ -90,12 +91,12 @@ public final class HeaderAnnotationResolver extends SocketApiAnnotationResolver<
                             listDeclaredType);
                 }
             } else {
-                throw new WebSocketConfigurationException("Cannot process @SocketHeader parameter: bad return type: %s",
-                        parameterType);
+                throw new WebSocketResolverException("Cannot process @RequestHeader %s %s parameter: bad return type: %s",
+                        parameter.asType().toString(), parameter.getSimpleName().toString(), parameterType);
             }
         } else {
             if (annotation.value().isEmpty()) {
-                throw new WebSocketConfigurationException("Value cannot be empty at @SocketHeader %s %s",
+                throw new WebSocketResolverException("Value cannot be empty at @RequestHeader %s %s",
                         parameterType, parameter.getSimpleName().toString());
             }
 
@@ -106,8 +107,8 @@ public final class HeaderAnnotationResolver extends SocketApiAnnotationResolver<
                         annotation.value(),
                         defaultValue,
                         parameterType,
-                        String.format("Header '%s' is marked as required but was not present on request. " +
-                                "Default value was not set.", parameter.getSimpleName().toString()));
+                        String.format("@RequestHeader %s %s is marked as required but was not present on request. " +
+                                "Default value was not set.", parameter.asType().toString(), parameter.getSimpleName().toString()));
             } else {
                 return CodeBlock.of(CODE_FOR_GET_SINGLE_HEADER,
                         parameterType,
@@ -130,7 +131,8 @@ public final class HeaderAnnotationResolver extends SocketApiAnnotationResolver<
 
             return this.getTypes().isSameType(stringType, keyType) && this.getTypes().isSameType(valueType, stringType);
         } else {
-            throw new WebSocketConfigurationException("Cannot process @SocketHeader parameter: bad return type: %s", type);
+            throw new WebSocketResolverException("Cannot process @RequestHeader parameter: bad return type: %s",
+                    type.toString());
         }
     }
 

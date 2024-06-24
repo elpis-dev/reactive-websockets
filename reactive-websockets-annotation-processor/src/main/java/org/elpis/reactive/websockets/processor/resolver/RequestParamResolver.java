@@ -1,7 +1,7 @@
 package org.elpis.reactive.websockets.processor.resolver;
 
 import com.squareup.javapoet.CodeBlock;
-import org.elpis.reactive.websockets.exception.WebSocketConfigurationException;
+import org.elpis.reactive.websockets.processor.exception.WebSocketResolverException;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ValueConstants;
 
@@ -14,7 +14,7 @@ import javax.lang.model.util.Types;
 import java.util.List;
 import java.util.Optional;
 
-public final class QueryParamAnnotationResolver extends SocketApiAnnotationResolver<RequestParam> {
+public final class RequestParamResolver extends SocketApiAnnotationResolver<RequestParam> {
     private static final String CODE_FOR_GET_LIST_QUERY_REQUIRED = "final $T $L = context.getQueryParams($S, $S, $T.class);\n"
             + "if ($L.isEmpty())\n throw new org.elpis.reactive.websockets.exception.WebSocketProcessingException($S);\n";
 
@@ -26,7 +26,7 @@ public final class QueryParamAnnotationResolver extends SocketApiAnnotationResol
     private static final String CODE_FOR_GET_SINGLE_QUERY = "final $T $L = context.getQueryParam($S, $S, $T.class)\n" +
             ".orElseGet(() -> org.elpis.reactive.websockets.util.TypeUtils.getDefaultValueForType($T.class));\n";
 
-    QueryParamAnnotationResolver(Elements elements, Types types) {
+    RequestParamResolver(Elements elements, Types types) {
         super(elements, types);
     }
 
@@ -43,7 +43,7 @@ public final class QueryParamAnnotationResolver extends SocketApiAnnotationResol
 
         if (this.getTypes().isAssignable(this.getTypes().erasure(parameterType), listType.asType())) {
             if (annotation.value().isEmpty()) {
-                throw new WebSocketConfigurationException("Value cannot be empty at @SocketQueryParam %s %s",
+                throw new WebSocketResolverException("Value cannot be empty at @RequestParam %s %s",
                         parameterType, parameter.getSimpleName().toString());
             }
 
@@ -59,7 +59,8 @@ public final class QueryParamAnnotationResolver extends SocketApiAnnotationResol
                             defaultValue,
                             listDeclaredType,
                             parameter.getSimpleName().toString(),
-                            "Header is marked as required but was not present on request. Default value was not set.");
+                            String.format("@RequestParam List<%s> %s is marked as required but was not present on request. " +
+                                            "Default value was not set.", listDeclaredType.toString(), parameter.getSimpleName().toString()));
                 } else {
                     return CodeBlock.of(CODE_FOR_GET_LIST_QUERY,
                             parameterType,
@@ -69,12 +70,12 @@ public final class QueryParamAnnotationResolver extends SocketApiAnnotationResol
                             listDeclaredType);
                 }
             } else {
-                throw new WebSocketConfigurationException("Cannot process @SocketQueryParam parameter: bad return type: %s",
-                        parameterType);
+                throw new WebSocketResolverException("Cannot process @RequestParam annotated parameter '%s': bad return type: %s",
+                        parameter.getSimpleName().toString(), parameterType);
             }
         } else {
             if (annotation.value().isEmpty()) {
-                throw new WebSocketConfigurationException("Value cannot be empty at @SocketQueryParam %s %s",
+                throw new WebSocketResolverException("Value cannot be empty at @RequestParam %s %s",
                         parameterType, parameter.getSimpleName().toString());
             }
 
@@ -85,8 +86,8 @@ public final class QueryParamAnnotationResolver extends SocketApiAnnotationResol
                         annotation.value(),
                         defaultValue,
                         parameterType,
-                        String.format("Header '%s' is marked as required but was not present on request. " +
-                                "Default value was not set.", parameter.getSimpleName().toString()));
+                        String.format("@RequestParam %s %s is marked as required but was not present on request. " +
+                                "Default value was not set.", parameter.asType().toString(), parameter.getSimpleName().toString()));
             } else {
                 return CodeBlock.of(CODE_FOR_GET_SINGLE_QUERY,
                         parameterType,

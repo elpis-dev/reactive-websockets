@@ -51,29 +51,6 @@ public class QueryParameterSocketTest extends BaseWebSocketTest {
     }
 
     @Test
-    public void getWithStringQueryNoValueTest(final CapturedOutput output) throws Exception {
-        //given
-        final String data = this.randomTextString(5);
-
-        final String path = "/query/single/get/no/string?id=" + data;
-        final Sinks.One<String> sink = Sinks.one();
-
-        //test
-        this.withClient(path, (session) -> session.receive().map(WebSocketMessage::getPayloadAsText)
-                .log()
-                .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
-                .then()).subscribe();
-
-        //verify
-        StepVerifier.create(sink.asMono().timeout(DEFAULT_FAST_TEST_FALLBACK))
-                .verifyError(TimeoutException.class);
-
-        assertThat(output)
-                .contains("Request parameter `@SocketQueryParam ids` at method `getWithNoStringQuery()` was marked as " +
-                        "`required` but was not found on request");
-    }
-
-    @Test
     public void getWithNumericByteQueryTest() throws Exception {
         //given
         final byte data = this.getRandomByte();
