@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.web.reactive.socket.WebSocketMessage;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
@@ -61,6 +62,27 @@ public class BodySocketTest extends BaseWebSocketTest {
 
         assertThat(logCaptor.getInfoLogs())
                 .containsSequence(expected);
+    }
+
+    @Test
+    public void postBinaryMessage() throws Exception {
+        //given
+        final String path = "/body/post/binary";
+        final Sinks.One<String> sink = Sinks.one();
+
+        //test
+        this.withClient(path, session -> session.receive()
+                        .filter(webSocketMessage -> webSocketMessage.getType() == WebSocketMessage.Type.BINARY)
+                        .doOnNext(webSocketMessage -> sink.tryEmitValue(webSocketMessage.getPayloadAsText()))
+                        .then())
+                .subscribe();
+
+        //verify
+        StepVerifier.create(sink.asMono())
+                .expectNext("Binary")
+                .expectComplete()
+                .log()
+                .verify(DEFAULT_GENERIC_TEST_FALLBACK);
     }
 
     @Test

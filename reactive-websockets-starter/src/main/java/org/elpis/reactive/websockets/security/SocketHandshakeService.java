@@ -160,6 +160,8 @@ public abstract class SocketHandshakeService extends HandshakeWebSocketService {
 
         private RequestUpgradeStrategy requestUpgradeStrategy;
 
+        private boolean fallbackToAnonymous = false;
+
         private Builder() {
             // Hiding builder
         }
@@ -193,6 +195,12 @@ public abstract class SocketHandshakeService extends HandshakeWebSocketService {
         public Builder handshake(BiFunction<ServerWebExchange, WebFilterChain, Mono<?>> handshakeWithWebFilter) {
             this.handshakeWithWebFilter = handshakeWithWebFilter;
             this.principalExtractor = null;
+
+            return this;
+        }
+
+        public Builder fallbackToAnonymous(boolean fallbackToAnonymous) {
+            this.fallbackToAnonymous = fallbackToAnonymous;
 
             return this;
         }
@@ -319,13 +327,17 @@ public abstract class SocketHandshakeService extends HandshakeWebSocketService {
                         final Flux<?> flux = Flux.fromIterable(principals);
 
                         return handshakeWithWebFilter.apply(exchange, serverWebExchange -> exchangeProcessor.apply(serverWebExchange)
-                                        .switchIfEmpty(Mono.just(cast(new Anonymous())))
+                                        .switchIfEmpty(fallbackToAnonymous
+                                                ? Mono.just(cast(new Anonymous()))
+                                                : Mono.error(() -> new WebSocketClientHandshakeException("Cannot resolve Principal from handshake")))
                                         .onErrorResume(throwable -> this.errorHandler().handle(exchange, throwable).then(Mono.empty()))
                                         .doOnNext(principals::add).then())
                                 .then(flux.next());
                     } else if (nonNull(handshakeWithServerWebExchange)) {
                         return handshakeWithServerWebExchange.apply(exchange)
-                                .switchIfEmpty(Mono.just(cast(new Anonymous())))
+                                .switchIfEmpty(fallbackToAnonymous
+                                        ? Mono.just(cast(new Anonymous()))
+                                        : Mono.error(() -> new WebSocketClientHandshakeException("Cannot resolve Principal from handshake")))
                                 .onErrorResume(throwable -> this.errorHandler().handle(exchange, throwable).then(Mono.empty()));
                     } else {
                         return super.handshake(exchange);

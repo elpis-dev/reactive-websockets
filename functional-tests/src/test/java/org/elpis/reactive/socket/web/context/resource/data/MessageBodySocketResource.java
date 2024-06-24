@@ -18,4 +18,9 @@ public class MessageBodySocketResource {
         webSocketMessageFlux.subscribe(message -> log.info("Received message: " + message.getPayloadAsText()));
     }
 
+    @SocketMapping(value = "/post/binary", mode = Mode.SHARED)
+    public Flux<byte[]> sendBinaryMessage() {
+        return Flux.just("Binary".getBytes());
+    }
+
 }

@@ -53,6 +53,7 @@ public class AnonymousFallbackAuthenticationTest extends BaseWebSocketTest {
         public SocketHandshakeService socketHandshakeService() {
             return SocketHandshakeService.builder()
                     .handshake(serverWebExchange -> Mono.empty())
+                    .fallbackToAnonymous(true)
                     .build();
         }
     }

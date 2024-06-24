@@ -187,18 +187,6 @@ public class WebSocketHandlerAutoProcessor extends AbstractProcessor {
         return descriptor;
     }
 
-    private String toHexString(byte[] hash) {
-        BigInteger number = new BigInteger(1, hash);
-
-        StringBuilder hexString = new StringBuilder(number.toString(16));
-
-        while (hexString.length() < 64) {
-            hexString.insert(0, '0');
-        }
-
-        return hexString.toString().toLowerCase();
-    }
-
     private static final class WebHandlerResourceDescriptor {
         private final ExecutableElement method;
         private final Element clazz;
