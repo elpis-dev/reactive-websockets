@@ -15,8 +15,8 @@ jobs:
       - name: Install Java and Maven
         uses: actions/setup-java@v2
         with:
-          java-version: '11'
-          distribution: 'adopt'
+          java-version: '17'
+          distribution: 'corretto'
           cache: maven
 
       - name: Build Models
