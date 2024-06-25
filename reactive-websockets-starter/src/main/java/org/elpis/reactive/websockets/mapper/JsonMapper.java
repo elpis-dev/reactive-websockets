@@ -3,7 +3,6 @@ package org.elpis.reactive.websockets.mapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.RuntimeJsonMappingException;
-import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -14,9 +13,11 @@ import reactor.core.publisher.Mono;
  * @see ObjectMapper
  * @since 0.1.0
  */
-@Component
 public class JsonMapper {
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private JsonMapper() {
+    }
+
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     /**
      * Converts object to JSON string. If not possible to convert - throws {@link RuntimeJsonMappingException}.
@@ -24,11 +25,11 @@ public class JsonMapper {
      *
      * @since 0.1.0
      */
-    public String applyWithFallback(final Object object) {
+    public static String applyWithFallback(final Object object) {
         try {
             return String.class.isAssignableFrom(object.getClass())
                     ? (String) object
-                    : this.objectMapper.writeValueAsString(object);
+                    : objectMapper.writeValueAsString(object);
         } catch (JsonProcessingException e) {
             throw new RuntimeJsonMappingException("Unable to translate " + object.getClass() + " instance to String.class");
         }
@@ -40,11 +41,11 @@ public class JsonMapper {
      *
      * @since 0.1.0
      */
-    public String applyWithDefault(final Object object, final String defaultValue) {
+    public static String applyWithDefault(final Object object, final String defaultValue) {
         try {
             return String.class.isAssignableFrom(object.getClass())
                     ? (String) object
-                    : this.objectMapper.writeValueAsString(object);
+                    : objectMapper.writeValueAsString(object);
         } catch (JsonProcessingException e) {
             return defaultValue;
         }
@@ -56,11 +57,11 @@ public class JsonMapper {
      *
      * @since 0.1.0
      */
-    public Mono<String> applyWithMono(final Object object) {
+    public static Mono<String> applyWithMono(final Object object) {
         try {
             final String value = String.class.isAssignableFrom(object.getClass())
                     ? (String) object
-                    : this.objectMapper.writeValueAsString(object);
+                    : objectMapper.writeValueAsString(object);
 
             return Mono.just(value);
         } catch (JsonProcessingException e) {
@@ -75,11 +76,11 @@ public class JsonMapper {
      *
      * @since 0.1.0
      */
-    public Flux<String> applyWithFlux(final Object object) {
+    public static Flux<String> applyWithFlux(final Object object) {
         try {
             final String value = String.class.isAssignableFrom(object.getClass())
                     ? (String) object
-                    : this.objectMapper.writeValueAsString(object);
+                    : objectMapper.writeValueAsString(object);
 
             return Flux.just(value);
         } catch (JsonProcessingException e) {

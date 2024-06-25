@@ -25,7 +25,7 @@ public class ChatWebSocketResource {
 
     @SocketMapping(value = "/listen/{chatId}", mode = Mode.SHARED)
     public Publisher<Map<String, Object>> handleOutbound(@RequestHeader("userName") final String userName,
-                                                         @PathVariable(value = "chatIds", required = false) final Long chatId,
+                                                         @PathVariable(value = "chatId", required = false) final Long chatId,
                                                          @RequestParam("last") final Integer lastMessages) {
         return Flux.interval(Duration.ofSeconds(5))
                 .share()

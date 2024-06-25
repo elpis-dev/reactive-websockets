@@ -27,19 +27,16 @@ public abstract class BaseWebSocketHandler implements WebSocketHandler {
     private final WebSessionRegistry sessionRegistry;
     private final boolean pingPongEnabled;
     private final long pingInterval;
-    private final JsonMapper jsonMapper;
 
     protected BaseWebSocketHandler(String pathTemplate,
                                    WebSessionRegistry sessionRegistry,
                                    boolean pingPongEnabled,
-                                   long pingInterval,
-                                   JsonMapper jsonMapper) {
+                                   long pingInterval) {
 
         this.pathTemplate = pathTemplate;
         this.sessionRegistry = sessionRegistry;
         this.pingPongEnabled = pingPongEnabled;
         this.pingInterval = pingInterval;
-        this.jsonMapper = jsonMapper;
     }
 
     @Override
@@ -76,12 +73,12 @@ public abstract class BaseWebSocketHandler implements WebSocketHandler {
     Flux<WebSocketMessage> mapOutput(final WebSocketSession session, final Publisher<?> publisher) {
         return Flux.from(publisher)
                 .flatMap(any -> {
-                    if (any instanceof WebSocketMessage) {
-                        return Flux.just((WebSocketMessage) any);
+                    if (any instanceof WebSocketMessage webSocketMessage) {
+                        return Flux.just(webSocketMessage);
                     } else if (CloseStatus.class.isAssignableFrom(any.getClass())) {
                         return session.close((CloseStatus) any).cast(WebSocketMessage.class);
-                    } else if (any instanceof byte[]) {
-                        return Mono.just(session.binaryMessage(factory -> factory.wrap((byte[]) any)));
+                    } else if (any instanceof byte[] binary) {
+                        return Mono.just(session.binaryMessage(factory -> factory.wrap(binary)));
                     } else if (InputStream.class.isAssignableFrom(any.getClass())) {
                         return DataBufferUtils.readByteChannel(() ->
                                                 Channels.newChannel((InputStream) any),
@@ -89,7 +86,7 @@ public abstract class BaseWebSocketHandler implements WebSocketHandler {
                                 .map(dataBuffer -> session.binaryMessage(factory -> dataBuffer));
                     }
 
-                    return this.jsonMapper.applyWithFlux(any).map(session::textMessage);
+                    return JsonMapper.applyWithFlux(any).map(session::textMessage);
                 });
     }
 

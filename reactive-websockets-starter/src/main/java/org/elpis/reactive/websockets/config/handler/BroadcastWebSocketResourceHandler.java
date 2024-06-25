@@ -2,7 +2,6 @@ package org.elpis.reactive.websockets.config.handler;
 
 import org.elpis.reactive.websockets.config.model.WebSocketSessionContext;
 import org.elpis.reactive.websockets.config.registry.WebSessionRegistry;
-import org.elpis.reactive.websockets.mapper.JsonMapper;
 import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,11 +20,12 @@ public abstract class BroadcastWebSocketResourceHandler extends BaseWebSocketHan
             .multicast()
             .onBackpressureBuffer();
 
-    protected BroadcastWebSocketResourceHandler(final WebSessionRegistry sessionRegistry, final JsonMapper jsonMapper,
-                                                final String pathTemplate, final boolean pingPongEnabled,
+    protected BroadcastWebSocketResourceHandler(final WebSessionRegistry sessionRegistry,
+                                                final String pathTemplate,
+                                                final boolean pingPongEnabled,
                                                 final long pingPongInterval) {
 
-        super(pathTemplate, sessionRegistry, pingPongEnabled, pingPongInterval, jsonMapper);
+        super(pathTemplate, sessionRegistry, pingPongEnabled, pingPongInterval);
     }
 
     @Override
