@@ -26,7 +26,7 @@ jobs:
         run: mvn -f reactive-websockets-annotation-processor/pom.xml clean install
 
       - name: Build Source
-        run: mvn -f reactive-websockets/pom.xml clean install
+        run: mvn -f reactive-websockets-starter/pom.xml clean install
 
       - name: Build Test
         run: mvn -f functional-tests/pom.xml clean install -DskipTests=false
