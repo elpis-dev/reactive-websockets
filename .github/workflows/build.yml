@@ -1,0 +1,40 @@
+name: Build and Test
+
+on:
+  push:
+  pull_request:
+
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    container:
+      image: cimg/openjdk:11.0
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Build Models
+        run: mvn -f reactive-websockets-model/pom.xml clean install
+
+      - name: Build Annotation Processor
+        run: mvn -f reactive-websockets-annotation-processor/pom.xml clean install
+
+      - name: Build Source
+        run: mvn -f reactive-websockets/pom.xml clean install
+
+      - name: Build Test
+        run: mvn -f functional-tests/pom.xml clean install -DskipTests=false
+
+      - name: Save test results
+        run: |
+          mkdir -p ~/test-results/junit/
+          find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \;
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v3
+        with:
+          name: junit-results
+          path: ~/test-results/junit/
