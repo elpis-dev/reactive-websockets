@@ -4,17 +4,20 @@ on:
   push:
   pull_request:
 
-
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
 
-    container:
-      image: cimg/openjdk:11.0
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+
+      - name: Install Java and Maven
+        uses: actions/setup-java@v2
+        with:
+          java-version: '11'
+          distribution: 'adopt'
+          cache: maven
 
       - name: Build Models
         run: mvn -f reactive-websockets-model/pom.xml clean install
