@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "dependencies": {
     "unique-names-generator": "^4.7.1",
-    "ws": "^7.4.5"
+    "ws": "^7.5.10"
   },
   "scripts": {
     "serve": "node client.js"
