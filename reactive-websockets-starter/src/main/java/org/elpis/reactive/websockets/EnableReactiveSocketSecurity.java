@@ -1,6 +1,6 @@
 package org.elpis.reactive.websockets;
 
-import org.elpis.reactive.websockets.security.WebSocketSecurityConfiguration;
+import org.elpis.reactive.websockets.config.security.WebSocketSecurityConfiguration;
 import org.springframework.context.annotation.Import;
 
 import java.lang.annotation.*;

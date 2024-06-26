@@ -62,11 +62,11 @@ public class WebSocketHandlerAutoProcessor extends AbstractProcessor {
                 .filter(classElement -> classElement.getAnnotation(SocketMapping.class) != null)
                 .map(ExecutableElement.class::cast)
                 .map(method -> this.configure(socketController, method, element))
-                .collect(Collectors.toList());
+                .toList();
     }
 
     private TypeSpec.Builder getClassDefinition(final WebHandlerResourceDescriptor descriptor) {
-        final FieldSpec injectedField = FieldSpec.builder(TypeName.get(descriptor.getClazz().asType()), "socketResource")
+        final FieldSpec injectedField = FieldSpec.builder(TypeName.get(descriptor.clazz().asType()), "socketResource")
                 .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
                 .build();
 
@@ -74,17 +74,16 @@ public class WebSocketHandlerAutoProcessor extends AbstractProcessor {
                 .addModifiers(Modifier.PUBLIC)
                 .addAnnotation(Autowired.class)
                 .addParameter(ClassName.bestGuess("org.elpis.reactive.websockets.config.registry.WebSessionRegistry"), "registry")
-                .addParameter(ClassName.bestGuess("org.elpis.reactive.websockets.mapper.JsonMapper"), "jsonMapper")
-                .addParameter(TypeName.get(descriptor.getClazz().asType()), "socketResource")
-                .addStatement("super(registry, jsonMapper, $S, $L, $L)", descriptor.getPathTemplate(),
-                        descriptor.isPingPongEnabled(), descriptor.getPingPongInterval())
+                .addParameter(TypeName.get(descriptor.clazz().asType()), "socketResource")
+                .addStatement("super(registry, $S, $L, $L)", descriptor.pathTemplate(),
+                        descriptor.pingPongEnabled(), descriptor.pingPongInterval())
                 .addStatement("this.socketResource = socketResource")
                 .build();
 
         final MethodSpec suitableMethod = this.getSuitableMethod(descriptor);
 
         return TypeSpec.classBuilder("WebSocketHandler$Generated_" + descriptor.getPostfix())
-                .superclass(ClassName.bestGuess(this.getHandlerType(descriptor.getMode())))
+                .superclass(ClassName.bestGuess(this.getHandlerType(descriptor.mode())))
                 .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
                 .addAnnotation(Component.class)
                 .addField(injectedField)
@@ -95,7 +94,7 @@ public class WebSocketHandlerAutoProcessor extends AbstractProcessor {
     private MethodSpec getSuitableMethod(WebHandlerResourceDescriptor descriptor) {
         final MethodSpec.Builder methodBuilder = this.getMethodSpec(descriptor);
 
-        final Map<String, Optional<CodeBlock>> codeBlocks = descriptor.getMethod().getParameters()
+        final Map<String, Optional<CodeBlock>> codeBlocks = descriptor.method().getParameters()
                 .stream()
                 .collect(Collectors.toMap(parameter -> parameter.getSimpleName().toString(), parameter ->
                         SocketAnnotationResolverFactory.findResolver(parameter)
@@ -104,11 +103,11 @@ public class WebSocketHandlerAutoProcessor extends AbstractProcessor {
                                 .map(resolver -> resolver.resolve(parameter))));
 
         final List<Object> parameters = new ArrayList<>();
-        parameters.add(descriptor.getMethod().getSimpleName().toString());
+        parameters.add(descriptor.method().getSimpleName().toString());
 
         final List<String> parameterPlaces = new ArrayList<>();
 
-        descriptor.getMethod().getParameters()
+        descriptor.method().getParameters()
                 .forEach(parameter -> {
                     parameterPlaces.add("$L");
 
@@ -132,7 +131,7 @@ public class WebSocketHandlerAutoProcessor extends AbstractProcessor {
         final TypeName fluxMessages = ParameterizedTypeName.get(ClassName.get(Flux.class),
                 TypeName.get(WebSocketMessage.class));
 
-        if (descriptor.isUseReturn()) {
+        if (descriptor.useReturn()) {
             final TypeName publisherWildcard = ParameterizedTypeName.get(ClassName.get(Publisher.class),
                     WildcardTypeName.subtypeOf(Object.class));
 
@@ -176,7 +175,7 @@ public class WebSocketHandlerAutoProcessor extends AbstractProcessor {
 
         final TypeMirror returnType = method.getReturnType();
 
-        if (descriptor.isUseReturn() && (!processingEnv.getTypeUtils()
+        if (descriptor.useReturn() && (!processingEnv.getTypeUtils()
                 .isAssignable(processingEnv.getTypeUtils().erasure(returnType),
                         processingEnv.getTypeUtils().erasure(publisher.asType())))) {
 
@@ -187,55 +186,9 @@ public class WebSocketHandlerAutoProcessor extends AbstractProcessor {
         return descriptor;
     }
 
-    private static final class WebHandlerResourceDescriptor {
-        private final ExecutableElement method;
-        private final Element clazz;
-        private final boolean useReturn;
-        private final String pathTemplate;
-        private final Mode mode;
-        private final boolean pingPongEnabled;
-        private final long pingPongInterval;
-
-        public WebHandlerResourceDescriptor(ExecutableElement method, Element clazz,
-                                            boolean useReturn, String pathTemplate, Mode mode,
-                                            boolean pingPongEnabled, long pingPongInterval) {
-
-            this.method = method;
-            this.clazz = clazz;
-            this.useReturn = useReturn;
-            this.pathTemplate = pathTemplate;
-            this.mode = mode;
-            this.pingPongEnabled = pingPongEnabled;
-            this.pingPongInterval = pingPongInterval;
-        }
-
-        public Element getClazz() {
-            return clazz;
-        }
-
-        public ExecutableElement getMethod() {
-            return method;
-        }
-
-        public boolean isUseReturn() {
-            return useReturn;
-        }
-
-        public String getPathTemplate() {
-            return pathTemplate;
-        }
-
-        public Mode getMode() {
-            return mode;
-        }
-
-        public boolean isPingPongEnabled() {
-            return pingPongEnabled;
-        }
-
-        public long getPingPongInterval() {
-            return pingPongInterval;
-        }
+    private record WebHandlerResourceDescriptor(ExecutableElement method, Element clazz, boolean useReturn,
+                                                String pathTemplate, Mode mode, boolean pingPongEnabled,
+                                                long pingPongInterval) {
 
         private String getPostfix() {
             final String uniqueKey = pathTemplate + "." + clazz.getSimpleName().toString() +

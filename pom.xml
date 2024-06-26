@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>org.elpis</groupId>
+    <artifactId>reactive-websockets</artifactId>
+    <version>1.0.0</version>
+
+    <packaging>pom</packaging>
+
+    <properties>
+        <java.version>17</java.version>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <maven.compiler.release>17</maven.compiler.release>
+
+        <maven.surefire.version>3.0.0</maven.surefire.version>
+        <maven.compiler.version>3.13.0</maven.compiler.version>
+        <maven.install.version>3.0.0-M1</maven.install.version>
+
+        <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
+
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+        <spring.boot.version>3.3.0</spring.boot.version>
+
+        <log4j2.version>2.23.1</log4j2.version>
+
+        <reactive-websockets.version>1.0.0</reactive-websockets.version>
+    </properties>
+
+    <modules>
+        <module>reactive-websockets-model</module>
+        <module>reactive-websockets-annotation-processor</module>
+        <module>reactive-websockets-starter</module>
+        <module>functional-tests</module>
+        <module>report-aggregate</module>
+    </modules>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${spring.boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+</project>

@@ -40,7 +40,7 @@ public class SocketAnnotationResolverFactory {
                         SUPPORTED_RESOLVERS.entrySet().stream())
                 .filter(entry -> element.getAnnotation(entry.getKey()) != null)
                 .map(Map.Entry::getValue)
-                .collect(Collectors.toList());
+                .toList();
 
         if (annotationsFiltered.size() > 1) {
             final String failedAnnotations = annotationsFiltered.stream()
