@@ -14,10 +14,10 @@ import reactor.core.publisher.Mono;
  * @since 0.1.0
  */
 public class JsonMapper {
+    private static final ObjectMapper objectMapper = new ObjectMapper();
+
     private JsonMapper() {
     }
-
-    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     /**
      * Converts object to JSON string. If not possible to convert - throws {@link RuntimeJsonMappingException}.
