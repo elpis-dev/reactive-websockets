@@ -4,57 +4,44 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.elpis</groupId>
+    <parent>
+        <groupId>org.elpis</groupId>
+        <artifactId>reactive-websockets</artifactId>
+        <version>1.0.0</version>
+    </parent>
+
     <artifactId>reactive-websockets-annotation-processor</artifactId>
-    <version>0.1.0</version>
+    <version>1.0.0</version>
 
     <packaging>jar</packaging>
 
     <properties>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
-        <maven.compiler.release>17</maven.compiler.release>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-
-        <maven.compiler.version>3.13.0</maven.compiler.version>
-
-        <spring.webflux.version>6.1.9</spring.webflux.version>
-        <spring.boot.starter.version>3.3.0</spring.boot.starter.version>
-
         <javapoet.version>1.13.0</javapoet.version>
-
-        <reactive-websockets-model.version>0.1.0</reactive-websockets-model.version>
-
-        <spring.security.version>6.3.0</spring.security.version>
-        <spring.security.oauth2.version>6.1.7</spring.security.oauth2.version>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>org.elpis</groupId>
             <artifactId>reactive-websockets-model</artifactId>
-            <version>${reactive-websockets-model.version}</version>
+            <version>${reactive-websockets.version}</version>
             <scope>compile</scope>
         </dependency>
 
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-webflux</artifactId>
-            <version>${spring.webflux.version}</version>
             <scope>compile</scope>
         </dependency>
 
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-core</artifactId>
-            <version>${spring.security.version}</version>
             <scope>compile</scope>
         </dependency>
 
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-web</artifactId>
-            <version>${spring.security.version}</version>
             <scope>compile</scope>
         </dependency>
 
@@ -77,12 +64,6 @@
                     <release>${maven.compiler.release}</release>
                     <compilerArgument>-proc:none</compilerArgument>
                 </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-                <version>${spring.boot.starter.version}</version>
             </plugin>
         </plugins>
     </build>
