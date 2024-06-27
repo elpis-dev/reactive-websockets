@@ -19,8 +19,6 @@ import static java.util.Objects.isNull;
  */
 @SuppressWarnings({"unchecked", "rawtypes"})
 public final class TypeUtils {
-    private TypeUtils() {
-    }
 
     /**
      * Registry of possible conversions from {@link String} to any supported type.
@@ -83,6 +81,9 @@ public final class TypeUtils {
             Map.entry(TypeKind.FLOAT, 0.0f),
             Map.entry(TypeKind.DOUBLE, 0.0d)
     );
+
+    private TypeUtils() {
+    }
 
     /**
      * Returns default value for primitives.

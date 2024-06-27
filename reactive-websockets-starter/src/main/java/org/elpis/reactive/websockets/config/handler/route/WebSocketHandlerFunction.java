@@ -14,8 +14,12 @@ public interface WebSocketHandlerFunction {
                                                 final long pingPongInterval,
                                                 final WebSocketHandlerFunctions.WebSocketMessageHandlerFunction<T> function) {
 
-        return new WebSocketHandlerFunctions.CombinedRouterFunction(this,
-                WebSocketHandlerFunctions.handle(path, mode, pingPongEnabled, pingPongInterval, function));
+        final WebSocketHandlerFunctions.DefaultRouterFunction webSocketHandlerFunction = (WebSocketHandlerFunctions.DefaultRouterFunction) WebSocketHandlerFunctions
+                .handle(path, mode, pingPongEnabled, pingPongInterval, function);
+
+        webSocketHandlerFunction.setNext(this);
+
+        return webSocketHandlerFunction;
     }
 
     default WebSocketHandlerFunction handle(final String path,
@@ -24,22 +28,44 @@ public interface WebSocketHandlerFunction {
                                             final long pingPongInterval,
                                             final WebSocketHandlerFunctions.WebSocketVoidHandlerFunction function) {
 
-        return new WebSocketHandlerFunctions.CombinedRouterFunction(this,
-                WebSocketHandlerFunctions.handle(path, mode, pingPongEnabled, pingPongInterval, function));
+        final WebSocketHandlerFunctions.DefaultRouterFunction webSocketHandlerFunction = (WebSocketHandlerFunctions.DefaultRouterFunction) WebSocketHandlerFunctions
+                .handle(path, mode, pingPongEnabled, pingPongInterval, function);
+
+        webSocketHandlerFunction.setNext(this);
+
+        return webSocketHandlerFunction;
     }
 
     default <T> WebSocketHandlerFunction handle(final String path, final Mode mode,
                                                 final WebSocketHandlerFunctions.WebSocketMessageHandlerFunction<T> function) {
 
-        return new WebSocketHandlerFunctions.CombinedRouterFunction(this,
-                WebSocketHandlerFunctions.handle(path, mode, function));
+        final WebSocketHandlerFunctions.DefaultRouterFunction webSocketHandlerFunction = (WebSocketHandlerFunctions.DefaultRouterFunction) WebSocketHandlerFunctions
+                .handle(path, mode, function);
+
+        webSocketHandlerFunction.setNext(this);
+
+        return webSocketHandlerFunction;
     }
 
     default WebSocketHandlerFunction handle(final String path, final Mode mode,
                                             final WebSocketHandlerFunctions.WebSocketVoidHandlerFunction function) {
 
-        return new WebSocketHandlerFunctions.CombinedRouterFunction(this,
-                WebSocketHandlerFunctions.handle(path, mode, function));
+        final WebSocketHandlerFunctions.DefaultRouterFunction webSocketHandlerFunction = (WebSocketHandlerFunctions.DefaultRouterFunction) WebSocketHandlerFunctions
+                .handle(path, mode, function);
+
+        webSocketHandlerFunction.setNext(this);
+
+        return webSocketHandlerFunction;
+    }
+
+    default WebSocketHandlerFunction and(final WebSocketHandlerFunction another) {
+        WebSocketHandlerFunctions.DefaultRouterFunction webSocketHandlerFunction = (WebSocketHandlerFunctions.DefaultRouterFunction) another;
+        while (webSocketHandlerFunction.getNext() != null) {
+            webSocketHandlerFunction = (WebSocketHandlerFunctions.DefaultRouterFunction) webSocketHandlerFunction.getNext();
+        }
+        webSocketHandlerFunction.setNext(this);
+
+        return another;
     }
 
 
