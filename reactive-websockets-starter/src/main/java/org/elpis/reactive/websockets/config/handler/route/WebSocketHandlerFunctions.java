@@ -52,17 +52,31 @@ public final class WebSocketHandlerFunctions {
         return registry -> null;
     }
 
-    private abstract static class DefaultRouterFunction implements WebSocketHandlerFunction {
+    abstract static class DefaultRouterFunction implements WebSocketHandlerFunction {
         final String path;
         final boolean pingPongEnabled;
         final long pingPongInterval;
         final Mode mode;
 
-        private DefaultRouterFunction(String path, boolean pingPongEnabled, long pingPongInterval, Mode mode) {
+        WebSocketHandlerFunction next = null;
+
+        private DefaultRouterFunction(String path,
+                                      boolean pingPongEnabled,
+                                      long pingPongInterval,
+                                      Mode mode) {
+
             this.path = path;
             this.pingPongEnabled = pingPongEnabled;
             this.pingPongInterval = pingPongInterval;
             this.mode = mode;
+        }
+
+        WebSocketHandlerFunction getNext() {
+            return next;
+        }
+
+        void setNext(WebSocketHandlerFunction next) {
+            this.next = next;
         }
     }
 
@@ -119,28 +133,6 @@ public final class WebSocketHandlerFunctions {
                         };
                 case SESSION -> null;
             };
-        }
-    }
-
-    public static final class CombinedRouterFunction implements WebSocketHandlerFunction {
-        private final WebSocketHandlerFunction handlerFunctionOne;
-
-        private final WebSocketHandlerFunction handlerFunctionTwo;
-
-        CombinedRouterFunction(WebSocketHandlerFunction handlerFunctionOne,
-                               WebSocketHandlerFunction handlerFunctionTwo) {
-
-            this.handlerFunctionOne = handlerFunctionOne;
-            this.handlerFunctionTwo = handlerFunctionTwo;
-        }
-
-        @Override
-        public BaseWebSocketHandler register(final WebSessionRegistry registry) {
-            return handlerFunctionTwo.register(registry);
-        }
-
-        public WebSocketHandlerFunction getHandlerFunction() {
-            return handlerFunctionOne;
         }
     }
 

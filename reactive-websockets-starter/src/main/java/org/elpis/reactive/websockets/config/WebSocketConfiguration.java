@@ -5,7 +5,7 @@ import org.elpis.reactive.websockets.config.event.EventManagerConfiguration;
 import org.elpis.reactive.websockets.config.handler.BaseWebSocketHandler;
 import org.elpis.reactive.websockets.config.handler.route.WebSocketHandlerFunction;
 import org.elpis.reactive.websockets.config.handler.route.WebSocketHandlerFunctions;
-import org.elpis.reactive.websockets.config.registry.WebSessionRegistry;
+import org.elpis.reactive.websockets.config.handler.route.WebSocketHandlerRouteResolver;
 import org.elpis.reactive.websockets.exception.WebSocketMappingException;
 import org.elpis.reactive.websockets.web.annotation.SocketMapping;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -17,7 +17,9 @@ import org.springframework.web.reactive.HandlerMapping;
 import org.springframework.web.reactive.handler.SimpleUrlHandlerMapping;
 import org.springframework.web.reactive.socket.WebSocketHandler;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
 /**
@@ -28,7 +30,7 @@ import java.util.stream.Stream;
  * @since 0.1.0
  */
 @Configuration
-@Import({EventManagerConfiguration.class, ClosedConnectionHandlerConfiguration.class})
+@Import({EventManagerConfiguration.class, ClosedConnectionHandlerConfiguration.class, WebSocketHandlerRouteResolver.class})
 @ComponentScan("org.elpis.reactive.websockets.generated")
 public class WebSocketConfiguration {
 
@@ -48,13 +50,11 @@ public class WebSocketConfiguration {
      */
     @Bean
     public HandlerMapping handlerMapping(final List<BaseWebSocketHandler> annotatedHandlers,
-                                         final WebSocketHandlerFunction webSocketHandlerFunction,
-                                         final WebSessionRegistry registry) {
+                                         final WebSocketHandlerRouteResolver routeResolver) {
 
         final Map<String, WebSocketHandler> handlerMap = new HashMap<>();
 
-        final List<BaseWebSocketHandler> routeHandlers = this.getRouteHandlers(webSocketHandlerFunction, registry);
-
+        final List<BaseWebSocketHandler> routeHandlers = routeResolver.resolve();
         Stream.concat(annotatedHandlers.stream(), routeHandlers.stream())
                 .forEach(handler -> {
                     if (handlerMap.putIfAbsent(handler.getPathTemplate(), handler) != null) {
@@ -63,28 +63,6 @@ public class WebSocketConfiguration {
                 });
 
         return new SimpleUrlHandlerMapping(handlerMap, HANDLER_ORDER);
-    }
-
-    private List<BaseWebSocketHandler> getRouteHandlers(final WebSocketHandlerFunction webSocketHandlerFunction,
-                                                        final WebSessionRegistry registry) {
-
-        final List<BaseWebSocketHandler> handlers = new ArrayList<>();
-
-        WebSocketHandlerFunction function = webSocketHandlerFunction;
-        while (function instanceof WebSocketHandlerFunctions.CombinedRouterFunction combinedRouterFunction) {
-            final BaseWebSocketHandler webSocketHandler = combinedRouterFunction.register(registry);
-            if (webSocketHandler == null) {
-                break;
-            }
-
-            handlers.add(webSocketHandler);
-            function = combinedRouterFunction.getHandlerFunction();
-        }
-
-        Optional.ofNullable(function.register(registry))
-                .ifPresent(handlers::add);
-
-        return handlers;
     }
 
 }

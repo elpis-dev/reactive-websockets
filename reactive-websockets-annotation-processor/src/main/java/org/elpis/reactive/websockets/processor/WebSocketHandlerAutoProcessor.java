@@ -31,7 +31,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @SupportedAnnotationTypes({"org.elpis.reactive.websockets.web.annotation.SocketController"})
-@SupportedSourceVersion(SourceVersion.RELEASE_11)
+@SupportedSourceVersion(SourceVersion.RELEASE_17)
 public class WebSocketHandlerAutoProcessor extends AbstractProcessor {
 
     @Override
