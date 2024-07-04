@@ -3,7 +3,7 @@ package org.elpis.reactive.websockets.impl.routing;
 import nl.altindag.log.LogCaptor;
 import org.elpis.reactive.websockets.BaseWebSocketTest;
 import org.elpis.reactive.websockets.context.BootStarter;
-import org.elpis.reactive.websockets.context.RoutingConfiguration;
+import org.elpis.reactive.websockets.context.routing.RoutingConfiguration;
 import org.elpis.reactive.websockets.context.security.model.SecurityProfiles;
 import org.elpis.reactive.websockets.context.security.model.TestConstants;
 import org.junit.jupiter.api.Test;

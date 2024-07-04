@@ -1,4 +1,4 @@
-package org.elpis.reactive.websockets.context;
+package org.elpis.reactive.websockets.context.connection;
 
 import org.elpis.reactive.websockets.config.model.WebSocketCloseStatus;
 import org.elpis.reactive.websockets.event.model.impl.ClientSessionClosedEvent;

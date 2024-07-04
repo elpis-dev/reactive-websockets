@@ -4,7 +4,7 @@ import org.elpis.reactive.websockets.config.handler.BaseWebSocketHandler;
 import org.elpis.reactive.websockets.config.handler.BroadcastWebSocketResourceHandler;
 import org.elpis.reactive.websockets.config.model.Mode;
 import org.elpis.reactive.websockets.config.model.WebSocketSessionContext;
-import org.elpis.reactive.websockets.config.registry.WebSessionRegistry;
+import org.elpis.reactive.websockets.config.handler.WebSessionRegistry;
 import org.reactivestreams.Publisher;
 import org.springframework.web.reactive.socket.WebSocketMessage;
 import reactor.core.publisher.Flux;

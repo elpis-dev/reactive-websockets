@@ -1,7 +1,7 @@
 package org.elpis.reactive.websockets.config.handler.route;
 
 import org.elpis.reactive.websockets.config.handler.BaseWebSocketHandler;
-import org.elpis.reactive.websockets.config.registry.WebSessionRegistry;
+import org.elpis.reactive.websockets.config.handler.WebSessionRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

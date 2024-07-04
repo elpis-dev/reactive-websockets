@@ -1,4 +1,4 @@
-package org.elpis.reactive.websockets.context;
+package org.elpis.reactive.websockets.context.routing;
 
 import org.elpis.reactive.websockets.config.handler.route.WebSocketHandlerFunction;
 import org.elpis.reactive.websockets.config.model.Mode;

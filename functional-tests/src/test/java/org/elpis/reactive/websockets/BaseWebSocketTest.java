@@ -22,7 +22,6 @@ import java.util.function.Function;
 public abstract class BaseWebSocketTest {
     public static final String DEFAULT_TEST_PROFILE = "test";
 
-    protected static final Duration DEFAULT_LONG_TEST_FALLBACK = Duration.ofSeconds(30L);
     protected static final Duration DEFAULT_GENERIC_TEST_FALLBACK = Duration.ofSeconds(10L);
     protected static final Duration DEFAULT_FAST_TEST_FALLBACK = Duration.ofSeconds(5L);
 
@@ -31,14 +30,16 @@ public abstract class BaseWebSocketTest {
     @LocalServerPort
     private Integer port;
 
-    public Mono<Void> withClient(@NonNull final String path, @NonNull final Function<WebSocketSession, Mono<Void>> webSocketHandler)
+    public Mono<Void> withClient(@NonNull final String path,
+                                 @NonNull final Function<WebSocketSession, Mono<Void>> webSocketHandler)
             throws URISyntaxException {
 
         return new ReactorNettyWebSocketClient().execute(this.getUrl(path), webSocketHandler::apply);
     }
 
     public Mono<Void> withClient(@NonNull final String path, @NonNull final HttpHeaders headers,
-                                 @NonNull final Function<WebSocketSession, Mono<Void>> webSocketHandler) throws URISyntaxException {
+                                 @NonNull final Function<WebSocketSession, Mono<Void>> webSocketHandler)
+            throws URISyntaxException {
 
         return new ReactorNettyWebSocketClient().execute(this.getUrl(path), headers, webSocketHandler::apply);
     }

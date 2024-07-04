@@ -2,7 +2,7 @@ package org.elpis.reactive.websockets.config.handler.route;
 
 import org.elpis.reactive.websockets.config.handler.BaseWebSocketHandler;
 import org.elpis.reactive.websockets.config.model.Mode;
-import org.elpis.reactive.websockets.config.registry.WebSessionRegistry;
+import org.elpis.reactive.websockets.config.handler.WebSessionRegistry;
 
 @FunctionalInterface
 public interface WebSocketHandlerFunction {

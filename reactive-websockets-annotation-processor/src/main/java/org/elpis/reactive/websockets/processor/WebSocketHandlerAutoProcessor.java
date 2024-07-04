@@ -73,7 +73,7 @@ public class WebSocketHandlerAutoProcessor extends AbstractProcessor {
         final MethodSpec constructor = MethodSpec.constructorBuilder()
                 .addModifiers(Modifier.PUBLIC)
                 .addAnnotation(Autowired.class)
-                .addParameter(ClassName.bestGuess("org.elpis.reactive.websockets.config.registry.WebSessionRegistry"), "registry")
+                .addParameter(ClassName.bestGuess("org.elpis.reactive.websockets.config.handler.WebSessionRegistry"), "registry")
                 .addParameter(TypeName.get(descriptor.clazz().asType()), "socketResource")
                 .addStatement("super(registry, $S, $L, $L)", descriptor.pathTemplate(),
                         descriptor.pingPongEnabled(), descriptor.pingPongInterval())

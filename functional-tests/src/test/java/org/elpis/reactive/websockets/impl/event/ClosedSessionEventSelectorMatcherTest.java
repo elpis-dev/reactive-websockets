@@ -1,7 +1,7 @@
 package org.elpis.reactive.websockets.impl.event;
 
 import org.elpis.reactive.websockets.config.model.ClientSessionCloseInfo;
-import org.elpis.reactive.websockets.config.registry.WebSocketSessionInfo;
+import org.elpis.reactive.websockets.config.handler.WebSocketSessionInfo;
 import org.elpis.reactive.websockets.event.annotation.EventSelector;
 import org.elpis.reactive.websockets.event.impl.ClosedSessionEventSelectorMatcher;
 import org.elpis.reactive.websockets.event.model.impl.ClientSessionClosedEvent;

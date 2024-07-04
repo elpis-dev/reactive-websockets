@@ -1,7 +1,6 @@
 package org.elpis.reactive.websockets.config.handler;
 
 import org.elpis.reactive.websockets.config.model.WebSocketSessionContext;
-import org.elpis.reactive.websockets.config.registry.WebSessionRegistry;
 import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +18,11 @@ public abstract class BroadcastWebSocketResourceHandler extends BaseWebSocketHan
     private final Sinks.Many<WebSocketMessage> sink = Sinks.many()
             .multicast()
             .onBackpressureBuffer();
+
+    private final Sinks.Many<WebSocketMessage> pongMessages = Sinks.many()
+            .multicast()
+            .onBackpressureBuffer();
+
 
     protected BroadcastWebSocketResourceHandler(final WebSessionRegistry sessionRegistry,
                                                 final String pathTemplate,
@@ -38,7 +42,7 @@ public abstract class BroadcastWebSocketResourceHandler extends BaseWebSocketHan
                 .doOnNext(webSocketMessage -> {
                     final WebSocketMessage.Type type = webSocketMessage.getType();
                     if (this.isPingPongEnabled() && type == WebSocketMessage.Type.PING) {
-                        this.sink.tryEmitNext(session.pongMessage(dataBuffer ->
+                        this.pongMessages.tryEmitNext(session.pongMessage(dataBuffer ->
                                 session.bufferFactory().allocateBuffer(256)));
                     } else if (this.isPingPongEnabled() && type == WebSocketMessage.Type.PONG) {
                         log.info("Got PONG response from client");
@@ -60,14 +64,15 @@ public abstract class BroadcastWebSocketResourceHandler extends BaseWebSocketHan
 
         final Flux<WebSocketMessage> serverPings = Flux.interval(Duration.ofMillis(this.getPingInterval()))
                 .map(aLong -> session.pingMessage(dataBufferFactory -> session.bufferFactory().allocateBuffer(256)));
+        final Flux<WebSocketMessage> pongs = this.pongMessages.asFlux();
         if (publisher != null) {
             final Flux<WebSocketMessage> messages = this.mapOutput(session, publisher);
-            return this.isPingPongEnabled() ? Flux.merge(messages, serverPings) : messages;
+            return this.isPingPongEnabled() ? Flux.merge(messages, serverPings, pongs) : messages;
         } else {
             this.run(webSocketSessionContext, socketMessageFlux);
         }
 
-        return this.isPingPongEnabled() ? serverPings : null;
+        return this.isPingPongEnabled() ? Flux.merge(serverPings, pongs) : null;
     }
 
 }

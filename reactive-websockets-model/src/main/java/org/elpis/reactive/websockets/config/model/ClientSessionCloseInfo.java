@@ -1,7 +1,7 @@
 package org.elpis.reactive.websockets.config.model;
 
 
-import org.elpis.reactive.websockets.config.registry.WebSocketSessionInfo;
+import org.elpis.reactive.websockets.config.handler.WebSocketSessionInfo;
 import org.springframework.web.reactive.socket.CloseStatus;
 
 public class ClientSessionCloseInfo {
