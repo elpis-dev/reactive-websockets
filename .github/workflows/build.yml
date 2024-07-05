@@ -19,5 +19,18 @@ jobs:
           distribution: 'adopt'
           cache: maven
 
-      - name: Build Models
+      - name: Build
         run: mvn clean install
+
+      - name: Jacoco Report to PR
+        id: jacoco
+        uses: madrapps/jacoco-report@v1.6.1
+        with:
+          paths: ${{ github.workspace }}/report-aggregate/target/site/jacoco-aggregate/jacoco.xml
+          token: ${{ secrets.JACOCO_PR_TOKEN }}
+          min-coverage-overall: 80
+          min-coverage-changed-files: 80
+          update-comment: true
+          title: '# :hurtrealbad: Coverage'
+          pass-emoji: ':white_check_mark:'
+          fail-emoji: ':red_circle:'
