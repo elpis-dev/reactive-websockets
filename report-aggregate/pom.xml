@@ -52,6 +52,9 @@
                         <goals>
                             <goal>report-aggregate</goal>
                         </goals>
+                        <configuration>
+                            <dataFileIncludes>**/jacoco.exec</dataFileIncludes>
+                        </configuration>
                     </execution>
                     <execution>
                         <id>jacoco-check</id>

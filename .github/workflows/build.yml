@@ -23,11 +23,10 @@ jobs:
         run: mvn clean install
 
       - name: Jacoco Report to PR
-        id: jacoco
         uses: madrapps/jacoco-report@v1.6.1
         with:
           paths: ${{ github.workspace }}/report-aggregate/target/site/jacoco-aggregate/jacoco.xml
-          token: ${{ secrets.JACOCO_PR_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           min-coverage-overall: 80
           min-coverage-changed-files: 80
           update-comment: true
