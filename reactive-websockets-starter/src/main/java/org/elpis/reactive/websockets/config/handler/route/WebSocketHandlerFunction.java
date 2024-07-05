@@ -10,12 +10,12 @@ public interface WebSocketHandlerFunction {
 
     default <T> WebSocketHandlerFunction handle(final String path,
                                                 final Mode mode,
-                                                final boolean pingPongEnabled,
-                                                final long pingPongInterval,
+                                                final boolean pingEnabled,
+                                                final long pingInterval,
                                                 final WebSocketHandlerFunctions.WebSocketMessageHandlerFunction<T> function) {
 
         final WebSocketHandlerFunctions.DefaultRouterFunction webSocketHandlerFunction = (WebSocketHandlerFunctions.DefaultRouterFunction) WebSocketHandlerFunctions
-                .handle(path, mode, pingPongEnabled, pingPongInterval, function);
+                .handle(path, mode, pingEnabled, pingInterval, function);
 
         webSocketHandlerFunction.setNext(this);
 
@@ -24,12 +24,12 @@ public interface WebSocketHandlerFunction {
 
     default WebSocketHandlerFunction handle(final String path,
                                             final Mode mode,
-                                            final boolean pingPongEnabled,
-                                            final long pingPongInterval,
+                                            final boolean pingEnabled,
+                                            final long pingInterval,
                                             final WebSocketHandlerFunctions.WebSocketVoidHandlerFunction function) {
 
         final WebSocketHandlerFunctions.DefaultRouterFunction webSocketHandlerFunction = (WebSocketHandlerFunctions.DefaultRouterFunction) WebSocketHandlerFunctions
-                .handle(path, mode, pingPongEnabled, pingPongInterval, function);
+                .handle(path, mode, pingEnabled, pingInterval, function);
 
         webSocketHandlerFunction.setNext(this);
 

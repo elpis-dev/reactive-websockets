@@ -13,6 +13,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.reactive.socket.WebSocketMessage;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 import reactor.test.StepVerifier;
 
@@ -98,11 +99,11 @@ class RoutingTest extends BaseWebSocketTest {
         final LogCaptor logCaptor = LogCaptor.forClass(RoutingConfiguration.class);
 
         //test
-        this.withClient(path, headers, (session) -> session.receive().then())
-                .subscribe();
+        final Mono<Void> result = this.withClient(path, headers, (session) -> session.receive().then())
+                .timeout(DEFAULT_FAST_TEST_FALLBACK);
 
         //verify
-        StepVerifier.create(Flux.just(path).delayElements(DEFAULT_FAST_TEST_FALLBACK).timeout(DEFAULT_FAST_TEST_FALLBACK))
+        StepVerifier.create(result)
                 .verifyError(TimeoutException.class);
 
         assertThat(logCaptor.getInfoLogs())

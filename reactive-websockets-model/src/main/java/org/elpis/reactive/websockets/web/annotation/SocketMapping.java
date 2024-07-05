@@ -13,5 +13,5 @@ public @interface SocketMapping {
 
     Mode mode();
 
-    PingPong pingPong() default @PingPong(enabled = false);
+    Ping ping() default @Ping(enabled = false);
 }

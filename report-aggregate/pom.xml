@@ -12,7 +12,7 @@
     <artifactId>report-aggregate</artifactId>
 
     <properties>
-        <jacoco.coverage.rate>0.8</jacoco.coverage.rate>
+        <jacoco.coverage.rate>0.85</jacoco.coverage.rate>
     </properties>
 
     <dependencies>
@@ -52,9 +52,6 @@
                         <goals>
                             <goal>report-aggregate</goal>
                         </goals>
-                        <configuration>
-                            <dataFileIncludes>**/jacoco.exec</dataFileIncludes>
-                        </configuration>
                     </execution>
                     <execution>
                         <id>jacoco-check</id>

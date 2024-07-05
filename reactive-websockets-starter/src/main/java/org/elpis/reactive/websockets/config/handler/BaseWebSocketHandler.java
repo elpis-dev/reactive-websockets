@@ -25,17 +25,17 @@ public abstract class BaseWebSocketHandler implements WebSocketHandler {
 
     private final String pathTemplate;
     private final WebSessionRegistry sessionRegistry;
-    private final boolean pingPongEnabled;
+    private final boolean pingEnabled;
     private final long pingInterval;
 
     protected BaseWebSocketHandler(String pathTemplate,
                                    WebSessionRegistry sessionRegistry,
-                                   boolean pingPongEnabled,
+                                   boolean pingEnabled,
                                    long pingInterval) {
 
         this.pathTemplate = pathTemplate;
         this.sessionRegistry = sessionRegistry;
-        this.pingPongEnabled = pingPongEnabled;
+        this.pingEnabled = pingEnabled;
         this.pingInterval = pingInterval;
     }
 
@@ -127,8 +127,8 @@ public abstract class BaseWebSocketHandler implements WebSocketHandler {
                 .build();
     }
 
-    boolean isPingPongEnabled() {
-        return pingPongEnabled;
+    boolean isPingEnabled() {
+        return pingEnabled;
     }
 
     public String getPathTemplate() {

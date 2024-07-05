@@ -1,9 +1,9 @@
 package org.elpis.reactive.websockets.impl.connection;
 
-import nl.altindag.log.LogCaptor;
 import org.elpis.reactive.websockets.BaseWebSocketTest;
 import org.elpis.reactive.websockets.context.BootStarter;
-import org.elpis.reactive.websockets.context.resource.connection.PingPongResource;
+import org.elpis.reactive.websockets.context.resource.connection.PingResource;
+import org.elpis.reactive.websockets.context.resource.connection.PingRoutingConfiguration;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
@@ -21,11 +21,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = BootStarter.class)
 @ActiveProfiles({BaseWebSocketTest.DEFAULT_TEST_PROFILE})
-@Import({BaseWebSocketTest.PermitAllSecurityConfiguration.class, PingPongResource.class})
-public class PingPongTest extends BaseWebSocketTest {
+@Import({BaseWebSocketTest.PermitAllSecurityConfiguration.class, PingResource.class, PingRoutingConfiguration.class})
+public class PingTest extends BaseWebSocketTest {
 
     @Test
-    void pingPong() throws Exception {
+    void ping() throws Exception {
         //given
         final String path = "/connection/ping";
 
@@ -47,17 +47,11 @@ public class PingPongTest extends BaseWebSocketTest {
                 })
                 .timeout(DEFAULT_GENERIC_TEST_FALLBACK);
 
-        final LogCaptor logCaptor = LogCaptor.forRoot();
-
         //verify
         StepVerifier.create(chain)
                 .verifyError(TimeoutException.class);
 
         assertThat(pongs)
                 .hasPositiveValue();
-
-        assertThat(logCaptor.getInfoLogs()
-                .stream().anyMatch(log -> log.contains("Got PONG response from client")))
-                .isTrue();
     }
 }

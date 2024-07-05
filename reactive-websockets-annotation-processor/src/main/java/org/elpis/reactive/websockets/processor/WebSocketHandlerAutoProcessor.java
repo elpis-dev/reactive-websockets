@@ -6,7 +6,7 @@ import org.elpis.reactive.websockets.config.model.WebSocketSessionContext;
 import org.elpis.reactive.websockets.processor.exception.WebSocketProcessorException;
 import org.elpis.reactive.websockets.processor.resolver.SocketAnnotationResolverFactory;
 import org.elpis.reactive.websockets.util.TypeUtils;
-import org.elpis.reactive.websockets.web.annotation.PingPong;
+import org.elpis.reactive.websockets.web.annotation.Ping;
 import org.elpis.reactive.websockets.web.annotation.SocketController;
 import org.elpis.reactive.websockets.web.annotation.SocketMapping;
 import org.reactivestreams.Publisher;
@@ -76,7 +76,7 @@ public class WebSocketHandlerAutoProcessor extends AbstractProcessor {
                 .addParameter(ClassName.bestGuess("org.elpis.reactive.websockets.config.handler.WebSessionRegistry"), "registry")
                 .addParameter(TypeName.get(descriptor.clazz().asType()), "socketResource")
                 .addStatement("super(registry, $S, $L, $L)", descriptor.pathTemplate(),
-                        descriptor.pingPongEnabled(), descriptor.pingPongInterval())
+                        descriptor.pingEnabled(), descriptor.pingInterval())
                 .addStatement("this.socketResource = socketResource")
                 .build();
 
@@ -166,12 +166,12 @@ public class WebSocketHandlerAutoProcessor extends AbstractProcessor {
 
         final Element publisher = processingEnv.getElementUtils().getTypeElement(Publisher.class.getCanonicalName());
         final SocketMapping socketMapping = method.getAnnotation(SocketMapping.class);
-        final PingPong pingPong = socketMapping.pingPong();
+        final Ping ping = socketMapping.ping();
         final String pathTemplate = resource.value() + socketMapping.value();
 
         final WebHandlerResourceDescriptor descriptor = new WebHandlerResourceDescriptor(method, clazz,
                 method.getReturnType().getKind() != TypeKind.VOID, pathTemplate, socketMapping.mode(),
-                pingPong.enabled(), pingPong.value());
+                ping.enabled(), ping.value());
 
         final TypeMirror returnType = method.getReturnType();
 
@@ -187,8 +187,8 @@ public class WebSocketHandlerAutoProcessor extends AbstractProcessor {
     }
 
     private record WebHandlerResourceDescriptor(ExecutableElement method, Element clazz, boolean useReturn,
-                                                String pathTemplate, Mode mode, boolean pingPongEnabled,
-                                                long pingPongInterval) {
+                                                String pathTemplate, Mode mode, boolean pingEnabled,
+                                                long pingInterval) {
 
         private String getPostfix() {
             final String uniqueKey = pathTemplate + "." + clazz.getSimpleName().toString() +
