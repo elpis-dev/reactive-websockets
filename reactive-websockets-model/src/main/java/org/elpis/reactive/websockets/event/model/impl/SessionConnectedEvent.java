@@ -1,6 +1,6 @@
 package org.elpis.reactive.websockets.event.model.impl;
 
-import org.elpis.reactive.websockets.config.registry.WebSocketSessionInfo;
+import org.elpis.reactive.websockets.config.handler.WebSocketSessionInfo;
 import org.elpis.reactive.websockets.event.model.WebSocketEvent;
 
 public class SessionConnectedEvent implements WebSocketEvent<WebSocketSessionInfo> {

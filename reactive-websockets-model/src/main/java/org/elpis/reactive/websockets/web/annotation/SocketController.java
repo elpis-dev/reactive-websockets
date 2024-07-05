@@ -1,5 +1,6 @@
 package org.elpis.reactive.websockets.web.annotation;
 
+import org.springframework.core.annotation.AliasFor;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Controller;
 
@@ -30,5 +31,8 @@ public @interface SocketController {
      *
      * @since 0.1.0
      */
+    @AliasFor(
+            annotation = Component.class
+    )
     String value() default "";
 }

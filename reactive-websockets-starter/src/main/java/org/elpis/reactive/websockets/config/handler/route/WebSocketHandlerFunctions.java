@@ -4,7 +4,7 @@ import org.elpis.reactive.websockets.config.handler.BaseWebSocketHandler;
 import org.elpis.reactive.websockets.config.handler.BroadcastWebSocketResourceHandler;
 import org.elpis.reactive.websockets.config.model.Mode;
 import org.elpis.reactive.websockets.config.model.WebSocketSessionContext;
-import org.elpis.reactive.websockets.config.registry.WebSessionRegistry;
+import org.elpis.reactive.websockets.config.handler.WebSessionRegistry;
 import org.reactivestreams.Publisher;
 import org.springframework.web.reactive.socket.WebSocketMessage;
 import reactor.core.publisher.Flux;
@@ -25,11 +25,11 @@ public final class WebSocketHandlerFunctions {
 
     public static <T> WebSocketHandlerFunction handle(final String path,
                                                       final Mode mode,
-                                                      final boolean pingPongEnabled,
-                                                      final long pingPongInterval,
+                                                      final boolean pingEnabled,
+                                                      final long pingInterval,
                                                       final WebSocketMessageHandlerFunction<T> handlerFunction) {
 
-        return new HandleRouterFunction<>(path, pingPongEnabled, pingPongInterval, mode, handlerFunction);
+        return new HandleRouterFunction<>(path, pingEnabled, pingInterval, mode, handlerFunction);
     }
 
     public static WebSocketHandlerFunction handle(final String path,
@@ -41,28 +41,42 @@ public final class WebSocketHandlerFunctions {
 
     public static WebSocketHandlerFunction handle(final String path,
                                                   final Mode mode,
-                                                  final boolean pingPongEnabled,
-                                                  final long pingPongInterval,
+                                                  final boolean pingEnabled,
+                                                  final long pingInterval,
                                                   final WebSocketVoidHandlerFunction handlerFunction) {
 
-        return new VoidRouterFunction(path, pingPongEnabled, pingPongInterval, mode, handlerFunction);
+        return new VoidRouterFunction(path, pingEnabled, pingInterval, mode, handlerFunction);
     }
 
     public static WebSocketHandlerFunction empty() {
         return registry -> null;
     }
 
-    private abstract static class DefaultRouterFunction implements WebSocketHandlerFunction {
+    abstract static class DefaultRouterFunction implements WebSocketHandlerFunction {
         final String path;
-        final boolean pingPongEnabled;
-        final long pingPongInterval;
+        final boolean pingEnabled;
+        final long pingInterval;
         final Mode mode;
 
-        private DefaultRouterFunction(String path, boolean pingPongEnabled, long pingPongInterval, Mode mode) {
+        WebSocketHandlerFunction next = null;
+
+        private DefaultRouterFunction(String path,
+                                      boolean pingEnabled,
+                                      long pingInterval,
+                                      Mode mode) {
+
             this.path = path;
-            this.pingPongEnabled = pingPongEnabled;
-            this.pingPongInterval = pingPongInterval;
+            this.pingEnabled = pingEnabled;
+            this.pingInterval = pingInterval;
             this.mode = mode;
+        }
+
+        WebSocketHandlerFunction getNext() {
+            return next;
+        }
+
+        void setNext(WebSocketHandlerFunction next) {
+            this.next = next;
         }
     }
 
@@ -70,12 +84,12 @@ public final class WebSocketHandlerFunctions {
         private final WebSocketMessageHandlerFunction<U> handlerFunction;
 
         private HandleRouterFunction(String path,
-                                     boolean pingPongEnabled,
-                                     long pingPongInterval,
+                                     boolean pingEnabled,
+                                     long pingInterval,
                                      Mode mode,
                                      WebSocketMessageHandlerFunction<U> handlerFunction) {
 
-            super(path, pingPongEnabled, pingPongInterval, mode);
+            super(path, pingEnabled, pingInterval, mode);
             this.handlerFunction = handlerFunction;
         }
 
@@ -83,7 +97,7 @@ public final class WebSocketHandlerFunctions {
         public BaseWebSocketHandler register(final WebSessionRegistry registry) {
             return switch (this.mode) {
                 case SHARED ->
-                        new BroadcastWebSocketResourceHandler(registry, path, pingPongEnabled, pingPongInterval) {
+                        new BroadcastWebSocketResourceHandler(registry, path, pingEnabled, pingInterval) {
                             @Override
                             public Publisher<?> apply(WebSocketSessionContext context, Flux<WebSocketMessage> messages) {
                                 return handlerFunction.apply(context, messages);
@@ -98,12 +112,12 @@ public final class WebSocketHandlerFunctions {
         private final WebSocketVoidHandlerFunction handlerFunction;
 
         private VoidRouterFunction(String path,
-                                   boolean pingPongEnabled,
-                                   long pingPongInterval,
+                                   boolean pingEnabled,
+                                   long pingInterval,
                                    Mode mode,
                                    WebSocketVoidHandlerFunction handlerFunction) {
 
-            super(path, pingPongEnabled, pingPongInterval, mode);
+            super(path, pingEnabled, pingInterval, mode);
             this.handlerFunction = handlerFunction;
         }
 
@@ -111,7 +125,7 @@ public final class WebSocketHandlerFunctions {
         public BaseWebSocketHandler register(final WebSessionRegistry registry) {
             return switch (this.mode) {
                 case SHARED ->
-                        new BroadcastWebSocketResourceHandler(registry, path, pingPongEnabled, pingPongInterval) {
+                        new BroadcastWebSocketResourceHandler(registry, path, pingEnabled, pingInterval) {
                             @Override
                             public void run(WebSocketSessionContext context, Flux<WebSocketMessage> messages) {
                                 handlerFunction.accept(context, messages);
@@ -119,28 +133,6 @@ public final class WebSocketHandlerFunctions {
                         };
                 case SESSION -> null;
             };
-        }
-    }
-
-    public static final class CombinedRouterFunction implements WebSocketHandlerFunction {
-        private final WebSocketHandlerFunction handlerFunctionOne;
-
-        private final WebSocketHandlerFunction handlerFunctionTwo;
-
-        CombinedRouterFunction(WebSocketHandlerFunction handlerFunctionOne,
-                               WebSocketHandlerFunction handlerFunctionTwo) {
-
-            this.handlerFunctionOne = handlerFunctionOne;
-            this.handlerFunctionTwo = handlerFunctionTwo;
-        }
-
-        @Override
-        public BaseWebSocketHandler register(final WebSessionRegistry registry) {
-            return handlerFunctionTwo.register(registry);
-        }
-
-        public WebSocketHandlerFunction getHandlerFunction() {
-            return handlerFunctionOne;
         }
     }
 

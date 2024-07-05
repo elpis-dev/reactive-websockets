@@ -19,5 +19,11 @@ jobs:
           distribution: 'adopt'
           cache: maven
 
-      - name: Build Models
+      - name: Build
         run: mvn clean install
+
+      - name: Coverage
+        uses: codacy/codacy-coverage-reporter-action@v1.3.0
+        with:
+          project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
+          coverage-reports: ${{ github.workspace }}/report-aggregate/target/site/jacoco-aggregate/jacoco.xml

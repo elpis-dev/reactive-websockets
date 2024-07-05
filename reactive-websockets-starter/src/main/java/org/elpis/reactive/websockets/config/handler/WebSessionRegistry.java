@@ -1,13 +1,16 @@
-package org.elpis.reactive.websockets.config.registry;
+package org.elpis.reactive.websockets.config.handler;
 
 import jakarta.annotation.PostConstruct;
 import org.elpis.reactive.websockets.config.model.ClientSessionCloseInfo;
+import org.elpis.reactive.websockets.event.CloseMessage;
 import org.elpis.reactive.websockets.event.manager.WebSocketEventManager;
 import org.elpis.reactive.websockets.event.model.impl.ClientSessionClosedEvent;
 import org.elpis.reactive.websockets.event.model.impl.SessionConnectedEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.socket.CloseStatus;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
 
 import java.util.concurrent.ConcurrentHashMap;
@@ -23,6 +26,10 @@ public final class WebSessionRegistry extends ConcurrentHashMap<String, WebSocke
     private final transient WebSocketEventManager<SessionConnectedEvent> webSocketConnectionEvent;
     private final transient WebSocketEventManager<ClientSessionClosedEvent> closedEventWebSocketEventManager;
 
+    private final transient Sinks.Many<CloseMessage> closeMessageSink = Sinks.many()
+            .multicast()
+            .onBackpressureBuffer();
+
     public WebSessionRegistry(final WebSocketEventManager<SessionConnectedEvent> webSocketConnectionEvent,
                               final WebSocketEventManager<ClientSessionClosedEvent> closedEventWebSocketEventManager) {
 
@@ -30,18 +37,30 @@ public final class WebSessionRegistry extends ConcurrentHashMap<String, WebSocke
         this.closedEventWebSocketEventManager = closedEventWebSocketEventManager;
     }
 
+    public boolean close(final String sessionId, final CloseStatus closeStatus) {
+        final CloseMessage closeMessage = new CloseMessage();
+        closeMessage.setSessionId(sessionId);
+        closeMessage.setCloseStatus(closeStatus);
+
+        return this.closeMessageSink.tryEmitNext(closeMessage) == Sinks.EmitResult.OK;
+    }
+
+    Flux<CloseMessage> listen() {
+        return this.closeMessageSink.asFlux().share();
+    }
+
     @Override
-    public WebSocketSessionInfo put(String key, WebSocketSessionInfo value) {
-        final WebSocketSessionInfo webSocketSessionInfo = super.put(key, value);
+    public WebSocketSessionInfo put(final String sessionId, final WebSocketSessionInfo session) {
+        final WebSocketSessionInfo webSocketSessionInfo = super.put(sessionId, session);
 
         final Sinks.EmitResult result = webSocketConnectionEvent.fire(SessionConnectedEvent.builder()
-                .webSocketSessionInfo(value)
+                .webSocketSessionInfo(session)
                 .build());
 
         if (result.isFailure()) {
-            log.warn("Unable to fire a new SessionConnectedEvent for session {}: {}", value.getId(), result);
+            log.warn("Unable to fire a new SessionConnectedEvent for session {}: {}", session.getId(), result);
         } else {
-            log.debug("Successfully emitted new SessionConnectedEvent for session {}", value.getId());
+            log.debug("Successfully emitted new SessionConnectedEvent for session {}", session.getId());
         }
 
         return webSocketSessionInfo;

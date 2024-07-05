@@ -86,6 +86,27 @@ class BodySocketTest extends BaseWebSocketTest {
     }
 
     @Test
+    void postStreamMessage() throws Exception {
+        //given
+        final String path = "/body/post/stream";
+        final Sinks.One<String> sink = Sinks.one();
+
+        //test
+        this.withClient(path, session -> session.receive()
+                        .filter(webSocketMessage -> webSocketMessage.getType() == WebSocketMessage.Type.BINARY)
+                        .doOnNext(webSocketMessage -> sink.tryEmitValue(webSocketMessage.getPayloadAsText()))
+                        .then())
+                .subscribe();
+
+        //verify
+        StepVerifier.create(sink.asMono())
+                .expectNext("Stream")
+                .expectComplete()
+                .log()
+                .verify(DEFAULT_GENERIC_TEST_FALLBACK);
+    }
+
+    @Test
     void receiveErrorTest() throws Exception {
         //given
         final String path = "/body/post";

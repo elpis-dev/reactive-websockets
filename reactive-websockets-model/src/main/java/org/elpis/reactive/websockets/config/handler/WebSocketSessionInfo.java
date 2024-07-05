@@ -1,4 +1,4 @@
-package org.elpis.reactive.websockets.config.registry;
+package org.elpis.reactive.websockets.config.handler;
 
 import org.springframework.lang.Nullable;
 import org.springframework.web.reactive.socket.CloseStatus;
@@ -17,13 +17,10 @@ public class WebSocketSessionInfo {
 
     private int port;
 
-    @Nullable
     private String protocol;
 
-    @Nullable
     private InetSocketAddress remoteAddress;
 
-    @Nullable
     private String path;
 
     private Mono<CloseStatus> closeStatus = Mono.empty();
