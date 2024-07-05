@@ -22,14 +22,8 @@ jobs:
       - name: Build
         run: mvn clean install
 
-      - name: Jacoco Report to PR
-        uses: madrapps/jacoco-report@v1.6.1
+      - name: Coverage
+        uses: codacy/codacy-coverage-reporter-action@v1.3.0
         with:
-          paths: ${{ github.workspace }}/report-aggregate/target/site/jacoco-aggregate/jacoco.xml
-          token: ${{ secrets.GITHUB_TOKEN }}
-          min-coverage-overall: 80
-          min-coverage-changed-files: 80
-          update-comment: true
-          title: '# :hurtrealbad: Coverage'
-          pass-emoji: ':white_check_mark:'
-          fail-emoji: ':red_circle:'
+          project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
+          coverage-reports: ${{ github.workspace }}/report-aggregate/target/site/jacoco-aggregate/jacoco.xml
