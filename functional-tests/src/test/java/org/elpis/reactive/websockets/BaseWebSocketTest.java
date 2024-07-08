@@ -11,6 +11,7 @@ import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.web.reactive.socket.WebSocketSession;
 import org.springframework.web.reactive.socket.client.ReactorNettyWebSocketClient;
+import org.springframework.web.reactive.socket.server.upgrade.ReactorNettyRequestUpgradeStrategy;
 import reactor.core.publisher.Mono;
 
 import java.net.URI;
@@ -93,7 +94,8 @@ public abstract class BaseWebSocketTest {
 
         @Bean
         public SocketHandshakeService socketHandshakeService() {
-            return SocketHandshakeService.builder().build();
+            return SocketHandshakeService.builder()
+                    .build(new ReactorNettyRequestUpgradeStrategy());
         }
 
     }

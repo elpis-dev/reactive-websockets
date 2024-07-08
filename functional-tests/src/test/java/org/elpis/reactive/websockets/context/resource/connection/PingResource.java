@@ -1,6 +1,6 @@
 package org.elpis.reactive.websockets.context.resource.connection;
 
-import org.elpis.reactive.websockets.config.model.Mode;
+import org.elpis.reactive.websockets.config.Mode;
 import org.elpis.reactive.websockets.web.annotation.Ping;
 import org.elpis.reactive.websockets.web.annotation.SocketController;
 import org.elpis.reactive.websockets.web.annotation.SocketMapping;

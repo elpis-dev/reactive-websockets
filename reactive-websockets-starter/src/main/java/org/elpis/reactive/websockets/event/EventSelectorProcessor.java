@@ -21,5 +21,5 @@ public interface EventSelectorProcessor<E extends WebSocketEvent<?>, R> {
      * @return any custom result to return
      * @since 0.1.0
      */
-    R select(E event, EventSelector eventSelector);
+    R process(E event, EventSelector eventSelector);
 }

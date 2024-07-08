@@ -2,7 +2,9 @@ package org.elpis.reactive.websockets.config.event;
 
 import org.elpis.reactive.websockets.event.manager.EventManagers;
 import org.elpis.reactive.websockets.event.manager.WebSocketEventManager;
+import org.elpis.reactive.websockets.event.manager.WebSocketEventManagerFactory;
 import org.elpis.reactive.websockets.event.model.impl.ClientSessionClosedEvent;
+import org.elpis.reactive.websockets.event.model.impl.ServerSessionClosedEvent;
 import org.elpis.reactive.websockets.event.model.impl.SessionConnectedEvent;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -36,6 +38,25 @@ public class EventManagerConfiguration {
     @Bean
     public WebSocketEventManager<ClientSessionClosedEvent> clientClosedEventWebSocketEventManager() {
         return EventManagers.multicast(WebSocketEventManager.MEDIUM_EVENT_QUEUE_SIZE);
+    }
+
+    /**
+     * {@link WebSocketEventManager} to observe {@link ServerSessionClosedEvent}.
+     *
+     * @author Alex Zharkov
+     */
+    @Bean
+    public WebSocketEventManager<ServerSessionClosedEvent> serverClosedEventWebSocketEventManager() {
+        return EventManagers.multicast(WebSocketEventManager.MEDIUM_EVENT_QUEUE_SIZE);
+    }
+
+    @Bean
+    public WebSocketEventManagerFactory eventManagerFactory() {
+        return WebSocketEventManagerFactory.builder()
+                .register(SessionConnectedEvent.class, connectedEventWebSocketEventManager())
+                .register(ClientSessionClosedEvent.class, clientClosedEventWebSocketEventManager())
+                .register(ServerSessionClosedEvent.class, serverClosedEventWebSocketEventManager())
+                .build();
     }
 
 }

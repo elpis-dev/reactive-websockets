@@ -1,12 +1,14 @@
-package org.elpis.reactive.websockets.config.handler.route;
+package org.elpis.reactive.websockets.handler.route;
 
-import org.elpis.reactive.websockets.config.handler.BaseWebSocketHandler;
-import org.elpis.reactive.websockets.config.model.Mode;
-import org.elpis.reactive.websockets.config.handler.WebSessionRegistry;
+import org.elpis.reactive.websockets.config.Mode;
+import org.elpis.reactive.websockets.event.manager.WebSocketEventManagerFactory;
+import org.elpis.reactive.websockets.handler.BaseWebSocketHandler;
+import org.elpis.reactive.websockets.session.WebSocketSessionRegistry;
 
 @FunctionalInterface
 public interface WebSocketHandlerFunction {
-    BaseWebSocketHandler register(final WebSessionRegistry registry);
+    BaseWebSocketHandler register(final WebSocketEventManagerFactory eventManagerFactory,
+                                  final WebSocketSessionRegistry sessionRegistry);
 
     default <T> WebSocketHandlerFunction handle(final String path,
                                                 final Mode mode,
@@ -14,12 +16,11 @@ public interface WebSocketHandlerFunction {
                                                 final long pingInterval,
                                                 final WebSocketHandlerFunctions.WebSocketMessageHandlerFunction<T> function) {
 
-        final WebSocketHandlerFunctions.DefaultRouterFunction webSocketHandlerFunction = (WebSocketHandlerFunctions.DefaultRouterFunction) WebSocketHandlerFunctions
-                .handle(path, mode, pingEnabled, pingInterval, function);
+        final WebSocketHandlerFunctions.DefaultRouterFunction webSocketHandlerFunction =
+                (WebSocketHandlerFunctions.DefaultRouterFunction) WebSocketHandlerFunctions
+                        .handle(path, mode, pingEnabled, pingInterval, function);
 
-        webSocketHandlerFunction.setNext(this);
-
-        return webSocketHandlerFunction;
+        return webSocketHandlerFunction.setNext(this);
     }
 
     default WebSocketHandlerFunction handle(final String path,
@@ -28,12 +29,11 @@ public interface WebSocketHandlerFunction {
                                             final long pingInterval,
                                             final WebSocketHandlerFunctions.WebSocketVoidHandlerFunction function) {
 
-        final WebSocketHandlerFunctions.DefaultRouterFunction webSocketHandlerFunction = (WebSocketHandlerFunctions.DefaultRouterFunction) WebSocketHandlerFunctions
-                .handle(path, mode, pingEnabled, pingInterval, function);
+        final WebSocketHandlerFunctions.DefaultRouterFunction webSocketHandlerFunction =
+                (WebSocketHandlerFunctions.DefaultRouterFunction) WebSocketHandlerFunctions
+                        .handle(path, mode, pingEnabled, pingInterval, function);
 
-        webSocketHandlerFunction.setNext(this);
-
-        return webSocketHandlerFunction;
+        return webSocketHandlerFunction.setNext(this);
     }
 
     default <T> WebSocketHandlerFunction handle(final String path, final Mode mode,
@@ -42,9 +42,7 @@ public interface WebSocketHandlerFunction {
         final WebSocketHandlerFunctions.DefaultRouterFunction webSocketHandlerFunction = (WebSocketHandlerFunctions.DefaultRouterFunction) WebSocketHandlerFunctions
                 .handle(path, mode, function);
 
-        webSocketHandlerFunction.setNext(this);
-
-        return webSocketHandlerFunction;
+        return webSocketHandlerFunction.setNext(this);
     }
 
     default WebSocketHandlerFunction handle(final String path, final Mode mode,
@@ -53,9 +51,7 @@ public interface WebSocketHandlerFunction {
         final WebSocketHandlerFunctions.DefaultRouterFunction webSocketHandlerFunction = (WebSocketHandlerFunctions.DefaultRouterFunction) WebSocketHandlerFunctions
                 .handle(path, mode, function);
 
-        webSocketHandlerFunction.setNext(this);
-
-        return webSocketHandlerFunction;
+        return webSocketHandlerFunction.setNext(this);
     }
 
     default WebSocketHandlerFunction and(final WebSocketHandlerFunction another) {
@@ -67,6 +63,5 @@ public interface WebSocketHandlerFunction {
 
         return another;
     }
-
 
 }

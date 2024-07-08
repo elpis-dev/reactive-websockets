@@ -1,12 +1,13 @@
 package org.elpis.reactive.websockets.config;
 
-import org.elpis.reactive.websockets.config.event.ClosedConnectionHandlerConfiguration;
-import org.elpis.reactive.websockets.config.event.EventManagerConfiguration;
-import org.elpis.reactive.websockets.config.handler.BaseWebSocketHandler;
-import org.elpis.reactive.websockets.config.handler.route.WebSocketHandlerFunction;
-import org.elpis.reactive.websockets.config.handler.route.WebSocketHandlerFunctions;
-import org.elpis.reactive.websockets.config.handler.route.WebSocketHandlerRouteResolver;
+import org.elpis.reactive.websockets.config.event.WebSocketEventConfiguration;
+import org.elpis.reactive.websockets.config.handler.route.WebSocketRouteConfiguration;
 import org.elpis.reactive.websockets.exception.WebSocketMappingException;
+import org.elpis.reactive.websockets.handler.BaseWebSocketHandler;
+import org.elpis.reactive.websockets.handler.route.WebSocketHandlerFunction;
+import org.elpis.reactive.websockets.handler.route.WebSocketHandlerFunctions;
+import org.elpis.reactive.websockets.handler.route.WebSocketHandlerRouteResolver;
+import org.elpis.reactive.websockets.session.WebSocketSessionRegistry;
 import org.elpis.reactive.websockets.web.annotation.SocketMapping;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
@@ -16,6 +17,9 @@ import org.springframework.context.annotation.Import;
 import org.springframework.web.reactive.HandlerMapping;
 import org.springframework.web.reactive.handler.SimpleUrlHandlerMapping;
 import org.springframework.web.reactive.socket.WebSocketHandler;
+import org.springframework.web.server.WebFilter;
+import org.springframework.web.server.WebSession;
+import reactor.util.context.Context;
 
 import java.util.HashMap;
 import java.util.List;
@@ -29,8 +33,11 @@ import java.util.stream.Stream;
  * @see org.springframework.context.annotation.Configuration
  * @since 0.1.0
  */
+@SuppressWarnings("SpringComponentScan")
 @Configuration
-@Import({EventManagerConfiguration.class, ClosedConnectionHandlerConfiguration.class, WebSocketHandlerRouteResolver.class})
+@Import({WebSocketSessionRegistry.class,
+        WebSocketEventConfiguration.class,
+        WebSocketRouteConfiguration.class})
 @ComponentScan("org.elpis.reactive.websockets.generated")
 public class WebSocketConfiguration {
 
@@ -40,6 +47,12 @@ public class WebSocketConfiguration {
     @ConditionalOnMissingBean(WebSocketHandlerFunction.class)
     public WebSocketHandlerFunction webSocketRouterFunction() {
         return WebSocketHandlerFunctions.empty();
+    }
+
+    @Bean
+    public WebFilter sessionFilter() {
+        return (exchange, chain) -> chain.filter(exchange)
+                .contextWrite(Context.of("sessionId", exchange.getSession().map(WebSession::getId)));
     }
 
     /**

@@ -15,6 +15,7 @@ import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.reactive.socket.WebSocketMessage;
+import org.springframework.web.reactive.socket.server.upgrade.ReactorNettyRequestUpgradeStrategy;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 import reactor.test.StepVerifier;
@@ -50,6 +51,7 @@ class JustPrincipalTest extends BaseWebSocketTest {
     @TestConfiguration
     static class PrincipalWebFilterConfiguration {
 
+        @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
         @Bean
         SecurityWebFilterChain securityWebFilterChain(final ServerHttpSecurity http) {
             return http.authorizeExchange(exchange -> exchange.anyExchange().permitAll())
@@ -61,7 +63,7 @@ class JustPrincipalTest extends BaseWebSocketTest {
         SocketHandshakeService socketHandshakeService() {
             return SocketHandshakeService.builder()
                     .handshake((exchange, chain) -> chain.filter(exchange.mutate().principal(Mono.just(new TestPrincipal())).build()))
-                    .build();
+                    .build(new ReactorNettyRequestUpgradeStrategy());
         }
     }
 

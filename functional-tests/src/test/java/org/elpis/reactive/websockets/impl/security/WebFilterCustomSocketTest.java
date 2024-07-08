@@ -15,6 +15,7 @@ import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.reactive.socket.WebSocketMessage;
+import org.springframework.web.reactive.socket.server.upgrade.ReactorNettyRequestUpgradeStrategy;
 import org.springframework.web.server.WebFilter;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
@@ -92,7 +93,8 @@ class WebFilterCustomSocketTest extends BaseWebSocketTest {
 
             return SocketHandshakeService.builder()
                     .handshake(webFilter::filter, serverWebExchange -> Mono
-                            .justOrEmpty(Optional.ofNullable(serverWebExchange.getAttribute(TestConstants.PRINCIPAL)))).build();
+                            .justOrEmpty(Optional.ofNullable(serverWebExchange.getAttribute(TestConstants.PRINCIPAL))))
+                    .build(new ReactorNettyRequestUpgradeStrategy());
         }
     }
 

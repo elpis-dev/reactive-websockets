@@ -1,4 +1,4 @@
-package org.elpis.reactive.websockets.config.model;
+package org.elpis.reactive.websockets.config;
 
 /**
  * Static definition of common websocket close status codes. Synonym of {@link org.springframework.web.reactive.socket.CloseStatus CloseStatus}.

@@ -22,16 +22,24 @@ import java.util.Optional;
 public final class RequestHeaderResolver extends SocketApiAnnotationResolver<RequestHeader> {
     private static final String CODE_FOR_GET_HEADERS = "final $T $L = context.getHeaders();\n";
 
-    private static final String CODE_FOR_GET_LIST_HEADER_REQUIRED = "final $T $L = context.getHeaders($S, $S, $T.class);\n"
-            + "if ($L.isEmpty())\n throw new org.elpis.reactive.websockets.exception.WebSocketProcessingException($S);\n";
+    private static final String CODE_FOR_GET_LIST_HEADER_REQUIRED = """
+            final $T $L = context.getHeaders($S, $S, $T.class);
+            if ($L.isEmpty()) {
+             throw new org.elpis.reactive.websockets.exception.WebSocketProcessingException($S);
+            }
+            """;
 
     private static final String CODE_FOR_GET_LIST_HEADER = "final $T $L = context.getHeaders($S, $S, $T.class);\n";
 
-    private static final String CODE_FOR_GET_SINGLE_HEADER_REQUIRED = "final $T $L = context.getHeader($S, $S, $T.class)\n" +
-            ".orElseThrow(() -> new org.elpis.reactive.websockets.exception.WebSocketProcessingException($S));\n";
+    private static final String CODE_FOR_GET_SINGLE_HEADER_REQUIRED = """
+            final $T $L = context.getHeader($S, $S, $T.class)
+            .orElseThrow(() -> new org.elpis.reactive.websockets.exception.WebSocketProcessingException($S));
+            """;
 
-    private static final String CODE_FOR_GET_SINGLE_HEADER = "final $T $L = context.getHeader($S, $S, $T.class)\n" +
-            ".orElseGet(() -> org.elpis.reactive.websockets.util.TypeUtils.getDefaultValueForType($T.class));\n";
+    private static final String CODE_FOR_GET_SINGLE_HEADER = """
+            final $T $L = context.getHeader($S, $S, $T.class)
+            .orElseGet(() -> org.elpis.reactive.websockets.util.TypeUtils.getDefaultValueForType($T.class));
+            """;
 
     RequestHeaderResolver(Elements elements, Types types) {
         super(elements, types);
@@ -68,8 +76,7 @@ public final class RequestHeaderResolver extends SocketApiAnnotationResolver<Req
                         parameterType, parameter.getSimpleName().toString());
             }
 
-            if (parameterType instanceof DeclaredType) {
-                final DeclaredType declaredReturnType = (DeclaredType) parameterType;
+            if (parameterType instanceof DeclaredType declaredReturnType) {
                 final TypeMirror listDeclaredType = declaredReturnType.getTypeArguments().get(0);
 
                 if (annotation.required()) {
@@ -122,8 +129,7 @@ public final class RequestHeaderResolver extends SocketApiAnnotationResolver<Req
     }
 
     private boolean isMultimapParamValid(final TypeMirror type) {
-        if (type instanceof DeclaredType) {
-            final DeclaredType declaredReturnType = (DeclaredType) type;
+        if (type instanceof DeclaredType declaredReturnType) {
             final TypeMirror keyType = declaredReturnType.getTypeArguments().get(0);
             final TypeMirror valueType = declaredReturnType.getTypeArguments().get(1);
 

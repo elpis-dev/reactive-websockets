@@ -13,6 +13,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.web.reactive.socket.WebSocketMessage;
+import org.springframework.web.reactive.socket.server.upgrade.ReactorNettyRequestUpgradeStrategy;
 import reactor.core.publisher.Sinks;
 import reactor.test.StepVerifier;
 
@@ -53,7 +54,7 @@ class AnonymousFallbackAuthenticationFilterTest extends BaseWebSocketTest {
             return SocketHandshakeService.builder()
                     .handshake((serverWebExchange, webFilterChain) -> webFilterChain.filter(serverWebExchange))
                     .fallbackToAnonymous(true)
-                    .build();
+                    .build(new ReactorNettyRequestUpgradeStrategy());
         }
     }
 

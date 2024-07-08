@@ -2,8 +2,8 @@ package org.elpis.reactive.websockets.context;
 
 import org.elpis.reactive.websockets.EnableReactiveSocketSecurity;
 import org.elpis.reactive.websockets.EnableReactiveSockets;
-import org.elpis.reactive.websockets.config.handler.WebSessionRegistry;
-import org.elpis.reactive.websockets.event.impl.ClosedSessionEventSelectorMatcher;
+import org.elpis.reactive.websockets.session.WebSocketSessionRegistry;
+import org.elpis.reactive.websockets.event.matcher.impl.ClosedSessionEventSelectorMatcher;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Import;
@@ -14,7 +14,7 @@ import org.springframework.context.annotation.Import;
 @Import({
         //Event Matchers
         ClosedSessionEventSelectorMatcher.class,
-        WebSessionRegistry.class
+        WebSocketSessionRegistry.class
 })
 public class BootStarter {
     public static void main(String[] args) {

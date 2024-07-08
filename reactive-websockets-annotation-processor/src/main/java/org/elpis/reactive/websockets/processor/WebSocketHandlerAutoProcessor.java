@@ -1,8 +1,8 @@
 package org.elpis.reactive.websockets.processor;
 
 import com.squareup.javapoet.*;
-import org.elpis.reactive.websockets.config.model.Mode;
-import org.elpis.reactive.websockets.config.model.WebSocketSessionContext;
+import org.elpis.reactive.websockets.config.Mode;
+import org.elpis.reactive.websockets.session.WebSocketSessionContext;
 import org.elpis.reactive.websockets.processor.exception.WebSocketProcessorException;
 import org.elpis.reactive.websockets.processor.resolver.SocketAnnotationResolverFactory;
 import org.elpis.reactive.websockets.util.TypeUtils;
@@ -73,9 +73,10 @@ public class WebSocketHandlerAutoProcessor extends AbstractProcessor {
         final MethodSpec constructor = MethodSpec.constructorBuilder()
                 .addModifiers(Modifier.PUBLIC)
                 .addAnnotation(Autowired.class)
-                .addParameter(ClassName.bestGuess("org.elpis.reactive.websockets.config.handler.WebSessionRegistry"), "registry")
+                .addParameter(ClassName.bestGuess("org.elpis.reactive.websockets.event.manager.WebSocketEventManagerFactory"), "eventFactory")
+                .addParameter(ClassName.bestGuess("org.elpis.reactive.websockets.session.WebSocketSessionRegistry"), "sessionRegistry")
                 .addParameter(TypeName.get(descriptor.clazz().asType()), "socketResource")
-                .addStatement("super(registry, $S, $L, $L)", descriptor.pathTemplate(),
+                .addStatement("super(eventFactory, sessionRegistry, $S, $L, $L)", descriptor.pathTemplate(),
                         descriptor.pingEnabled(), descriptor.pingInterval())
                 .addStatement("this.socketResource = socketResource")
                 .build();
@@ -154,7 +155,7 @@ public class WebSocketHandlerAutoProcessor extends AbstractProcessor {
     private String getHandlerType(final Mode mode) {
         switch (mode) {
             case SHARED:
-                return "org.elpis.reactive.websockets.config.handler.BroadcastWebSocketResourceHandler";
+                return "org.elpis.reactive.websockets.handler.BroadcastWebSocketResourceHandler";
         }
 
         throw new WebSocketProcessorException("Cannot find WebSocketHandler implementation for mode %s", mode);

@@ -1,7 +1,7 @@
 package org.elpis.reactive.websockets.context.routing;
 
-import org.elpis.reactive.websockets.config.handler.route.WebSocketHandlerFunction;
-import org.elpis.reactive.websockets.config.model.Mode;
+import org.elpis.reactive.websockets.handler.route.WebSocketHandlerFunction;
+import org.elpis.reactive.websockets.config.Mode;
 import org.elpis.reactive.websockets.util.MessageUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.reactive.socket.WebSocketMessage;
 import reactor.core.publisher.Mono;
 
-import static org.elpis.reactive.websockets.config.handler.route.WebSocketHandlerFunctions.handle;
+import static org.elpis.reactive.websockets.handler.route.WebSocketHandlerFunctions.handle;
 
 @Configuration
 public class RoutingConfiguration {

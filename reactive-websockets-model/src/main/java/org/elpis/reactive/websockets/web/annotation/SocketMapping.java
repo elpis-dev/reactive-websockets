@@ -1,6 +1,6 @@
 package org.elpis.reactive.websockets.web.annotation;
 
-import org.elpis.reactive.websockets.config.model.Mode;
+import org.elpis.reactive.websockets.config.Mode;
 
 import java.lang.annotation.*;
 

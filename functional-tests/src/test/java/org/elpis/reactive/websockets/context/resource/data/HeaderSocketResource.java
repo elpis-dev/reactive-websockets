@@ -1,7 +1,7 @@
 package org.elpis.reactive.websockets.context.resource.data;
 
 import org.elpis.reactive.websockets.context.BootStarter;
-import org.elpis.reactive.websockets.config.model.Mode;
+import org.elpis.reactive.websockets.config.Mode;
 import org.elpis.reactive.websockets.web.annotation.SocketController;
 import org.elpis.reactive.websockets.web.annotation.SocketMapping;
 import org.reactivestreams.Publisher;

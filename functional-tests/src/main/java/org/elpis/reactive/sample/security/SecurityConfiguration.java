@@ -29,15 +29,15 @@ public class SecurityConfiguration {
 
     @Bean
     public WebFilter anonymousFilter() {
-        return new AnonymousAuthenticationWebFilter("key", new Anonymous(), List.of(new SimpleGrantedAuthority("role")));
+        return new AnonymousAuthenticationWebFilter("key", new Anonymous(),
+                List.of(new SimpleGrantedAuthority("role")));
     }
 
     @Bean
     public SocketHandshakeService socketHandshakeService() {
         return SocketHandshakeService.builder()
                 .handshake(anonymousFilter()::filter)
-                .requestUpgradeStrategy(new ReactorNettyRequestUpgradeStrategy())
-                .build();
+                .build(new ReactorNettyRequestUpgradeStrategy());
     }
 
 }

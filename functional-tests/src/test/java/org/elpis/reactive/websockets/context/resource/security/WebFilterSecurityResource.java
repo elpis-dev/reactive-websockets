@@ -12,7 +12,7 @@ import reactor.core.publisher.Flux;
 import java.security.Principal;
 import java.util.Map;
 
-import static org.elpis.reactive.websockets.config.model.Mode.SHARED;
+import static org.elpis.reactive.websockets.config.Mode.SHARED;
 
 @SocketController("/auth/filter")
 public class WebFilterSecurityResource {

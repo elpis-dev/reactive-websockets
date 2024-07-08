@@ -1,4 +1,4 @@
-package org.elpis.reactive.websockets.config.model;
+package org.elpis.reactive.websockets.session;
 
 import org.elpis.reactive.websockets.security.principal.Anonymous;
 import org.elpis.reactive.websockets.util.TypeUtils;
