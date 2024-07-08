@@ -1,6 +1,8 @@
-package org.elpis.reactive.websockets.config.handler;
+package org.elpis.reactive.websockets.handler;
 
-import org.elpis.reactive.websockets.config.model.WebSocketSessionContext;
+import org.elpis.reactive.websockets.session.WebSocketSessionContext;
+import org.elpis.reactive.websockets.session.WebSocketSessionRegistry;
+import org.elpis.reactive.websockets.event.manager.WebSocketEventManagerFactory;
 import org.reactivestreams.Publisher;
 import org.springframework.web.reactive.socket.WebSocketMessage;
 import org.springframework.web.reactive.socket.WebSocketSession;
@@ -21,12 +23,13 @@ public abstract class BroadcastWebSocketResourceHandler extends BaseWebSocketHan
             .onBackpressureBuffer();
 
 
-    protected BroadcastWebSocketResourceHandler(final WebSessionRegistry sessionRegistry,
+    protected BroadcastWebSocketResourceHandler(final WebSocketEventManagerFactory eventManagerFactory,
+                                                final WebSocketSessionRegistry webSocketSessionRegistry,
                                                 final String pathTemplate,
                                                 final boolean pingEnabled,
                                                 final long pingInterval) {
 
-        super(pathTemplate, sessionRegistry, pingEnabled, pingInterval);
+        super(eventManagerFactory, webSocketSessionRegistry, pathTemplate, pingEnabled, pingInterval);
     }
 
     @Override

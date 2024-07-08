@@ -1,6 +1,6 @@
 package org.elpis.reactive.sample.socket.web;
 
-import org.elpis.reactive.websockets.config.model.Mode;
+import org.elpis.reactive.websockets.config.Mode;
 import org.elpis.reactive.websockets.web.annotation.SocketMapping;
 import org.reactivestreams.Publisher;
 import org.slf4j.Logger;

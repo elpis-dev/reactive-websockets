@@ -1,12 +1,12 @@
 package org.elpis.reactive.websockets.context.resource.connection;
 
-import org.elpis.reactive.websockets.config.handler.route.WebSocketHandlerFunction;
-import org.elpis.reactive.websockets.config.model.Mode;
+import org.elpis.reactive.websockets.handler.route.WebSocketHandlerFunction;
+import org.elpis.reactive.websockets.config.Mode;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import reactor.core.publisher.Flux;
 
-import static org.elpis.reactive.websockets.config.handler.route.WebSocketHandlerFunctions.handle;
+import static org.elpis.reactive.websockets.handler.route.WebSocketHandlerFunctions.handle;
 
 @Configuration
 public class PingRoutingConfiguration {

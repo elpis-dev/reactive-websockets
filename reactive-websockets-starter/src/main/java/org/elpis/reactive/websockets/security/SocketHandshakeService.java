@@ -1,6 +1,6 @@
 package org.elpis.reactive.websockets.security;
 
-import io.netty.handler.codec.http.websocketx.WebSocketClientHandshakeException;
+import org.elpis.reactive.websockets.exception.WebSocketProcessingException;
 import org.elpis.reactive.websockets.security.principal.Anonymous;
 import org.elpis.reactive.websockets.security.principal.WebSocketPrincipal;
 import org.elpis.reactive.websockets.util.TriFunction;
@@ -9,7 +9,6 @@ import org.springframework.security.web.server.util.matcher.ServerWebExchangeMat
 import org.springframework.web.reactive.socket.WebSocketHandler;
 import org.springframework.web.reactive.socket.server.RequestUpgradeStrategy;
 import org.springframework.web.reactive.socket.server.support.HandshakeWebSocketService;
-import org.springframework.web.reactive.socket.server.upgrade.ReactorNettyRequestUpgradeStrategy;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebExceptionHandler;
@@ -127,7 +126,7 @@ public abstract class SocketHandshakeService extends HandshakeWebSocketService {
     public Mono<Void> handleRequest(final ServerWebExchange exchange, final WebSocketHandler handler) {
         return Mono.just(exchange)
                 .filterWhen(serverWebExchange -> this.exchangeMatcher().matches(serverWebExchange).map(ServerWebExchangeMatcher.MatchResult::isMatch))
-                .switchIfEmpty(Mono.error(() -> new WebSocketClientHandshakeException("Security chain failed")))
+                .switchIfEmpty(Mono.error(() -> new WebSocketProcessingException("Security chain failed")))
                 .onErrorResume(throwable -> this.errorHandler().handle(exchange, throwable).then(Mono.empty()))
                 .flatMap(serverWebExchange -> this.handshake(serverWebExchange).switchIfEmpty(Mono.just(this.cast(new Anonymous()))))
                 .map(credentials -> Principal.class.isAssignableFrom(credentials.getClass())
@@ -157,8 +156,6 @@ public abstract class SocketHandshakeService extends HandshakeWebSocketService {
         private ServerWebExchangeMatcher exchangeMatcher;
 
         private TriFunction<SocketHandshakeService, ServerWebExchange, WebSocketHandler, Mono<Void>> requestHandler;
-
-        private RequestUpgradeStrategy requestUpgradeStrategy;
 
         private boolean fallbackToAnonymous = false;
 
@@ -280,19 +277,6 @@ public abstract class SocketHandshakeService extends HandshakeWebSocketService {
         }
 
         /**
-         * Base for {@link SocketHandshakeService#SocketHandshakeService(RequestUpgradeStrategy)}.
-         *
-         * @param requestUpgradeStrategy any {@link RequestUpgradeStrategy} implementation
-         * @return {@link Builder}
-         * @since 0.1.0
-         */
-        public Builder requestUpgradeStrategy(RequestUpgradeStrategy requestUpgradeStrategy) {
-            this.requestUpgradeStrategy = requestUpgradeStrategy;
-
-            return this;
-        }
-
-        /**
          * Main build method for {@link Builder}.
          * <p><strong>NOTE: </strong> if no replace function is set for any of:
          * <ul>
@@ -301,15 +285,12 @@ public abstract class SocketHandshakeService extends HandshakeWebSocketService {
          *     <li>{@link SocketHandshakeService#handleRequest(ServerWebExchange, WebSocketHandler)}
          *     <li>{@link SocketHandshakeService#errorHandler()}
          * </ul>
-         * - version from {@code super} will be used.
-         * <p>For {@link #requestUpgradeStrategy(RequestUpgradeStrategy)} - will default to {@code new ReactorNettyRequestUpgradeStrategy()}.
          *
          * @return {@link SocketHandshakeService}
          * @since 0.1.0
          */
-        public SocketHandshakeService build() {
-            return new SocketHandshakeService(Optional.ofNullable(this.requestUpgradeStrategy)
-                    .orElseGet(ReactorNettyRequestUpgradeStrategy::new)) {
+        public SocketHandshakeService build(final RequestUpgradeStrategy requestUpgradeStrategy) {
+            return new SocketHandshakeService(requestUpgradeStrategy) {
 
                 private final Function<ServerWebExchange, Mono<?>> exchangeProcessor = serverWebExchange -> nonNull(principalExtractor)
                         ? principalExtractor.apply(serverWebExchange)
@@ -329,7 +310,7 @@ public abstract class SocketHandshakeService extends HandshakeWebSocketService {
                         return handshakeWithWebFilter.apply(exchange, serverWebExchange -> exchangeProcessor.apply(serverWebExchange)
                                         .switchIfEmpty(fallbackToAnonymous
                                                 ? Mono.just(cast(new Anonymous()))
-                                                : Mono.error(() -> new WebSocketClientHandshakeException("Cannot resolve Principal from handshake")))
+                                                : Mono.error(() -> new WebSocketProcessingException("Cannot resolve Principal from handshake")))
                                         .onErrorResume(throwable -> this.errorHandler().handle(exchange, throwable).then(Mono.empty()))
                                         .doOnNext(principals::add).then())
                                 .then(flux.next());
@@ -337,7 +318,7 @@ public abstract class SocketHandshakeService extends HandshakeWebSocketService {
                         return handshakeWithServerWebExchange.apply(exchange)
                                 .switchIfEmpty(fallbackToAnonymous
                                         ? Mono.just(cast(new Anonymous()))
-                                        : Mono.error(() -> new WebSocketClientHandshakeException("Cannot resolve Principal from handshake")))
+                                        : Mono.error(() -> new WebSocketProcessingException("Cannot resolve Principal from handshake")))
                                 .onErrorResume(throwable -> this.errorHandler().handle(exchange, throwable).then(Mono.empty()));
                     } else {
                         return super.handshake(exchange);

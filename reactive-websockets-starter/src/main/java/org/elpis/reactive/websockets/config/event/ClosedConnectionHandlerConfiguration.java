@@ -1,25 +1,29 @@
 package org.elpis.reactive.websockets.config.event;
 
-import jakarta.annotation.PostConstruct;
-import org.elpis.reactive.websockets.config.model.WebSocketCloseStatus;
-import org.elpis.reactive.websockets.event.EventSelectorMatcher;
+import org.elpis.reactive.websockets.config.WebSocketCloseStatus;
+import org.elpis.reactive.websockets.event.matcher.EventSelectorMatcher;
 import org.elpis.reactive.websockets.event.annotation.CloseStatusHandler;
 import org.elpis.reactive.websockets.event.annotation.EventSelector;
 import org.elpis.reactive.websockets.event.annotation.SessionCloseStatus;
-import org.elpis.reactive.websockets.event.manager.WebSocketEventManager;
+import org.elpis.reactive.websockets.event.matcher.impl.ClosedSessionEventSelectorMatcher;
+import org.elpis.reactive.websockets.event.manager.WebSocketEventManagerFactory;
 import org.elpis.reactive.websockets.event.model.impl.ClientSessionClosedEvent;
 import org.elpis.reactive.websockets.exception.WebSocketConfigurationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.util.LinkedMultiValueMap;
 import reactor.core.scheduler.Schedulers;
 import reactor.util.concurrent.Queues;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Arrays;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
@@ -40,25 +44,16 @@ public class ClosedConnectionHandlerConfiguration {
 
     private final ExecutorService executorService = Executors.newFixedThreadPool(Queues.XS_BUFFER_SIZE);
 
-    private final ApplicationContext applicationContext;
-    private final WebSocketEventManager<ClientSessionClosedEvent> closedEventWebSocketEventManager;
-    private final EventSelectorMatcher<ClientSessionClosedEvent> closedEventSelectorMatcher;
-
-    private final Map<Integer, List<Consumer<ClientSessionClosedEvent>>> handlers = new ConcurrentHashMap<>();
-
-    public ClosedConnectionHandlerConfiguration(final ApplicationContext applicationContext,
-                                                final WebSocketEventManager<ClientSessionClosedEvent> closedEventWebSocketEventManager,
-                                                final EventSelectorMatcher<ClientSessionClosedEvent> closedEventSelectorMatcher) {
-
-        this.applicationContext = applicationContext;
-        this.closedEventWebSocketEventManager = closedEventWebSocketEventManager;
-        this.closedEventSelectorMatcher = closedEventSelectorMatcher;
-
-        this.init();
+    @Bean
+    public EventSelectorMatcher<ClientSessionClosedEvent> closedEventSelectorMatcher() {
+        return new ClosedSessionEventSelectorMatcher();
     }
 
-    private void init() {
-        applicationContext.getBeansWithAnnotation(CloseStatusHandler.class)
+    @Bean
+    public ClosedEventHandlers closedEventHandlers(final ApplicationContext context) {
+        final ClosedEventHandlers handlers = new ClosedEventHandlers();
+
+        context.getBeansWithAnnotation(CloseStatusHandler.class)
                 .values()
                 .forEach(closeStatusHandler -> Stream.of(closeStatusHandler.getClass().getMethods())
                         .filter(method -> method.isAnnotationPresent(SessionCloseStatus.class))
@@ -72,21 +67,37 @@ public class ClosedConnectionHandlerConfiguration {
                             final SessionCloseStatus sessionCloseStatus = method.getAnnotation(SessionCloseStatus.class);
                             final int[] closeCodes = this.getWebSocketCloseCodes(sessionCloseStatus.value(), sessionCloseStatus.code());
 
-                            IntStream.of(closeCodes).forEach(closeCode -> {
-                                if (!handlers.containsKey(closeCode)) {
-                                    this.handlers.put(closeCode, new ArrayList<>());
-                                }
-
-                                this.handlers.get(closeCode).add(this.getClientSessionClosedEventFunction(closeStatusHandler, method));
-                            });
+                            IntStream.of(closeCodes)
+                                    .forEach(closeCode -> handlers.add(closeCode, this.getClientSessionClosedEventFunction(closeStatusHandler, method)));
                         }));
+
+        return handlers;
+    }
+
+    @Bean
+    public ApplicationListener<ApplicationReadyEvent> closedSessionListener(final ClosedEventHandlers closedEventHandlers,
+                                                                            final WebSocketEventManagerFactory eventManagerFactory) {
+
+        return event -> eventManagerFactory.getEventManager(ClientSessionClosedEvent.class)
+                .asFlux()
+                .parallel()
+                .runOn(Schedulers.fromExecutorService(executorService))
+                .subscribe(clientSessionClosedEvent -> {
+                    Optional.ofNullable(closedEventHandlers.get(clientSessionClosedEvent.payload().getCloseStatus().getCode()))
+                        .ifPresent(functions -> functions.forEach(clientSessionClosedEventConsumer -> clientSessionClosedEventConsumer
+                            .accept(clientSessionClosedEvent)));
+
+                    Optional.ofNullable(closedEventHandlers.get(WebSocketCloseStatus.ALL.getStatusCode()))
+                            .ifPresent(functions -> functions.forEach(clientSessionClosedEventConsumer -> clientSessionClosedEventConsumer
+                                    .accept(clientSessionClosedEvent)));
+                });
     }
 
     private Consumer<ClientSessionClosedEvent> getClientSessionClosedEventFunction(final Object closeStatusHandler, final Method method) {
         return event -> {
             try {
                 final boolean isValid = !method.isAnnotationPresent(EventSelector.class) ||
-                        this.closedEventSelectorMatcher.select(event, method.getAnnotation(EventSelector.class));
+                        this.closedEventSelectorMatcher().process(event, method.getAnnotation(EventSelector.class));
 
                 if (isValid) {
                     if (method.getParameterCount() == 0) {
@@ -122,20 +133,7 @@ public class ClosedConnectionHandlerConfiguration {
         return new int[]{WebSocketCloseStatus.ALL.getStatusCode()};
     }
 
-    @PostConstruct
-    private void listen() {
-        this.closedEventWebSocketEventManager
-                .asFlux()
-                .parallel()
-                .runOn(Schedulers.fromExecutorService(executorService))
-                .subscribe(clientSessionClosedEvent -> {
-                    Optional.ofNullable(this.handlers.get(clientSessionClosedEvent.payload().getCloseStatus().getCode()))
-                            .ifPresent(functions -> functions.forEach(clientSessionClosedEventConsumer -> clientSessionClosedEventConsumer
-                                    .accept(clientSessionClosedEvent)));
-
-                    Optional.ofNullable(this.handlers.get(WebSocketCloseStatus.ALL.getStatusCode()))
-                            .ifPresent(functions -> functions.forEach(clientSessionClosedEventConsumer -> clientSessionClosedEventConsumer
-                                    .accept(clientSessionClosedEvent)));
-                });
+    public static class ClosedEventHandlers extends LinkedMultiValueMap<Integer, Consumer<ClientSessionClosedEvent>> {
+        //Shortener
     }
 }

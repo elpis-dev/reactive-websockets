@@ -1,10 +1,11 @@
-package org.elpis.reactive.websockets.config.handler.route;
+package org.elpis.reactive.websockets.handler.route;
 
-import org.elpis.reactive.websockets.config.handler.BaseWebSocketHandler;
-import org.elpis.reactive.websockets.config.handler.BroadcastWebSocketResourceHandler;
-import org.elpis.reactive.websockets.config.model.Mode;
-import org.elpis.reactive.websockets.config.model.WebSocketSessionContext;
-import org.elpis.reactive.websockets.config.handler.WebSessionRegistry;
+import org.elpis.reactive.websockets.config.Mode;
+import org.elpis.reactive.websockets.session.WebSocketSessionContext;
+import org.elpis.reactive.websockets.event.manager.WebSocketEventManagerFactory;
+import org.elpis.reactive.websockets.handler.BaseWebSocketHandler;
+import org.elpis.reactive.websockets.handler.BroadcastWebSocketResourceHandler;
+import org.elpis.reactive.websockets.session.WebSocketSessionRegistry;
 import org.reactivestreams.Publisher;
 import org.springframework.web.reactive.socket.WebSocketMessage;
 import reactor.core.publisher.Flux;
@@ -49,7 +50,13 @@ public final class WebSocketHandlerFunctions {
     }
 
     public static WebSocketHandlerFunction empty() {
-        return registry -> null;
+        return new DefaultRouterFunction(null, false, -1L, null) {
+            @Override
+            public BaseWebSocketHandler register(final WebSocketEventManagerFactory eventManagerFactory,
+                                                 final WebSocketSessionRegistry sessionRegistry) {
+                return null;
+            }
+        };
     }
 
     abstract static class DefaultRouterFunction implements WebSocketHandlerFunction {
@@ -75,8 +82,9 @@ public final class WebSocketHandlerFunctions {
             return next;
         }
 
-        void setNext(WebSocketHandlerFunction next) {
+        DefaultRouterFunction setNext(WebSocketHandlerFunction next) {
             this.next = next;
+            return this;
         }
     }
 
@@ -94,10 +102,12 @@ public final class WebSocketHandlerFunctions {
         }
 
         @Override
-        public BaseWebSocketHandler register(final WebSessionRegistry registry) {
+        public BaseWebSocketHandler register(final WebSocketEventManagerFactory eventManagerFactory,
+                                             final WebSocketSessionRegistry sessionRegistry) {
+
             return switch (this.mode) {
                 case SHARED ->
-                        new BroadcastWebSocketResourceHandler(registry, path, pingEnabled, pingInterval) {
+                        new BroadcastWebSocketResourceHandler(eventManagerFactory, sessionRegistry, path, pingEnabled, pingInterval) {
                             @Override
                             public Publisher<?> apply(WebSocketSessionContext context, Flux<WebSocketMessage> messages) {
                                 return handlerFunction.apply(context, messages);
@@ -122,10 +132,11 @@ public final class WebSocketHandlerFunctions {
         }
 
         @Override
-        public BaseWebSocketHandler register(final WebSessionRegistry registry) {
+        public BaseWebSocketHandler register(final WebSocketEventManagerFactory eventManagerFactory,
+                                             final WebSocketSessionRegistry sessionRegistry) {
             return switch (this.mode) {
                 case SHARED ->
-                        new BroadcastWebSocketResourceHandler(registry, path, pingEnabled, pingInterval) {
+                        new BroadcastWebSocketResourceHandler(eventManagerFactory, sessionRegistry, path, pingEnabled, pingInterval) {
                             @Override
                             public void run(WebSocketSessionContext context, Flux<WebSocketMessage> messages) {
                                 handlerFunction.accept(context, messages);
@@ -142,7 +153,6 @@ public final class WebSocketHandlerFunctions {
 
     @FunctionalInterface
     public interface WebSocketVoidHandlerFunction extends BiConsumer<WebSocketSessionContext, Flux<WebSocketMessage>> {
-
     }
 
 }

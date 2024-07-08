@@ -19,6 +19,7 @@ import org.springframework.security.web.server.util.matcher.ServerWebExchangeMat
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.web.reactive.socket.WebSocketMessage;
+import org.springframework.web.reactive.socket.server.upgrade.ReactorNettyRequestUpgradeStrategy;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 import reactor.test.StepVerifier;
@@ -86,7 +87,7 @@ class ExchangeMatcherTest extends BaseWebSocketTest {
 
 
     @Test
-    void withWrongAuthenticationObjectTest(final CapturedOutput output) throws Exception {
+    void withWrongAuthenticationObjectTest() throws Exception {
         //given
         final HttpHeaders headers = new HttpHeaders();
         headers.add(TestConstants.PRINCIPAL, TestConstants.TEST_VALUE);
@@ -117,7 +118,7 @@ class ExchangeMatcherTest extends BaseWebSocketTest {
                     .exchangeMatcher(this.serverWebExchangeMatcher())
                     .handshake(serverWebExchange -> Mono.justOrEmpty(Optional.ofNullable(serverWebExchange.getRequest().getHeaders().get(TestConstants.PRINCIPAL))
                             .flatMap(headers -> headers.stream().findFirst())))
-                    .build();
+                    .build(new ReactorNettyRequestUpgradeStrategy());
         }
 
         private ServerWebExchangeMatcher serverWebExchangeMatcher() {

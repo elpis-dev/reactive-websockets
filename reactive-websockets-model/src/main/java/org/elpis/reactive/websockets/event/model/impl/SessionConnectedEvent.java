@@ -1,13 +1,13 @@
 package org.elpis.reactive.websockets.event.model.impl;
 
-import org.elpis.reactive.websockets.config.handler.WebSocketSessionInfo;
+import org.elpis.reactive.websockets.session.ReactiveWebSocketSession;
 import org.elpis.reactive.websockets.event.model.WebSocketEvent;
 
-public class SessionConnectedEvent implements WebSocketEvent<WebSocketSessionInfo> {
-    private WebSocketSessionInfo webSocketSessionInfo;
+public class SessionConnectedEvent implements WebSocketEvent<ReactiveWebSocketSession> {
+    private ReactiveWebSocketSession webSocketSessionInfo;
 
     @Override
-    public WebSocketSessionInfo payload() {
+    public ReactiveWebSocketSession payload() {
         return webSocketSessionInfo;
     }
 
@@ -18,7 +18,7 @@ public class SessionConnectedEvent implements WebSocketEvent<WebSocketSessionInf
     public static class Builder {
         private final SessionConnectedEvent sessionConnectedEvent = new SessionConnectedEvent();
 
-        public Builder webSocketSessionInfo(WebSocketSessionInfo webSocketSessionInfo) {
+        public Builder webSocketSessionInfo(ReactiveWebSocketSession webSocketSessionInfo) {
             this.sessionConnectedEvent.webSocketSessionInfo = webSocketSessionInfo;
             return this;
         }

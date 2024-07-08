@@ -21,6 +21,7 @@ import org.springframework.security.core.context.SecurityContextImpl;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.reactive.socket.WebSocketMessage;
+import org.springframework.web.reactive.socket.server.upgrade.ReactorNettyRequestUpgradeStrategy;
 import org.springframework.web.server.WebFilter;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
@@ -104,7 +105,7 @@ class WebFilterAuthenticationSocketTest extends BaseWebSocketTest {
 
             return SocketHandshakeService.builder()
                     .handshake(webFilter::filter)
-                    .build();
+                    .build(new ReactorNettyRequestUpgradeStrategy());
         }
     }
 

@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.SessionAttribute;
 
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.util.Elements;
@@ -26,7 +27,8 @@ public class SocketAnnotationResolverFactory {
             PathVariable.class, PathVariableResolver::new,
             AuthenticationPrincipal.class, AuthenticationPrincipalResolver::new,
             RequestParam.class, RequestParamResolver::new,
-            RequestBody.class, RequestBodyResolver::new
+            RequestBody.class, RequestBodyResolver::new,
+            SessionAttribute.class, SessionResolver::new
     );
 
     private static final Map<Class<? extends Annotation>,
@@ -53,27 +55,5 @@ public class SocketAnnotationResolverFactory {
 
         return annotationsFiltered.stream()
                 .findFirst();
-    }
-
-    public static <A extends Annotation> void registerResolver(final Class<A> annotationType,
-                                                               final Class<SocketApiAnnotationResolver<A>> resolverClass) {
-
-
-        if (BASE_SUPPORTED_RESOLVERS.containsKey(annotationType)) {
-            throw new WebSocketProcessorException("Base resolvers cannot be overridden: @%s is already registered",
-                    annotationType.getSimpleName());
-        }
-
-        SUPPORTED_RESOLVERS.put(annotationType, (elements, types) -> {
-            try {
-                final SocketApiAnnotationResolver<A> resolver = resolverClass.getDeclaredConstructor()
-                        .newInstance();
-                resolver.setAnnotationType(annotationType);
-                return resolver;
-            } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
-                     NoSuchMethodException e) {
-                throw new WebSocketProcessorException(e.getMessage());
-            }
-        });
     }
 }

@@ -10,7 +10,7 @@ socket.onopen = function(e, a, b, c, d) {
   console.log("[open] Connection established");
 
   setInterval(() => socket.send("Hi, " + name), 3000);
-  //setTimeout(() => socket.close(1001, "bie!"), 100000);
+  setTimeout(() => socket.close(1001, "bie!"), 7000);
 };
 
 socket.onmessage = function(event) {

@@ -1,6 +1,6 @@
 package org.elpis.reactive.websockets.event.annotation;
 
-import org.elpis.reactive.websockets.config.model.WebSocketCloseStatus;
+import org.elpis.reactive.websockets.config.WebSocketCloseStatus;
 
 import java.lang.annotation.*;
 

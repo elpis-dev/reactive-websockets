@@ -1,9 +1,9 @@
 package org.elpis.reactive.websockets.impl.event;
 
-import org.elpis.reactive.websockets.config.model.ClientSessionCloseInfo;
-import org.elpis.reactive.websockets.config.handler.WebSocketSessionInfo;
+import org.elpis.reactive.websockets.config.SessionCloseInfo;
+import org.elpis.reactive.websockets.session.ReactiveWebSocketSession;
 import org.elpis.reactive.websockets.event.annotation.EventSelector;
-import org.elpis.reactive.websockets.event.impl.ClosedSessionEventSelectorMatcher;
+import org.elpis.reactive.websockets.event.matcher.impl.ClosedSessionEventSelectorMatcher;
 import org.elpis.reactive.websockets.event.model.impl.ClientSessionClosedEvent;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,9 +20,6 @@ import static org.mockito.Mockito.*;
 
 class ClosedSessionEventSelectorMatcherTest {
     private static final String ID = UUID.randomUUID().toString();
-    private static final String HOST = "localhost";
-    private static final int PORT = 80;
-    private static final String PATH = "/test/1";
 
     @Mock
     private EventSelector eventSelector;
@@ -37,57 +34,21 @@ class ClosedSessionEventSelectorMatcherTest {
     @Test
     void testSelectSingleFieldMatch() {
         //given
-        final WebSocketSessionInfo webSocketSessionInfo = WebSocketSessionInfo.builder()
-                .id(ID)
-                .host(HOST)
-                .port(PORT)
-                .path(PATH)
+        final ReactiveWebSocketSession webSocketSessionInfo = ReactiveWebSocketSession.builder()
+                .sessionId(ID)
                 .build();
 
-        final ClientSessionCloseInfo clientSessionCloseInfo = ClientSessionCloseInfo.builder()
-                .sessionInfo(webSocketSessionInfo)
+        final SessionCloseInfo sessionCloseInfo = SessionCloseInfo.builder()
+                .session(webSocketSessionInfo)
                 .build();
 
-        final ClientSessionClosedEvent event = ClientSessionClosedEvent.builder()
-                .clientSessionCloseInfo(clientSessionCloseInfo)
-                .build();
+        final ClientSessionClosedEvent event = new ClientSessionClosedEvent(sessionCloseInfo);
 
         //mock
-        when(eventSelector.value()).thenReturn("sessionInfo.path matches '\\/test\\/\\d+'");
+        when(eventSelector.value()).thenReturn("session.sessionId matches '" + ID + "'");
 
         //test
-        final boolean result = eventSelectorMatcher.select(event, eventSelector);
-
-        //assert
-        assertTrue(result);
-
-        //verify
-        verify(eventSelector, times(1)).value();
-    }
-
-    @Test
-    void testSelectMultipleFieldsMatch() {
-        //given
-        final WebSocketSessionInfo webSocketSessionInfo = WebSocketSessionInfo.builder()
-                .id(ID)
-                .host(HOST)
-                .port(PORT)
-                .path(PATH)
-                .build();
-
-        final ClientSessionCloseInfo clientSessionCloseInfo = ClientSessionCloseInfo.builder()
-                .sessionInfo(webSocketSessionInfo)
-                .build();
-
-        final ClientSessionClosedEvent event = ClientSessionClosedEvent.builder()
-                .clientSessionCloseInfo(clientSessionCloseInfo)
-                .build();
-
-        //mock
-        when(eventSelector.value()).thenReturn("sessionInfo.path matches '\\/test\\/\\d+' and sessionInfo.port != 443");
-
-        //test
-        final boolean result = eventSelectorMatcher.select(event, eventSelector);
+        final boolean result = eventSelectorMatcher.process(event, eventSelector);
 
         //assert
         assertTrue(result);
@@ -99,26 +60,21 @@ class ClosedSessionEventSelectorMatcherTest {
     @Test
     void testSelectNoMatch() {
         //given
-        final WebSocketSessionInfo webSocketSessionInfo = WebSocketSessionInfo.builder()
-                .id(ID)
-                .host(HOST)
-                .port(PORT)
-                .path(PATH)
+        final ReactiveWebSocketSession webSocketSessionInfo = ReactiveWebSocketSession.builder()
+                .sessionId(ID)
                 .build();
 
-        final ClientSessionCloseInfo clientSessionCloseInfo = ClientSessionCloseInfo.builder()
-                .sessionInfo(webSocketSessionInfo)
+        final SessionCloseInfo sessionCloseInfo = SessionCloseInfo.builder()
+                .session(webSocketSessionInfo)
                 .build();
 
-        final ClientSessionClosedEvent event = ClientSessionClosedEvent.builder()
-                .clientSessionCloseInfo(clientSessionCloseInfo)
-                .build();
+        final ClientSessionClosedEvent event = new ClientSessionClosedEvent(sessionCloseInfo);
 
         //mock
-        when(eventSelector.value()).thenReturn("sessionInfo.path matches '\\/api\\/\\d+'");
+        when(eventSelector.value()).thenReturn("session.sessionId matches '\\/api\\/\\d+'");
 
         //test
-        final boolean result = eventSelectorMatcher.select(event, eventSelector);
+        final boolean result = eventSelectorMatcher.process(event, eventSelector);
 
         //assert
         assertFalse(result);
@@ -130,26 +86,21 @@ class ClosedSessionEventSelectorMatcherTest {
     @Test
     void testSelectWrongSpelFormat() {
         //given
-        final WebSocketSessionInfo webSocketSessionInfo = WebSocketSessionInfo.builder()
-                .id(ID)
-                .host(HOST)
-                .port(PORT)
-                .path(PATH)
+        final ReactiveWebSocketSession webSocketSessionInfo = ReactiveWebSocketSession.builder()
+                .sessionId(ID)
                 .build();
 
-        final ClientSessionCloseInfo clientSessionCloseInfo = ClientSessionCloseInfo.builder()
-                .sessionInfo(webSocketSessionInfo)
+        final SessionCloseInfo sessionCloseInfo = SessionCloseInfo.builder()
+                .session(webSocketSessionInfo)
                 .build();
 
-        final ClientSessionClosedEvent event = ClientSessionClosedEvent.builder()
-                .clientSessionCloseInfo(clientSessionCloseInfo)
-                .build();
+        final ClientSessionClosedEvent event = new ClientSessionClosedEvent(sessionCloseInfo);
 
         //mock
         when(eventSelector.value()).thenReturn("session.path matches '\\/test\\/\\d+'");
 
         //assert
-        Assertions.assertThrows(SpelEvaluationException.class, () -> eventSelectorMatcher.select(event, eventSelector));
+        Assertions.assertThrows(SpelEvaluationException.class, () -> eventSelectorMatcher.process(event, eventSelector));
     }
 
 }

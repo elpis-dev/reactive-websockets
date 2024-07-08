@@ -53,6 +53,6 @@ public abstract class MulticastEventManager<T extends WebSocketEvent<?>> impleme
      */
     @Override
     public Publisher<T> listen() {
-        return this.sink.asFlux();
+        return this.sink.asFlux().share();
     }
 }

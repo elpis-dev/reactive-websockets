@@ -1,6 +1,6 @@
 package org.elpis.reactive.websockets.context.resource.security;
 
-import org.elpis.reactive.websockets.config.model.Mode;
+import org.elpis.reactive.websockets.config.Mode;
 import org.elpis.reactive.websockets.security.principal.Anonymous;
 import org.elpis.reactive.websockets.security.principal.WebSocketPrincipal;
 import org.elpis.reactive.websockets.web.annotation.SocketController;

@@ -1,5 +1,6 @@
-package org.elpis.reactive.websockets.event;
+package org.elpis.reactive.websockets.event.matcher;
 
+import org.elpis.reactive.websockets.event.EventSelectorProcessor;
 import org.elpis.reactive.websockets.event.annotation.EventSelector;
 import org.elpis.reactive.websockets.event.model.WebSocketEvent;
 
