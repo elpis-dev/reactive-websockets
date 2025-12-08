@@ -34,8 +34,7 @@ jobs:
         run: |
           mvn clean install -DskipTests \
             -pl reactive-websockets-model,reactive-websockets-annotation-processor,reactive-websockets-starter \
-            -am \
-            -Prelease
+            -am
 
       - name: Deploy to Maven Central
         env:
