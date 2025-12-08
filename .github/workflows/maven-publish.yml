@@ -34,7 +34,8 @@ jobs:
         run: |
           mvn clean install -DskipTests \
             -pl reactive-websockets-model,reactive-websockets-annotation-processor,reactive-websockets-starter \
-            -am
+            -am \
+            -Prelease
 
       - name: Deploy to Maven Central
         env:
@@ -44,4 +45,5 @@ jobs:
         run: |
           mvn deploy -DskipTests \
             -pl reactive-websockets-annotation-processor,reactive-websockets-starter \
-            -Dgpg.passphrase=$GPG_PASSPHRASE
+            -Dgpg.passphrase=$GPG_PASSPHRASE \
+            -Prelease
