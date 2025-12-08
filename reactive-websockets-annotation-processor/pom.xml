@@ -18,6 +18,28 @@
     <description>Annotation Processor for Reactive WebSockets</description>
     <url>https://github.com/elpis-dev/reactive-websockets</url>
 
+    <licenses>
+        <license>
+            <name>MIT License</name>
+            <url>https://opensource.org/licenses/MIT</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <name>Elpis Development</name>
+            <email>elpis.devs@gmail.com</email>
+            <url>https://github.com/elpis-dev</url>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:git:git://github.com/elpis-dev/reactive-websockets.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/elpis-dev/reactive-websockets.git</developerConnection>
+        <url>https://github.com/elpis-dev/reactive-websockets</url>
+    </scm>
+
     <properties>
         <javapoet.version>1.13.0</javapoet.version>
     </properties>
@@ -33,18 +55,21 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-webflux</artifactId>
+            <version>${spring-framework.version}</version>
             <scope>compile</scope>
         </dependency>
 
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-core</artifactId>
+            <version>${spring-security.version}</version>
             <scope>compile</scope>
         </dependency>
 
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-web</artifactId>
+            <version>${spring-security.version}</version>
             <scope>compile</scope>
         </dependency>
 
