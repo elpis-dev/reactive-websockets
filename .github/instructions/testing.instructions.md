@@ -144,9 +144,9 @@ void descriptiveTestName() {
 ### Example: Unit Test for Utility Class
 
 ```java
-package org.elpis.reactive.websockets.impl.util;
+package io.github.elpis.reactive.websockets.impl.util;
 
-import org.elpis.reactive.websockets.mapper.JsonMapper;
+import mapper.io.github.elpis.reactive.websockets.JsonMapper;
 import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -307,12 +307,12 @@ public abstract class BaseWebSocketTest {
 ### Example: Integration Test for WebSocket Handler
 
 ```java
-package org.elpis.reactive.websockets.impl.connection;
+package io.github.elpis.reactive.websockets.impl.connection;
 
-import org.elpis.reactive.websockets.BaseWebSocketTest;
-import org.elpis.reactive.websockets.context.BootStarter;
-import org.elpis.reactive.websockets.context.resource.connection.CloseResource;
-import org.elpis.reactive.websockets.context.resource.connection.CloseRoutingConfiguration;
+import io.github.elpis.reactive.websockets.BaseWebSocketTest;
+import context.io.github.elpis.reactive.websockets.BootStarter;
+import connection.resource.context.io.github.elpis.reactive.websockets.CloseResource;
+import connection.resource.context.io.github.elpis.reactive.websockets.CloseRoutingConfiguration;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
@@ -415,11 +415,11 @@ StepVerifier.create(flux)
 ### Testing Data Binding
 
 ```java
-package org.elpis.reactive.websockets.impl.data;
+package io.github.elpis.reactive.websockets.impl.data;
 
-import org.elpis.reactive.websockets.BaseWebSocketTest;
-import org.elpis.reactive.websockets.context.BootStarter;
-import org.elpis.reactive.websockets.context.resource.data.MessageBodySocketResource;
+import io.github.elpis.reactive.websockets.BaseWebSocketTest;
+import context.io.github.elpis.reactive.websockets.BootStarter;
+import data.resource.context.io.github.elpis.reactive.websockets.MessageBodySocketResource;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
@@ -492,10 +492,10 @@ class BodySocketTest extends BaseWebSocketTest {
 ### Testing Security
 
 ```java
-package org.elpis.reactive.websockets.impl.security;
+package io.github.elpis.reactive.websockets.impl.security;
 
-import org.elpis.reactive.websockets.BaseWebSocketTest;
-import org.elpis.reactive.websockets.context.BootStarter;
+import io.github.elpis.reactive.websockets.BaseWebSocketTest;
+import context.io.github.elpis.reactive.websockets.BootStarter;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;

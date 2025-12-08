@@ -206,9 +206,9 @@ The planning phase is **critical** and must be completed BEFORE any code is writ
 - `functional-tests` - [Test changes needed]
 
 ### Affected Packages
-- `org.elpis.reactive.websockets.event.*`
-- `org.elpis.reactive.websockets.handler.*`
-- `org.elpis.reactive.websockets.config.*`
+- `io.github.elpis.reactive.websockets.event.*`
+- `io.github.elpis.reactive.websockets.handler.*`
+- `io.github.elpis.reactive.websockets.config.*`
 
 ### Dependencies
 - [Internal dependency 1]
@@ -573,7 +573,7 @@ Commit after each phase.
 
 | Class | Type | Package | Purpose |
 |-------|------|---------|---------|
-| [ClassName] | Interface/Class | [org.elpis...] | [Purpose] |
+| [ClassName] | Interface/Class | [io.github.elpis...] | [Purpose] |
 
 ## Implementation Details
 

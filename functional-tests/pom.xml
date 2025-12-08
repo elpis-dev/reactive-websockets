@@ -5,13 +5,12 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>org.elpis</groupId>
+        <groupId>io.github.elpis-dev</groupId>
         <artifactId>reactive-websockets</artifactId>
         <version>1.0.0</version>
     </parent>
 
     <artifactId>functional-tests</artifactId>
-    <version>1.0.0</version>
 
     <packaging>jar</packaging>
 
@@ -21,7 +20,7 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.elpis</groupId>
+            <groupId>io.github.elpis-dev</groupId>
             <artifactId>reactive-websockets-starter</artifactId>
             <version>${reactive-websockets.version}</version>
         </dependency>
@@ -108,7 +107,7 @@
                     <release>${maven.compiler.release}</release>
                     <annotationProcessorPaths>
                         <path>
-                            <groupId>org.elpis</groupId>
+                            <groupId>io.github.elpis-dev</groupId>
                             <artifactId>reactive-websockets-annotation-processor</artifactId>
                             <version>${reactive-websockets.version}</version>
                         </path>

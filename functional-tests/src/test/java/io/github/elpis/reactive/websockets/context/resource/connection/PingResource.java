@@ -1,0 +1,14 @@
+package io.github.elpis.reactive.websockets.context.resource.connection;
+
+import io.github.elpis.reactive.websockets.config.Mode;
+import io.github.elpis.reactive.websockets.web.annotation.Ping;
+import io.github.elpis.reactive.websockets.web.annotation.SocketController;
+import io.github.elpis.reactive.websockets.web.annotation.SocketMapping;
+
+@SocketController("/connection")
+public class PingResource {
+    @SocketMapping(value = "/ping", mode = Mode.SHARED, ping = @Ping)
+    public void ping() {
+        //Empty for test the Ping-Pong
+    }
+}

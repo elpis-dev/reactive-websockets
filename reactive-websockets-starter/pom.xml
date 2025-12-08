@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>org.elpis</groupId>
+        <groupId>io.github.elpis-dev</groupId>
         <artifactId>reactive-websockets</artifactId>
         <version>1.0.0</version>
     </parent>
@@ -16,16 +16,15 @@
 
     <name>Reactive WebSockets Starter</name>
     <description>Spring Boot Starter for Reactive WebSockets</description>
+    <url>https://github.com/elpis-dev/reactive-websockets</url>
 
     <properties>
-        <spring.webflux.version>6.1.9</spring.webflux.version>
-
         <javapoet.version>1.13.0</javapoet.version>
     </properties>
 
     <dependencies>
         <dependency>
-            <groupId>org.elpis</groupId>
+            <groupId>io.github.elpis-dev</groupId>
             <artifactId>reactive-websockets-model</artifactId>
             <version>${reactive-websockets.version}</version>
         </dependency>

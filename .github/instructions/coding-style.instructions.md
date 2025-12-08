@@ -35,7 +35,7 @@ reactive-websockets (parent pom)
 **Base domain and contract definitions. Use this module for shared interfaces and data models.**
 
 ```
-org.elpis.reactive.websockets
+io.github.elpis.reactive.websockets
 ├── web/
 │   └── annotation/                  # Socket-related annotations
 │       ├── @SocketMapping            # Main socket endpoint annotation
@@ -66,10 +66,10 @@ org.elpis.reactive.websockets
 
 **Example class naming:**
 ```java
-// In org.elpis.reactive.websockets.event.model
+// In io.github.elpis.reactive.websockets.event.model
 public interface WebSocketEvent<T> { ... }
 
-// In org.elpis.reactive.websockets.web.annotation
+// In io.github.elpis.reactive.websockets.web.annotation
 @Target(ElementType.METHOD)
 public @interface SocketMapping { ... }
 ```
@@ -80,7 +80,7 @@ public @interface SocketMapping { ... }
 **Compile-time annotation processing for code generation. Generates handler implementations.**
 
 ```
-org.elpis.reactive.websockets
+io.github.elpis.reactive.websockets
 └── processor/
     ├── SocketHandlerProcessor       # Main APT processor
     ├── SocketEndpointProcessor      # Endpoint processor
@@ -95,13 +95,13 @@ org.elpis.reactive.websockets
 **Rules:**
 - Classes here run at compile-time
 - Use `javax.annotation.processing` API
-- Generate classes in `org.elpis.reactive.websockets.generated` package
+- Generate classes in `io.github.elpis.reactive.websockets.generated` package
 - Be cautious with dependencies (avoid runtime dependencies)
 
 **Example:**
 ```java
-// In org.elpis.reactive.websockets.processor
-@SupportedAnnotationTypes("org.elpis.reactive.websockets.web.annotation.SocketMapping")
+// In io.github.elpis.reactive.websockets.processor
+@SupportedAnnotationTypes("annotation.web.io.github.elpis.reactive.websockets.SocketMapping")
 public class SocketHandlerProcessor extends AbstractProcessor { ... }
 ```
 
@@ -111,7 +111,7 @@ public class SocketHandlerProcessor extends AbstractProcessor { ... }
 **Core runtime implementation. This is where most development happens.**
 
 ```
-org.elpis.reactive.websockets
+io.github.elpis.reactive.websockets
 ├── EnableReactiveSockets.java              # Entry point annotation
 ├── EnableReactiveSocketSecurity.java       # Security entry point
 ├── config/
@@ -199,7 +199,7 @@ org.elpis.reactive.websockets
 **Integration tests using the framework. Real-world usage examples.**
 
 ```
-org.elpis.reactive.websockets.impl         # Test implementations
+io.github.elpis.reactive.websockets.impl         # Test implementations
 ├── connection/
 │   ├── CloseTest.java
 │   └── PingTest.java
@@ -234,7 +234,7 @@ org.elpis.reactive.websockets.impl         # Test implementations
 ### Package Naming Convention
 
 The project uses reverse domain naming:
-- **Base package:** `org.elpis.reactive.websockets`
+- **Base package:** `io.github.elpis.reactive.websockets`
 - **Sub-packages:** Organized by functional domain
 
 **Do NOT create:**
@@ -244,13 +244,13 @@ The project uses reverse domain naming:
 
 **Example of correct naming:**
 ```
-✓ org.elpis.reactive.websockets.config.security
-✓ org.elpis.reactive.websockets.event.manager.impl
-✓ org.elpis.reactive.websockets.handler.route
+✓ io.github.elpis.reactive.websockets.config.security
+✓ io.github.elpis.reactive.websockets.event.manager.impl
+✓ io.github.elpis.reactive.websockets.handler.route
 
-✗ org.elpis.reactive.websockets.config_security
-✗ org.elpis.reactive.websockets.event_manager_impl
-✗ org.elpis.reactive.websockets.handler.route.resolver.impl.default
+✗ io.github.elpis.reactive.websockets.config_security
+✗ io.github.elpis.reactive.websockets.event_manager_impl
+✗ io.github.elpis.reactive.websockets.handler.route.resolver.impl.default
 ```
 
 ---
@@ -260,15 +260,15 @@ The project uses reverse domain naming:
 ### Step 1: Determine the Correct Module
 | What are you creating? | Module | Package |
 |---|---|---|
-| Event interface/model | `reactive-websockets-model` | `org.elpis.reactive.websockets.event.model` |
-| Annotation | `reactive-websockets-model` | `org.elpis.reactive.websockets.web.annotation` |
-| Exception | `reactive-websockets-model` | `org.elpis.reactive.websockets.exception` |
-| Annotation processor | `reactive-websockets-annotation-processor` | `org.elpis.reactive.websockets.processor` |
-| Event manager implementation | `reactive-websockets-starter` | `org.elpis.reactive.websockets.event.manager.impl` |
-| Handler implementation | `reactive-websockets-starter` | `org.elpis.reactive.websockets.handler` |
-| Spring configuration | `reactive-websockets-starter` | `org.elpis.reactive.websockets.config.<feature>` |
-| Utility class | `reactive-websockets-starter` | `org.elpis.reactive.websockets.<feature>` |
-| Integration test | `functional-tests` | `org.elpis.reactive.websockets.impl.<feature>` |
+| Event interface/model | `reactive-websockets-model` | `io.github.elpis.reactive.websockets.event.model` |
+| Annotation | `reactive-websockets-model` | `io.github.elpis.reactive.websockets.web.annotation` |
+| Exception | `reactive-websockets-model` | `io.github.elpis.reactive.websockets.exception` |
+| Annotation processor | `reactive-websockets-annotation-processor` | `io.github.elpis.reactive.websockets.processor` |
+| Event manager implementation | `reactive-websockets-starter` | `io.github.elpis.reactive.websockets.event.manager.impl` |
+| Handler implementation | `reactive-websockets-starter` | `io.github.elpis.reactive.websockets.handler` |
+| Spring configuration | `reactive-websockets-starter` | `io.github.elpis.reactive.websockets.config.<feature>` |
+| Utility class | `reactive-websockets-starter` | `io.github.elpis.reactive.websockets.<feature>` |
+| Integration test | `functional-tests` | `io.github.elpis.reactive.websockets.impl.<feature>` |
 
 ### Step 2: Follow Class Naming Conventions
 
@@ -286,10 +286,10 @@ The project uses reverse domain naming:
 
 **Template for a new service/manager class:**
 ```java
-package org.elpis.reactive.websockets.event.manager.impl;
+package io.github.elpis.reactive.websockets.event.manager.impl;
 
-import org.elpis.reactive.websockets.event.manager.WebSocketEventManager;
-import org.elpis.reactive.websockets.event.model.WebSocketEvent;
+import manager.event.io.github.elpis.reactive.websockets.WebSocketEventManager;
+import model.event.io.github.elpis.reactive.websockets.WebSocketEvent;
 import reactor.core.publisher.Sinks;
 
 /**
@@ -318,7 +318,7 @@ public class MulticastEventManager<T extends WebSocketEvent<?>> implements WebSo
 
 **Template for a configuration class:**
 ```java
-package org.elpis.reactive.websockets.config.event;
+package io.github.elpis.reactive.websockets.config.event;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;

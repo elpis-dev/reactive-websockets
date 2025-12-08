@@ -1,1 +1,1 @@
-org.elpis.reactive.websockets.processor.WebSocketHandlerAutoProcessor
+io.github.elpis.reactive.websockets.processor.WebSocketHandlerAutoProcessor

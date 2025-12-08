@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.elpis</groupId>
+    <groupId>io.github.elpis-dev</groupId>
     <artifactId>reactive-websockets</artifactId>
     <version>1.0.0</version>
 
@@ -12,7 +12,7 @@
 
     <name>Reactive WebSockets</name>
     <description>A reactive WebSocket framework for Spring Boot</description>
-    <url>https://github.com/your-org/reactive-websockets</url>
+    <url>https://github.com/elpis-dev/reactive-websockets</url>
 
     <licenses>
         <license>
@@ -24,16 +24,16 @@
 
     <developers>
         <developer>
-            <name>Your Name</name>
-            <email>your.email@example.com</email>
-            <url>https://github.com/your-username</url>
+            <name>Elpis Development</name>
+            <email>elpis.devs@gmail.com</email>
+            <url>https://github.com/elpis-dev</url>
         </developer>
     </developers>
 
     <scm>
-        <connection>scm:git:git://github.com/your-org/reactive-websockets.git</connection>
-        <developerConnection>scm:git:ssh://git@github.com/your-org/reactive-websockets.git</developerConnection>
-        <url>https://github.com/your-org/reactive-websockets</url>
+        <connection>scm:git:git://github.com/elpis-dev/reactive-websockets.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/elpis-dev/reactive-websockets.git</developerConnection>
+        <url>https://github.com/elpis-dev/reactive-websockets</url>
     </scm>
 
     <properties>
@@ -52,6 +52,8 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <spring.boot.version>3.3.1</spring.boot.version>
+        <spring-framework.version>6.1.9</spring-framework.version>
+        <spring-security.version>6.3.1</spring-security.version>
 
         <log4j2.version>2.23.1</log4j2.version>
 
@@ -85,6 +87,21 @@
                 <version>${spring.boot.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-webflux</artifactId>
+                <version>${spring-framework.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.security</groupId>
+                <artifactId>spring-security-core</artifactId>
+                <version>${spring-security.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.security</groupId>
+                <artifactId>spring-security-web</artifactId>
+                <version>${spring-security.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
