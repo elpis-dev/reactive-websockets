@@ -40,9 +40,8 @@ jobs:
         env:
           MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
-          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
         run: |
           mvn deploy -DskipTests \
             -pl reactive-websockets-annotation-processor,reactive-websockets-starter \
-            -Dgpg.passphrase=$GPG_PASSPHRASE \
             -Prelease
