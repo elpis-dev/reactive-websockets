@@ -37,7 +37,7 @@
                 <version>${jacoco-maven-plugin.version}</version>
                 <configuration>
                     <includes>
-                        <include>io/github/elpis_dev/reactive/websockets/**/*</include>
+                        <include>io/github/elpis/reactive/websockets/**/*</include>
                     </includes>
                 </configuration>
                 <executions>
