@@ -6,7 +6,7 @@
 
     <groupId>io.github.elpis-dev</groupId>
     <artifactId>reactive-websockets</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.0-alpha</version>
 
     <packaging>pom</packaging>
 
@@ -55,9 +55,10 @@
         <spring-framework.version>6.1.9</spring-framework.version>
         <spring-security.version>6.3.1</spring-security.version>
 
+
         <log4j2.version>2.23.1</log4j2.version>
 
-        <reactive-websockets.version>1.0.0</reactive-websockets.version>
+        <reactive-websockets.version>1.0.0-alpha</reactive-websockets.version>
     </properties>
 
     <modules>

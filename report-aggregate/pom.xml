@@ -6,10 +6,36 @@
     <parent>
         <groupId>io.github.elpis-dev</groupId>
         <artifactId>reactive-websockets</artifactId>
-        <version>1.0.0</version>
+        <version>1.0.0-alpha</version>
     </parent>
 
     <artifactId>report-aggregate</artifactId>
+
+    <name>Reactive WebSockets Report Aggregate</name>
+    <description>Aggregated test coverage reports for Reactive WebSockets</description>
+    <url>https://github.com/elpis-dev/reactive-websockets</url>
+
+    <licenses>
+        <license>
+            <name>MIT License</name>
+            <url>https://opensource.org/licenses/MIT</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <name>Elpis Development</name>
+            <email>elpis.devs@gmail.com</email>
+            <url>https://github.com/elpis-dev</url>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:git:git://github.com/elpis-dev/reactive-websockets.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/elpis-dev/reactive-websockets.git</developerConnection>
+        <url>https://github.com/elpis-dev/reactive-websockets</url>
+    </scm>
 
     <properties>
         <jacoco.coverage.rate>0.85</jacoco.coverage.rate>
