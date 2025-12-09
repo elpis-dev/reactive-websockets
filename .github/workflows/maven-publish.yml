@@ -32,4 +32,6 @@ jobs:
           MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
           MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
         run: |
-          mvn deploy -DskipTests -Prelease
+          mvn deploy -DskipTests \
+            -pl reactive-websockets-model,reactive-websockets-annotation-processor,reactive-websockets-starter \
+            -Prelease
