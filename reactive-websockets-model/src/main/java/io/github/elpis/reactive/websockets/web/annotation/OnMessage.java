@@ -12,10 +12,11 @@ public @interface OnMessage {
     String value();
 
     /**
-     * @deprecated Mode is deprecated and will default to SHARED.
-     * It may be removed in future versions.
+     * The messaging mode for this WebSocket connection.
+     * Defaults to {@link Mode#BROADCAST}.
+     *
+     * @since 1.0.0
      */
-    @Deprecated
     Mode mode() default Mode.BROADCAST;
 
     /**
