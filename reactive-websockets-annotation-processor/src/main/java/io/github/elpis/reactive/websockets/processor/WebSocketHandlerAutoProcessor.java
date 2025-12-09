@@ -30,7 +30,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@SupportedAnnotationTypes({"io.github.elpis.reactive.websockets.web.annotation.SocketController"})
+@SupportedAnnotationTypes({"io.github.elpis.reactive.websockets.web.annotation.MessageEndpoint"})
 @SupportedSourceVersion(SourceVersion.RELEASE_17)
 public class WebSocketHandlerAutoProcessor extends AbstractProcessor {
 
@@ -193,7 +193,7 @@ public class WebSocketHandlerAutoProcessor extends AbstractProcessor {
         } else {
             // No heartbeat configured
             heartbeatEnabled = false;
-            heartbeatInterval = 30; // default values (not used when disabled)
+            heartbeatInterval = 30;
             heartbeatTimeout = 60;
         }
 
@@ -207,7 +207,7 @@ public class WebSocketHandlerAutoProcessor extends AbstractProcessor {
                 .isAssignable(processingEnv.getTypeUtils().erasure(returnType),
                         processingEnv.getTypeUtils().erasure(publisher.asType())))) {
 
-            throw new WebSocketProcessorException("Cannot register method `@SocketMapping %s()`. Reason: method should " +
+            throw new WebSocketProcessorException("Cannot register method `@OnMessage %s()`. Reason: method should " +
                     "return any of implementation Publisher type. Found `%s`", method.getSimpleName(), method.getReturnType());
         }
 

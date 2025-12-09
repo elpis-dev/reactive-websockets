@@ -13,13 +13,13 @@ public class PingRoutingConfiguration {
 
     @Bean
     public WebSocketHandlerFunction pingRouting() {
-        return handle("/ping/routing/returns", Mode.BROADCAST, true, 1000L, (context, messages) -> {
+        return handle("/ping/routing/returns", Mode.BROADCAST, true, 1000L, 1000L, (context, messages) -> {
             return Flux.empty();
-        }).and(handle("/ping/routing/void", Mode.BROADCAST, true, 1000L, (context, messages) -> {
+        }).and(handle("/ping/routing/void", Mode.BROADCAST, true, 1000L, 1000L, (context, messages) -> {
             //do nothing
-        })).handle("/ping/routing/void/internal", Mode.BROADCAST, true, 1000L, (context, messages) -> {
+        })).handle("/ping/routing/void/internal", Mode.BROADCAST, true, 1000L, 1000L, (context, messages) -> {
             //do nothing
-        }).handle("/ping/routing/returns/internal", Mode.BROADCAST, true, 1000L, (context, messages) -> {
+        }).handle("/ping/routing/returns/internal", Mode.BROADCAST, true, 1000L, 1000L, (context, messages) -> {
             return Flux.empty();
         });
     }
