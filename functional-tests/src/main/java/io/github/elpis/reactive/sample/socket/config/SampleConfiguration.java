@@ -20,7 +20,7 @@ public class SampleConfiguration {
 
     @Bean
     public WebSocketHandlerFunction webSocketHandlerFunction() {
-        return handle("/ws/chat/listen", Mode.SHARED, (context, messageFlux) -> {
+        return handle("/ws/chat/listen", Mode.BROADCAST, (context, messageFlux) -> {
             final String userName = context.getHeader("userName", "", String.class)
                     .orElse("Not Found");
 
@@ -34,7 +34,7 @@ public class SampleConfiguration {
                     .share()
                     .takeLast(lastMessages)
                     .map(i -> Map.of("chatId", chatId, "message", i, "userName", userName));
-        }).handle("/ws/chat/listen/me", Mode.SHARED, (context, messageFlux) -> {
+        }).handle("/ws/chat/listen/me", Mode.BROADCAST, (context, messageFlux) -> {
             messageFlux.map(WebSocketMessage::getPayloadAsText)
                     .subscribe(log::info);
         });

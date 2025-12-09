@@ -12,26 +12,28 @@ public interface WebSocketHandlerFunction {
 
     default <T> WebSocketHandlerFunction handle(final String path,
                                                 final Mode mode,
-                                                final boolean pingEnabled,
-                                                final long pingInterval,
+                                                final boolean heartbeatEnabled,
+                                                final long heartbeatInterval,
+                                                final long heartbeatTimeout,
                                                 final WebSocketHandlerFunctions.WebSocketMessageHandlerFunction<T> function) {
 
         final WebSocketHandlerFunctions.DefaultRouterFunction webSocketHandlerFunction =
                 (WebSocketHandlerFunctions.DefaultRouterFunction) WebSocketHandlerFunctions
-                        .handle(path, mode, pingEnabled, pingInterval, function);
+                        .handle(path, mode, heartbeatEnabled, heartbeatInterval, heartbeatTimeout, function);
 
         return webSocketHandlerFunction.setNext(this);
     }
 
     default WebSocketHandlerFunction handle(final String path,
                                             final Mode mode,
-                                            final boolean pingEnabled,
-                                            final long pingInterval,
+                                            final boolean heartbeatEnabled,
+                                            final long heartbeatInterval,
+                                            final long heartbeatTimeout,
                                             final WebSocketHandlerFunctions.WebSocketVoidHandlerFunction function) {
 
         final WebSocketHandlerFunctions.DefaultRouterFunction webSocketHandlerFunction =
                 (WebSocketHandlerFunctions.DefaultRouterFunction) WebSocketHandlerFunctions
-                        .handle(path, mode, pingEnabled, pingInterval, function);
+                        .handle(path, mode, heartbeatEnabled, heartbeatInterval, heartbeatTimeout, function);
 
         return webSocketHandlerFunction.setNext(this);
     }

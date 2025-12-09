@@ -18,20 +18,20 @@ public class RoutingConfiguration {
 
     @Bean
     public WebSocketHandlerFunction handlerFunction() {
-        final WebSocketHandlerFunction publish = handle("/routing/publish", Mode.SHARED, (context, messages) -> {
+        final WebSocketHandlerFunction publish = handle("/routing/publish", Mode.BROADCAST, (context, messages) -> {
             final String headerValue = context.getHeader("id", "", String.class)
                     .orElse("");
             return Mono.just(MessageUtils.textMessage(headerValue));
-        }).handle("/routing/connect", Mode.SHARED, (context, messages) -> {
+        }).handle("/routing/connect", Mode.BROADCAST, (context, messages) -> {
             final String headerValue = context.getHeader("id", "", String.class)
                     .orElse("");
             log.info("Connected with header {}", headerValue);
         });
 
-        final WebSocketHandlerFunction listen = handle("/routing/listen", Mode.SHARED, (context, messages) -> {
+        final WebSocketHandlerFunction listen = handle("/routing/listen", Mode.BROADCAST, (context, messages) -> {
             messages.map(WebSocketMessage::getPayloadAsText)
                     .subscribe((message) -> log.info("Received {} from '/routing/get'", message));
-        }).handle("/routing/publish/test", Mode.SHARED, (context, messages) -> {
+        }).handle("/routing/publish/test", Mode.BROADCAST, (context, messages) -> {
             final String headerValue = context.getHeader("id", "", String.class)
                     .orElse("");
             return Mono.just(MessageUtils.textMessage(headerValue));

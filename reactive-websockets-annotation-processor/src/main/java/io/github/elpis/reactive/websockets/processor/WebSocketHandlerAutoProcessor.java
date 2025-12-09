@@ -6,9 +6,9 @@ import io.github.elpis.reactive.websockets.session.WebSocketSessionContext;
 import io.github.elpis.reactive.websockets.processor.exception.WebSocketProcessorException;
 import io.github.elpis.reactive.websockets.processor.resolver.SocketAnnotationResolverFactory;
 import io.github.elpis.reactive.websockets.util.TypeUtils;
-import io.github.elpis.reactive.websockets.web.annotation.Ping;
-import io.github.elpis.reactive.websockets.web.annotation.SocketController;
-import io.github.elpis.reactive.websockets.web.annotation.SocketMapping;
+import io.github.elpis.reactive.websockets.web.annotation.Heartbeat;
+import io.github.elpis.reactive.websockets.web.annotation.MessageEndpoint;
+import io.github.elpis.reactive.websockets.web.annotation.OnMessage;
 import org.reactivestreams.Publisher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -30,15 +30,15 @@ import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@SupportedAnnotationTypes({"io.github.elpis.reactive.websockets.web.annotation.SocketController"})
+@SupportedAnnotationTypes({"io.github.elpis.reactive.websockets.web.annotation.MessageEndpoint"})
 @SupportedSourceVersion(SourceVersion.RELEASE_17)
 public class WebSocketHandlerAutoProcessor extends AbstractProcessor {
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-        for (Element element : roundEnv.getElementsAnnotatedWith(SocketController.class)) {
-            final SocketController socketController = element.getAnnotation(SocketController.class);
-            this.createMapping(element, socketController)
+        for (Element element : roundEnv.getElementsAnnotatedWith(MessageEndpoint.class)) {
+            final MessageEndpoint messageEndpoint = element.getAnnotation(MessageEndpoint.class);
+            this.createMapping(element, messageEndpoint)
                     .stream()
                     .map(this::getClassDefinition)
                     .map(classBuilder -> JavaFile.builder("io.github.elpis.reactive.websockets.generated",
@@ -55,13 +55,13 @@ public class WebSocketHandlerAutoProcessor extends AbstractProcessor {
         return true;
     }
 
-    private List<WebHandlerResourceDescriptor> createMapping(final Element element, final SocketController socketController) {
+    private List<WebHandlerResourceDescriptor> createMapping(final Element element, final MessageEndpoint messageEndpoint) {
         return element.getEnclosedElements()
                 .stream()
                 .filter(classElement -> classElement.getKind() == ElementKind.METHOD)
-                .filter(classElement -> classElement.getAnnotation(SocketMapping.class) != null)
+                .filter(classElement -> classElement.getAnnotation(OnMessage.class) != null)
                 .map(ExecutableElement.class::cast)
-                .map(method -> this.configure(socketController, method, element))
+                .map(method -> this.configure(messageEndpoint, method, element))
                 .toList();
     }
 
@@ -76,8 +76,8 @@ public class WebSocketHandlerAutoProcessor extends AbstractProcessor {
                 .addParameter(ClassName.bestGuess("io.github.elpis.reactive.websockets.event.manager.WebSocketEventManagerFactory"), "eventFactory")
                 .addParameter(ClassName.bestGuess("io.github.elpis.reactive.websockets.session.WebSocketSessionRegistry"), "sessionRegistry")
                 .addParameter(TypeName.get(descriptor.clazz().asType()), "socketResource")
-                .addStatement("super(eventFactory, sessionRegistry, $S, $L, $L)", descriptor.pathTemplate(),
-                        descriptor.pingEnabled(), descriptor.pingInterval())
+                .addStatement("super(eventFactory, sessionRegistry, $S, $L, $L, $L)", descriptor.pathTemplate(),
+                        descriptor.heartbeatEnabled(), descriptor.heartbeatInterval(), descriptor.heartbeatTimeout())
                 .addStatement("this.socketResource = socketResource")
                 .build();
 
@@ -154,25 +154,52 @@ public class WebSocketHandlerAutoProcessor extends AbstractProcessor {
 
     private String getHandlerType(final Mode mode) {
         switch (mode) {
-            case SHARED:
+            case BROADCAST:
                 return "io.github.elpis.reactive.websockets.handler.BroadcastWebSocketResourceHandler";
         }
 
         throw new WebSocketProcessorException("Cannot find WebSocketHandler implementation for mode %s", mode);
     }
 
-    private WebHandlerResourceDescriptor configure(final SocketController resource,
+    private WebHandlerResourceDescriptor configure(final MessageEndpoint resource,
                                                    final ExecutableElement method,
                                                    final Element clazz) {
 
         final Element publisher = processingEnv.getElementUtils().getTypeElement(Publisher.class.getCanonicalName());
-        final SocketMapping socketMapping = method.getAnnotation(SocketMapping.class);
-        final Ping ping = socketMapping.ping();
-        final String pathTemplate = resource.value() + socketMapping.value();
+        final OnMessage onMessage = method.getAnnotation(OnMessage.class);
+        final String pathTemplate = resource.value() + onMessage.value();
+
+        // Heartbeat precedence logic:
+        // 1. If @OnMessage has @Heartbeat with enabled=true, use it
+        // 2. Else if @MessageEndpoint has @Heartbeat with enabled=true, use it
+        // 3. Else heartbeat is disabled
+        final Heartbeat onMessageHeartbeat = onMessage.heartbeat();
+        final Heartbeat endpointHeartbeat = resource.heartbeat();
+
+        final boolean heartbeatEnabled;
+        final long heartbeatInterval;
+        final long heartbeatTimeout;
+
+        if (onMessageHeartbeat.enabled()) {
+            // @OnMessage heartbeat takes precedence
+            heartbeatEnabled = true;
+            heartbeatInterval = onMessageHeartbeat.interval();
+            heartbeatTimeout = onMessageHeartbeat.timeout();
+        } else if (endpointHeartbeat.enabled()) {
+            // Use @MessageEndpoint heartbeat if @OnMessage doesn't have it
+            heartbeatEnabled = true;
+            heartbeatInterval = endpointHeartbeat.interval();
+            heartbeatTimeout = endpointHeartbeat.timeout();
+        } else {
+            // No heartbeat configured
+            heartbeatEnabled = false;
+            heartbeatInterval = 30;
+            heartbeatTimeout = 60;
+        }
 
         final WebHandlerResourceDescriptor descriptor = new WebHandlerResourceDescriptor(method, clazz,
-                method.getReturnType().getKind() != TypeKind.VOID, pathTemplate, socketMapping.mode(),
-                ping.enabled(), ping.value());
+                method.getReturnType().getKind() != TypeKind.VOID, pathTemplate, onMessage.mode(),
+                heartbeatEnabled, heartbeatInterval, heartbeatTimeout);
 
         final TypeMirror returnType = method.getReturnType();
 
@@ -180,7 +207,7 @@ public class WebSocketHandlerAutoProcessor extends AbstractProcessor {
                 .isAssignable(processingEnv.getTypeUtils().erasure(returnType),
                         processingEnv.getTypeUtils().erasure(publisher.asType())))) {
 
-            throw new WebSocketProcessorException("Cannot register method `@SocketMapping %s()`. Reason: method should " +
+            throw new WebSocketProcessorException("Cannot register method `@OnMessage %s()`. Reason: method should " +
                     "return any of implementation Publisher type. Found `%s`", method.getSimpleName(), method.getReturnType());
         }
 
@@ -188,8 +215,8 @@ public class WebSocketHandlerAutoProcessor extends AbstractProcessor {
     }
 
     private record WebHandlerResourceDescriptor(ExecutableElement method, Element clazz, boolean useReturn,
-                                                String pathTemplate, Mode mode, boolean pingEnabled,
-                                                long pingInterval) {
+                                                String pathTemplate, Mode mode, boolean heartbeatEnabled,
+                                                long heartbeatInterval, long heartbeatTimeout) {
 
         private String getPostfix() {
             final String uniqueKey = pathTemplate + "." + clazz.getSimpleName().toString() +

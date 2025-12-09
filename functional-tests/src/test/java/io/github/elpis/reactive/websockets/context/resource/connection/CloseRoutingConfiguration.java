@@ -17,7 +17,7 @@ public class CloseRoutingConfiguration {
 
     @Bean
     public WebSocketHandlerFunction closeRouting(final WebSocketSessionRegistry sessionRegistry) {
-        return handle("/close", Mode.SHARED, (context, messages) -> {
+        return handle("/close", Mode.BROADCAST, (context, messages) -> {
             return Flux.fromIterable(List.of("One, Two", "Three"))
                     .delayElements(Duration.ofSeconds(1));
 //                    .then(Mono.fromRunnable(() -> sessionRegistry.close(context.getSessionId(), CloseStatus.NORMAL)));

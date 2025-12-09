@@ -39,7 +39,7 @@ io.github.elpis.reactive.websockets
 ├── web/
 │   └── annotation/                  # Socket-related annotations
 │       ├── @SocketMapping            # Main socket endpoint annotation
-│       ├── @SocketController         # Controller-level annotation
+│       ├── @MessageEndpoint         # Controller-level annotation
 │       └── ...
 ├── event/
 │   ├── model/                       # Event domain models (interfaces)

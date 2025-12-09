@@ -26,10 +26,11 @@ public abstract class BroadcastWebSocketResourceHandler extends BaseWebSocketHan
     protected BroadcastWebSocketResourceHandler(final WebSocketEventManagerFactory eventManagerFactory,
                                                 final WebSocketSessionRegistry webSocketSessionRegistry,
                                                 final String pathTemplate,
-                                                final boolean pingEnabled,
-                                                final long pingInterval) {
+                                                final boolean heartbeatEnabled,
+                                                final long heartbeatInterval,
+                                                final long heartbeatTimeout) {
 
-        super(eventManagerFactory, webSocketSessionRegistry, pathTemplate, pingEnabled, pingInterval);
+        super(eventManagerFactory, webSocketSessionRegistry, pathTemplate, heartbeatEnabled, heartbeatInterval, heartbeatTimeout);
     }
 
     @Override
@@ -54,17 +55,17 @@ public abstract class BroadcastWebSocketResourceHandler extends BaseWebSocketHan
                 .filter(webSocketMessage -> webSocketMessage.getType() == WebSocketMessage.Type.TEXT
                         || webSocketMessage.getType() == WebSocketMessage.Type.BINARY));
 
-        final Flux<WebSocketMessage> serverPings = Flux.interval(Duration.ofMillis(this.getPingInterval()))
+        final Flux<WebSocketMessage> serverPings = Flux.interval(Duration.ofSeconds(this.getHeartbeatInterval()))
                 .map(aLong -> session.pingMessage(dataBufferFactory -> session.bufferFactory().allocateBuffer(256)));
         final Flux<WebSocketMessage> pongs = this.pongMessages.asFlux();
         if (publisher != null) {
             final Flux<WebSocketMessage> messages = this.mapOutput(session, publisher);
-            return this.isPingEnabled() ? Flux.merge(messages, serverPings, pongs) : messages;
+            return this.isHeartbeatEnabled() ? Flux.merge(messages, serverPings, pongs) : messages;
         } else {
             this.run(webSocketSessionContext, socketMessageFlux);
         }
 
-        return this.isPingEnabled() ? Flux.merge(serverPings, pongs) : null;
+        return this.isHeartbeatEnabled() ? Flux.merge(serverPings, pongs) : null;
     }
 
 }
