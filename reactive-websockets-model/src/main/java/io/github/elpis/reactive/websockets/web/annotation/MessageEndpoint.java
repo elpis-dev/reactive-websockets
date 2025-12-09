@@ -10,11 +10,11 @@ import java.lang.annotation.*;
  * Indicates that an annotated class is a "Websocket Controller/Resource".
  *
  * <p>Annotation works in a similar way as {@link org.springframework.stereotype.Controller @Controller} but generally will be combined
- * with {@link SocketMapping @SocketMapping} annotation. Includes {@link Component @Component} to create a bean from annotated class
+ * with {@link OnMessage @SocketMapping} annotation. Includes {@link Component @Component} to create a bean from annotated class
  *
  * @author Phillip J. Fry
  * @see Component
- * @see SocketMapping
+ * @see OnMessage
  * @since 1.0.0
  */
 @Target(ElementType.TYPE)
@@ -22,12 +22,12 @@ import java.lang.annotation.*;
 @Controller
 @Documented
 @Inherited
-public @interface SocketController {
+public @interface MessageEndpoint {
 
     /**
-     * The base websocket path mapping (e.g. {@code "/home"}) for all the included {@link SocketMapping @SocketMapping} annotated methods.
-     * for all the {@link SocketMapping @SocketMapping} annotated methods - the final path would be resulted to concatenation of
-     * {@link SocketController @SocketController.value} and {@link SocketMapping#value() @SocketMapping.value}:
+     * The base websocket path mapping (e.g. {@code "/home"}) for all the included {@link OnMessage @SocketMapping} annotated methods.
+     * for all the {@link OnMessage @SocketMapping} annotated methods - the final path would be resulted to concatenation of
+     * {@link MessageEndpoint @MessageEndpoint.value} and {@link OnMessage#value() @SocketMapping.value}:
      *
      * @since 1.0.0
      */

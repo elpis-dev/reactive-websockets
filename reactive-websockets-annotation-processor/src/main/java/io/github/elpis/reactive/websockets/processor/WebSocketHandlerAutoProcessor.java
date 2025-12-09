@@ -7,8 +7,8 @@ import io.github.elpis.reactive.websockets.processor.exception.WebSocketProcesso
 import io.github.elpis.reactive.websockets.processor.resolver.SocketAnnotationResolverFactory;
 import io.github.elpis.reactive.websockets.util.TypeUtils;
 import io.github.elpis.reactive.websockets.web.annotation.Ping;
-import io.github.elpis.reactive.websockets.web.annotation.SocketController;
-import io.github.elpis.reactive.websockets.web.annotation.SocketMapping;
+import io.github.elpis.reactive.websockets.web.annotation.MessageEndpoint;
+import io.github.elpis.reactive.websockets.web.annotation.OnMessage;
 import org.reactivestreams.Publisher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -36,9 +36,9 @@ public class WebSocketHandlerAutoProcessor extends AbstractProcessor {
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-        for (Element element : roundEnv.getElementsAnnotatedWith(SocketController.class)) {
-            final SocketController socketController = element.getAnnotation(SocketController.class);
-            this.createMapping(element, socketController)
+        for (Element element : roundEnv.getElementsAnnotatedWith(MessageEndpoint.class)) {
+            final MessageEndpoint messageEndpoint = element.getAnnotation(MessageEndpoint.class);
+            this.createMapping(element, messageEndpoint)
                     .stream()
                     .map(this::getClassDefinition)
                     .map(classBuilder -> JavaFile.builder("io.github.elpis.reactive.websockets.generated",
@@ -55,13 +55,13 @@ public class WebSocketHandlerAutoProcessor extends AbstractProcessor {
         return true;
     }
 
-    private List<WebHandlerResourceDescriptor> createMapping(final Element element, final SocketController socketController) {
+    private List<WebHandlerResourceDescriptor> createMapping(final Element element, final MessageEndpoint messageEndpoint) {
         return element.getEnclosedElements()
                 .stream()
                 .filter(classElement -> classElement.getKind() == ElementKind.METHOD)
-                .filter(classElement -> classElement.getAnnotation(SocketMapping.class) != null)
+                .filter(classElement -> classElement.getAnnotation(OnMessage.class) != null)
                 .map(ExecutableElement.class::cast)
-                .map(method -> this.configure(socketController, method, element))
+                .map(method -> this.configure(messageEndpoint, method, element))
                 .toList();
     }
 
@@ -161,17 +161,17 @@ public class WebSocketHandlerAutoProcessor extends AbstractProcessor {
         throw new WebSocketProcessorException("Cannot find WebSocketHandler implementation for mode %s", mode);
     }
 
-    private WebHandlerResourceDescriptor configure(final SocketController resource,
+    private WebHandlerResourceDescriptor configure(final MessageEndpoint resource,
                                                    final ExecutableElement method,
                                                    final Element clazz) {
 
         final Element publisher = processingEnv.getElementUtils().getTypeElement(Publisher.class.getCanonicalName());
-        final SocketMapping socketMapping = method.getAnnotation(SocketMapping.class);
-        final Ping ping = socketMapping.ping();
-        final String pathTemplate = resource.value() + socketMapping.value();
+        final OnMessage onMessage = method.getAnnotation(OnMessage.class);
+        final Ping ping = onMessage.ping();
+        final String pathTemplate = resource.value() + onMessage.value();
 
         final WebHandlerResourceDescriptor descriptor = new WebHandlerResourceDescriptor(method, clazz,
-                method.getReturnType().getKind() != TypeKind.VOID, pathTemplate, socketMapping.mode(),
+                method.getReturnType().getKind() != TypeKind.VOID, pathTemplate, onMessage.mode(),
                 ping.enabled(), ping.value());
 
         final TypeMirror returnType = method.getReturnType();

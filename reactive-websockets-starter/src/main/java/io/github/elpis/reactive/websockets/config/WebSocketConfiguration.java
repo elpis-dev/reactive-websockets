@@ -8,7 +8,7 @@ import io.github.elpis.reactive.websockets.handler.route.WebSocketHandlerFunctio
 import io.github.elpis.reactive.websockets.handler.route.WebSocketHandlerFunctions;
 import io.github.elpis.reactive.websockets.handler.route.WebSocketHandlerRouteResolver;
 import io.github.elpis.reactive.websockets.session.WebSocketSessionRegistry;
-import io.github.elpis.reactive.websockets.web.annotation.SocketMapping;
+import io.github.elpis.reactive.websockets.web.annotation.OnMessage;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -56,7 +56,7 @@ public class WebSocketConfiguration {
     }
 
     /**
-     * {@link HandlerMapping} bean with all {@link SocketMapping @SocketMapping} resource.
+     * {@link HandlerMapping} bean with all {@link OnMessage @SocketMapping} resource.
      *
      * @return {@link HandlerMapping}
      * @since 1.0.0
