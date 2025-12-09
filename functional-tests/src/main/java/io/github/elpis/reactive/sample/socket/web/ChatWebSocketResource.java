@@ -22,7 +22,6 @@ import java.util.Map;
 public class ChatWebSocketResource {
     private static final Logger log = LoggerFactory.getLogger(ChatWebSocketResource.class);
 
-
     @OnMessage(value = "/listen/{chatId}", mode = Mode.BROADCAST)
     public Publisher<Map<String, Object>> handleOutbound(@RequestHeader("userName") final String userName,
                                                          @PathVariable(value = "chatId", required = false) final Long chatId,
