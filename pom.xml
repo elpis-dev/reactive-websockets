@@ -42,9 +42,9 @@
         <maven.compiler.target>17</maven.compiler.target>
         <maven.compiler.release>17</maven.compiler.release>
 
-        <maven.surefire.version>3.3.0</maven.surefire.version>
-        <maven.compiler.version>3.13.0</maven.compiler.version>
-        <maven.install.version>3.0.0-M1</maven.install.version>
+        <maven.surefire.version>3.5.4</maven.surefire.version>
+        <maven.compiler.version>3.14.1</maven.compiler.version>
+        <maven.install.version>3.1.4</maven.install.version>
 
         <jacoco-maven-plugin.version>0.8.14</jacoco-maven-plugin.version>
 
