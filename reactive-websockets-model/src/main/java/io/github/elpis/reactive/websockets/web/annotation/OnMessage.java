@@ -11,7 +11,18 @@ public @interface OnMessage {
 
     String value();
 
-    Mode mode();
+    /**
+     * @deprecated Mode is deprecated and will default to SHARED.
+     * It may be removed in future versions.
+     */
+    @Deprecated
+    Mode mode() default Mode.BROADCAST;
 
-    Ping ping() default @Ping(enabled = false);
+    /**
+     * Heartbeat configuration for this specific WebSocket connection.
+     * Takes precedence over {@link MessageEndpoint#heartbeat()} if specified.
+     *
+     * @since 1.0.0
+     */
+    Heartbeat heartbeat() default @Heartbeat(enabled = false);
 }

@@ -37,21 +37,24 @@ public abstract class BaseWebSocketHandler implements WebSocketHandler {
     private final WebSocketSessionRegistry sessionRegistry;
 
     private final String pathTemplate;
-    private final boolean pingEnabled;
-    private final long pingInterval;
+    private final boolean heartbeatEnabled;
+    private final long heartbeatInterval;
+    private final long heartbeatTimeout;
 
     protected BaseWebSocketHandler(final WebSocketEventManagerFactory eventManagerFactory,
                                    final WebSocketSessionRegistry sessionRegistry,
                                    final String pathTemplate,
-                                   final boolean pingEnabled,
-                                   final long pingInterval) {
+                                   final boolean heartbeatEnabled,
+                                   final long heartbeatInterval,
+                                   final long heartbeatTimeout) {
 
         this.eventManagerFactory = eventManagerFactory;
         this.sessionRegistry = sessionRegistry;
 
         this.pathTemplate = pathTemplate;
-        this.pingEnabled = pingEnabled;
-        this.pingInterval = pingInterval;
+        this.heartbeatEnabled = heartbeatEnabled;
+        this.heartbeatInterval = heartbeatInterval;
+        this.heartbeatTimeout = heartbeatTimeout;
     }
 
     @Override
@@ -187,16 +190,20 @@ public abstract class BaseWebSocketHandler implements WebSocketHandler {
                 .build();
     }
 
-    boolean isPingEnabled() {
-        return pingEnabled;
+    boolean isHeartbeatEnabled() {
+        return heartbeatEnabled;
     }
 
     public String getPathTemplate() {
         return pathTemplate;
     }
 
-    public long getPingInterval() {
-        return pingInterval;
+    public long getHeartbeatInterval() {
+        return heartbeatInterval;
+    }
+
+    public long getHeartbeatTimeout() {
+        return heartbeatTimeout;
     }
 
     protected WebSocketSessionRegistry getSessionRegistry() {

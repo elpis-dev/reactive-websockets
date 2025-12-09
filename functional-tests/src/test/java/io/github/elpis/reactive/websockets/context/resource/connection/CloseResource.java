@@ -12,14 +12,14 @@ import java.time.Duration;
 
 @MessageEndpoint("/close")
 public class CloseResource {
-    @OnMessage(value = "/normal", mode = Mode.SHARED)
+    @OnMessage(value = "/normal", mode = Mode.BROADCAST)
     public void normal(@SessionAttribute final ReactiveWebSocketSession session) {
         Mono.delay(Duration.ofSeconds(5))
                 .then(Mono.fromRunnable(session::close))
                 .subscribe();
     }
 
-    @OnMessage(value = "/goingAway", mode = Mode.SHARED)
+    @OnMessage(value = "/goingAway", mode = Mode.BROADCAST)
     public void goingAway(@SessionAttribute final ReactiveWebSocketSession session) {
         Mono.delay(Duration.ofSeconds(5))
                 .then(Mono.fromRunnable(() -> session.close(CloseStatus.GOING_AWAY)))

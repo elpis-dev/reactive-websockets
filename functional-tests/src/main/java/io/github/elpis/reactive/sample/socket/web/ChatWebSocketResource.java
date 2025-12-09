@@ -23,7 +23,7 @@ public class ChatWebSocketResource {
     private static final Logger log = LoggerFactory.getLogger(ChatWebSocketResource.class);
 
 
-    @OnMessage(value = "/listen/{chatId}", mode = Mode.SHARED)
+    @OnMessage(value = "/listen/{chatId}", mode = Mode.BROADCAST)
     public Publisher<Map<String, Object>> handleOutbound(@RequestHeader("userName") final String userName,
                                                          @PathVariable(value = "chatId", required = false) final Long chatId,
                                                          @RequestParam("last") final Integer lastMessages) {
@@ -33,7 +33,7 @@ public class ChatWebSocketResource {
                 .map(i -> Map.of("chatId", chatId, "message", i, "userName", userName));
     }
 
-    @OnMessage(value = "/listen/me/{chatId}", mode = Mode.SHARED)
+    @OnMessage(value = "/listen/me/{chatId}", mode = Mode.BROADCAST)
     public Publisher<Map<String, Object>> handleMulti(@RequestHeader("userName") final String userName,
                                                       @PathVariable("chatId") final Long chatId,
                                                       @RequestBody final Flux<WebSocketMessage> messageFlux) {
@@ -44,7 +44,7 @@ public class ChatWebSocketResource {
                 .map(socketMessage -> Map.of("chatId", chatId, "message", socketMessage.getPayloadAsText(), "userName", userName));
     }
 
-    @OnMessage(value = "/listen/chat/{chatId}", mode = Mode.SHARED)
+    @OnMessage(value = "/listen/chat/{chatId}", mode = Mode.BROADCAST)
     public Publisher<Object> handleMulti() {
         return Mono.just("abc")
                 .delayElement(Duration.ofSeconds(1))
@@ -52,7 +52,7 @@ public class ChatWebSocketResource {
                 .onErrorResume(throwable -> Mono.just(CloseStatus.SERVER_ERROR.withReason(throwable.getMessage())));
     }
 
-    @OnMessage(value = "/listen/me", mode = Mode.SHARED)
+    @OnMessage(value = "/listen/me", mode = Mode.BROADCAST)
     public void handle(@RequestBody final Flux<WebSocketMessage> webSocketMessages) {
         webSocketMessages.map(WebSocketMessage::getPayloadAsText)
                 .subscribe(log::info);

@@ -17,17 +17,17 @@ import java.io.InputStream;
 public class MessageBodySocketResource {
     private static final Logger log = LoggerFactory.getLogger(MessageBodySocketResource.class);
 
-    @OnMessage(value = "/post", mode = Mode.SHARED)
+    @OnMessage(value = "/post", mode = Mode.BROADCAST)
     public void receiveDefaultMessage(@RequestBody final Flux<WebSocketMessage> webSocketMessageFlux) {
         webSocketMessageFlux.subscribe(message -> log.info("Received message: " + message.getPayloadAsText()));
     }
 
-    @OnMessage(value = "/post/binary", mode = Mode.SHARED)
+    @OnMessage(value = "/post/binary", mode = Mode.BROADCAST)
     public Flux<byte[]> sendBinaryMessage() {
         return Flux.just("Binary".getBytes());
     }
 
-    @OnMessage(value = "/post/stream", mode = Mode.SHARED)
+    @OnMessage(value = "/post/stream", mode = Mode.BROADCAST)
     public Mono<InputStream> sendStreamMessage() {
         return Mono.just(new ByteArrayInputStream("Stream".getBytes()));
     }

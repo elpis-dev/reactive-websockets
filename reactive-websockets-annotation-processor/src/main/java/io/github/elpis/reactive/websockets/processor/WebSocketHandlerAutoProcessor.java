@@ -6,7 +6,7 @@ import io.github.elpis.reactive.websockets.session.WebSocketSessionContext;
 import io.github.elpis.reactive.websockets.processor.exception.WebSocketProcessorException;
 import io.github.elpis.reactive.websockets.processor.resolver.SocketAnnotationResolverFactory;
 import io.github.elpis.reactive.websockets.util.TypeUtils;
-import io.github.elpis.reactive.websockets.web.annotation.Ping;
+import io.github.elpis.reactive.websockets.web.annotation.Heartbeat;
 import io.github.elpis.reactive.websockets.web.annotation.MessageEndpoint;
 import io.github.elpis.reactive.websockets.web.annotation.OnMessage;
 import org.reactivestreams.Publisher;
@@ -76,8 +76,8 @@ public class WebSocketHandlerAutoProcessor extends AbstractProcessor {
                 .addParameter(ClassName.bestGuess("io.github.elpis.reactive.websockets.event.manager.WebSocketEventManagerFactory"), "eventFactory")
                 .addParameter(ClassName.bestGuess("io.github.elpis.reactive.websockets.session.WebSocketSessionRegistry"), "sessionRegistry")
                 .addParameter(TypeName.get(descriptor.clazz().asType()), "socketResource")
-                .addStatement("super(eventFactory, sessionRegistry, $S, $L, $L)", descriptor.pathTemplate(),
-                        descriptor.pingEnabled(), descriptor.pingInterval())
+                .addStatement("super(eventFactory, sessionRegistry, $S, $L, $L, $L)", descriptor.pathTemplate(),
+                        descriptor.heartbeatEnabled(), descriptor.heartbeatInterval(), descriptor.heartbeatTimeout())
                 .addStatement("this.socketResource = socketResource")
                 .build();
 
@@ -154,7 +154,7 @@ public class WebSocketHandlerAutoProcessor extends AbstractProcessor {
 
     private String getHandlerType(final Mode mode) {
         switch (mode) {
-            case SHARED:
+            case BROADCAST:
                 return "io.github.elpis.reactive.websockets.handler.BroadcastWebSocketResourceHandler";
         }
 
@@ -167,12 +167,39 @@ public class WebSocketHandlerAutoProcessor extends AbstractProcessor {
 
         final Element publisher = processingEnv.getElementUtils().getTypeElement(Publisher.class.getCanonicalName());
         final OnMessage onMessage = method.getAnnotation(OnMessage.class);
-        final Ping ping = onMessage.ping();
         final String pathTemplate = resource.value() + onMessage.value();
+
+        // Heartbeat precedence logic:
+        // 1. If @OnMessage has @Heartbeat with enabled=true, use it
+        // 2. Else if @MessageEndpoint has @Heartbeat with enabled=true, use it
+        // 3. Else heartbeat is disabled
+        final Heartbeat onMessageHeartbeat = onMessage.heartbeat();
+        final Heartbeat endpointHeartbeat = resource.heartbeat();
+
+        final boolean heartbeatEnabled;
+        final long heartbeatInterval;
+        final long heartbeatTimeout;
+
+        if (onMessageHeartbeat.enabled()) {
+            // @OnMessage heartbeat takes precedence
+            heartbeatEnabled = true;
+            heartbeatInterval = onMessageHeartbeat.interval();
+            heartbeatTimeout = onMessageHeartbeat.timeout();
+        } else if (endpointHeartbeat.enabled()) {
+            // Use @MessageEndpoint heartbeat if @OnMessage doesn't have it
+            heartbeatEnabled = true;
+            heartbeatInterval = endpointHeartbeat.interval();
+            heartbeatTimeout = endpointHeartbeat.timeout();
+        } else {
+            // No heartbeat configured
+            heartbeatEnabled = false;
+            heartbeatInterval = 30; // default values (not used when disabled)
+            heartbeatTimeout = 60;
+        }
 
         final WebHandlerResourceDescriptor descriptor = new WebHandlerResourceDescriptor(method, clazz,
                 method.getReturnType().getKind() != TypeKind.VOID, pathTemplate, onMessage.mode(),
-                ping.enabled(), ping.value());
+                heartbeatEnabled, heartbeatInterval, heartbeatTimeout);
 
         final TypeMirror returnType = method.getReturnType();
 
@@ -188,8 +215,8 @@ public class WebSocketHandlerAutoProcessor extends AbstractProcessor {
     }
 
     private record WebHandlerResourceDescriptor(ExecutableElement method, Element clazz, boolean useReturn,
-                                                String pathTemplate, Mode mode, boolean pingEnabled,
-                                                long pingInterval) {
+                                                String pathTemplate, Mode mode, boolean heartbeatEnabled,
+                                                long heartbeatInterval, long heartbeatTimeout) {
 
         private String getPostfix() {
             final String uniqueKey = pathTemplate + "." + clazz.getSimpleName().toString() +

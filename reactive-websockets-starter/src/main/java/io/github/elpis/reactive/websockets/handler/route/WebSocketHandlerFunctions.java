@@ -21,36 +21,38 @@ public final class WebSocketHandlerFunctions {
                                                       final Mode mode,
                                                       final WebSocketMessageHandlerFunction<T> handlerFunction) {
 
-        return handle(path, mode, false, 0L, handlerFunction);
+        return handle(path, mode, false, 30L, 60L, handlerFunction);
     }
 
     public static <T> WebSocketHandlerFunction handle(final String path,
                                                       final Mode mode,
-                                                      final boolean pingEnabled,
-                                                      final long pingInterval,
+                                                      final boolean heartbeatEnabled,
+                                                      final long heartbeatInterval,
+                                                      final long heartbeatTimeout,
                                                       final WebSocketMessageHandlerFunction<T> handlerFunction) {
 
-        return new HandleRouterFunction<>(path, pingEnabled, pingInterval, mode, handlerFunction);
+        return new HandleRouterFunction<>(path, heartbeatEnabled, heartbeatInterval, heartbeatTimeout, mode, handlerFunction);
     }
 
     public static WebSocketHandlerFunction handle(final String path,
                                                   final Mode mode,
                                                   final WebSocketVoidHandlerFunction handlerFunction) {
 
-        return handle(path, mode, false, 0L, handlerFunction);
+        return handle(path, mode, false, 30L, 60L, handlerFunction);
     }
 
     public static WebSocketHandlerFunction handle(final String path,
                                                   final Mode mode,
-                                                  final boolean pingEnabled,
-                                                  final long pingInterval,
+                                                  final boolean heartbeatEnabled,
+                                                  final long heartbeatInterval,
+                                                  final long heartbeatTimeout,
                                                   final WebSocketVoidHandlerFunction handlerFunction) {
 
-        return new VoidRouterFunction(path, pingEnabled, pingInterval, mode, handlerFunction);
+        return new VoidRouterFunction(path, heartbeatEnabled, heartbeatInterval, heartbeatTimeout, mode, handlerFunction);
     }
 
     public static WebSocketHandlerFunction empty() {
-        return new DefaultRouterFunction(null, false, -1L, null) {
+        return new DefaultRouterFunction(null, false, -1L, -1L, null) {
             @Override
             public BaseWebSocketHandler register(final WebSocketEventManagerFactory eventManagerFactory,
                                                  final WebSocketSessionRegistry sessionRegistry) {
@@ -61,20 +63,23 @@ public final class WebSocketHandlerFunctions {
 
     abstract static class DefaultRouterFunction implements WebSocketHandlerFunction {
         final String path;
-        final boolean pingEnabled;
-        final long pingInterval;
+        final boolean heartbeatEnabled;
+        final long heartbeatInterval;
+        final long heartbeatTimeout;
         final Mode mode;
 
         WebSocketHandlerFunction next = null;
 
         private DefaultRouterFunction(String path,
-                                      boolean pingEnabled,
-                                      long pingInterval,
+                                      boolean heartbeatEnabled,
+                                      long heartbeatInterval,
+                                      long heartbeatTimeout,
                                       Mode mode) {
 
             this.path = path;
-            this.pingEnabled = pingEnabled;
-            this.pingInterval = pingInterval;
+            this.heartbeatEnabled = heartbeatEnabled;
+            this.heartbeatInterval = heartbeatInterval;
+            this.heartbeatTimeout = heartbeatTimeout;
             this.mode = mode;
         }
 
@@ -92,12 +97,13 @@ public final class WebSocketHandlerFunctions {
         private final WebSocketMessageHandlerFunction<U> handlerFunction;
 
         private HandleRouterFunction(String path,
-                                     boolean pingEnabled,
-                                     long pingInterval,
+                                     boolean heartbeatEnabled,
+                                     long heartbeatInterval,
+                                     long heartbeatTimeout,
                                      Mode mode,
                                      WebSocketMessageHandlerFunction<U> handlerFunction) {
 
-            super(path, pingEnabled, pingInterval, mode);
+            super(path, heartbeatEnabled, heartbeatInterval, heartbeatTimeout, mode);
             this.handlerFunction = handlerFunction;
         }
 
@@ -106,8 +112,8 @@ public final class WebSocketHandlerFunctions {
                                              final WebSocketSessionRegistry sessionRegistry) {
 
             return switch (this.mode) {
-                case SHARED ->
-                        new BroadcastWebSocketResourceHandler(eventManagerFactory, sessionRegistry, path, pingEnabled, pingInterval) {
+                case BROADCAST ->
+                        new BroadcastWebSocketResourceHandler(eventManagerFactory, sessionRegistry, path, heartbeatEnabled, heartbeatInterval, heartbeatTimeout) {
                             @Override
                             public Publisher<?> apply(WebSocketSessionContext context, Flux<WebSocketMessage> messages) {
                                 return handlerFunction.apply(context, messages);
@@ -122,12 +128,13 @@ public final class WebSocketHandlerFunctions {
         private final WebSocketVoidHandlerFunction handlerFunction;
 
         private VoidRouterFunction(String path,
-                                   boolean pingEnabled,
-                                   long pingInterval,
+                                   boolean heartbeatEnabled,
+                                   long heartbeatInterval,
+                                   long heartbeatTimeout,
                                    Mode mode,
                                    WebSocketVoidHandlerFunction handlerFunction) {
 
-            super(path, pingEnabled, pingInterval, mode);
+            super(path, heartbeatEnabled, heartbeatInterval, heartbeatTimeout, mode);
             this.handlerFunction = handlerFunction;
         }
 
@@ -135,8 +142,8 @@ public final class WebSocketHandlerFunctions {
         public BaseWebSocketHandler register(final WebSocketEventManagerFactory eventManagerFactory,
                                              final WebSocketSessionRegistry sessionRegistry) {
             return switch (this.mode) {
-                case SHARED ->
-                        new BroadcastWebSocketResourceHandler(eventManagerFactory, sessionRegistry, path, pingEnabled, pingInterval) {
+                case BROADCAST ->
+                        new BroadcastWebSocketResourceHandler(eventManagerFactory, sessionRegistry, path, heartbeatEnabled, heartbeatInterval, heartbeatTimeout) {
                             @Override
                             public void run(WebSocketSessionContext context, Flux<WebSocketMessage> messages) {
                                 handlerFunction.accept(context, messages);

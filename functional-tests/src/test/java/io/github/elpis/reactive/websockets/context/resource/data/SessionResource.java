@@ -12,17 +12,17 @@ import java.util.Optional;
 @MessageEndpoint("/session")
 public class SessionResource {
 
-    @OnMessage(value = "/nonRequired", mode = Mode.SHARED)
+    @OnMessage(value = "/nonRequired", mode = Mode.BROADCAST)
     public Mono<String> nonRequired(@SessionAttribute(required = false) final ReactiveWebSocketSession session) {
         return Mono.just(session.getSessionId());
     }
 
-    @OnMessage(value = "/required", mode = Mode.SHARED)
+    @OnMessage(value = "/required", mode = Mode.BROADCAST)
     public Mono<String> required(@SessionAttribute final ReactiveWebSocketSession session) {
         return Mono.just(session.getSessionId());
     }
 
-    @OnMessage(value = "/optional", mode = Mode.SHARED)
+    @OnMessage(value = "/optional", mode = Mode.BROADCAST)
     public Mono<String> optional(@SessionAttribute final Optional<ReactiveWebSocketSession> session) {
         return Mono.justOrEmpty(session)
                 .map(ReactiveWebSocketSession::getSessionId);
