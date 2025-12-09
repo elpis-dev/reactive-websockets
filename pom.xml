@@ -42,20 +42,18 @@
         <maven.compiler.target>17</maven.compiler.target>
         <maven.compiler.release>17</maven.compiler.release>
 
-        <maven.surefire.version>3.3.0</maven.surefire.version>
-        <maven.compiler.version>3.13.0</maven.compiler.version>
-        <maven.install.version>3.0.0-M1</maven.install.version>
+        <maven.surefire.version>3.5.4</maven.surefire.version>
+        <maven.compiler.version>3.14.1</maven.compiler.version>
+        <maven.install.version>3.1.4</maven.install.version>
 
-        <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
+        <jacoco-maven-plugin.version>0.8.14</jacoco-maven-plugin.version>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <spring.boot.version>3.3.1</spring.boot.version>
-        <spring-framework.version>6.1.9</spring-framework.version>
-        <spring-security.version>6.3.1</spring-security.version>
+        <spring.boot.version>3.5.8</spring.boot.version>
 
-        <log4j2.version>2.23.1</log4j2.version>
+        <log4j2.version>2.25.2</log4j2.version>
 
         <reactive-websockets.version>1.0.0-alpha</reactive-websockets.version>
     </properties>
@@ -83,21 +81,6 @@
                 <version>${spring.boot.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-webflux</artifactId>
-                <version>${spring-framework.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework.security</groupId>
-                <artifactId>spring-security-core</artifactId>
-                <version>${spring-security.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework.security</groupId>
-                <artifactId>spring-security-web</artifactId>
-                <version>${spring-security.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

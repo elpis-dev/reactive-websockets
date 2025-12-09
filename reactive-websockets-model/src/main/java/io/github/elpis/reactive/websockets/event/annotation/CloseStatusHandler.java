@@ -11,11 +11,11 @@ import java.lang.annotation.*;
  * <p>Annotation works in a similar way as {@link org.springframework.web.bind.annotation.ControllerAdvice @ControllerAdvice} is used for exception handling.
  * For effective use should be combined with {@link SessionCloseStatus @SessionCloseStatus} and {@link EventSelector @EventSelector} annotations. Includes {@link Component @Component} to create a bean from annotated class
  *
- * @author Alex Zharkov
+ * @author Phillip J. Fry
  * @see SessionCloseStatus
  * @see EventSelector
  * @see Component
- * @since 0.1.0
+ * @since 1.0.0
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)

@@ -30,9 +30,9 @@ import static java.util.Objects.nonNull;
 /**
  * Abstract implementation of {@link HandshakeWebSocketService} to support generic handshake process.
  *
- * @author Alex Zharkov
+ * @author Phillip J. Fry
  * @see HandshakeWebSocketService
- * @since 0.1.0
+ * @since 1.0.0
  */
 public abstract class SocketHandshakeService extends HandshakeWebSocketService {
     protected SocketHandshakeService(final RequestUpgradeStrategy upgradeStrategy) {
@@ -43,7 +43,7 @@ public abstract class SocketHandshakeService extends HandshakeWebSocketService {
      * Provides custom {@link WebExceptionHandler} to process exceptions and server response when handshake.
      *
      * @return any {@link WebExceptionHandler} implementation.
-     * @since 0.1.0
+     * @since 1.0.0
      */
     public WebExceptionHandler errorHandler() {
         return new ResponseStatusExceptionHandler();
@@ -52,7 +52,7 @@ public abstract class SocketHandshakeService extends HandshakeWebSocketService {
     /**
      * Provides custom authentication object: either any {@link Principal} or {@link org.springframework.security.core.Authentication} or any {@link Object}.
      * <p><strong>NOTE: </strong>Any {@link Object} except {@link Principal} or {@link org.springframework.security.core.Authentication} will be wrapped with {@link WebSocketPrincipal}.
-     * <pre>
+     * <pre>{@code
      * public Mono<?> handshake(final ServerWebExchange exchange) {
      *    return exchange.getPrincipal();
      * }
@@ -69,11 +69,11 @@ public abstract class SocketHandshakeService extends HandshakeWebSocketService {
      *    final String token = exchange.getRequest().getHeaders().get("Authorization").get(0);
      *    return authenticationService.authenticate(token);
      * }
-     * </pre>
+     * }</pre>
      *
      * @param exchange server exchange instance
      * @return {@link Mono}
-     * @since 0.1.0
+     * @since 1.0.0
      */
     public Mono<?> handshake(final ServerWebExchange exchange) {
         return Mono.just(new Anonymous());
@@ -99,7 +99,7 @@ public abstract class SocketHandshakeService extends HandshakeWebSocketService {
      * </pre>
      *
      * @return any {@link ServerWebExchangeMatcher} implementation
-     * @since 0.1.0
+     * @since 1.0.0
      */
     public ServerWebExchangeMatcher exchangeMatcher() {
         return ServerWebExchangeMatchers.anyExchange();
@@ -120,7 +120,7 @@ public abstract class SocketHandshakeService extends HandshakeWebSocketService {
      * </ul>
      *
      * @return {@link Mono Mono<Void>}
-     * @since 0.1.0
+     * @since 1.0.0
      */
     @Override
     public Mono<Void> handleRequest(final ServerWebExchange exchange, final WebSocketHandler handler) {
@@ -140,7 +140,7 @@ public abstract class SocketHandshakeService extends HandshakeWebSocketService {
      * Creates new {@link Builder} instance.
      *
      * @return new {@link Builder}
-     * @since 0.1.0
+     * @since 1.0.0
      */
     public static Builder builder() {
         return new Builder();
@@ -168,7 +168,7 @@ public abstract class SocketHandshakeService extends HandshakeWebSocketService {
          *
          * @param errorHandler the {@link WebExceptionHandler} supplier
          * @return {@link Builder}
-         * @since 0.1.0
+         * @since 1.0.0
          */
         public Builder errorHandler(Supplier<WebExceptionHandler> errorHandler) {
             this.errorHandler = errorHandler;
@@ -187,7 +187,7 @@ public abstract class SocketHandshakeService extends HandshakeWebSocketService {
          *
          * @param handshakeWithWebFilter function that processes request with {@link WebFilterChain}
          * @return {@link Builder}
-         * @since 0.1.0
+         * @since 1.0.0
          */
         public Builder handshake(BiFunction<ServerWebExchange, WebFilterChain, Mono<?>> handshakeWithWebFilter) {
             this.handshakeWithWebFilter = handshakeWithWebFilter;
@@ -215,7 +215,7 @@ public abstract class SocketHandshakeService extends HandshakeWebSocketService {
          * @param handshakeWithWebFilter function that processes request with {@link WebFilterChain}
          * @param principalExtractor     function that fetches a principal object from request
          * @return {@link Builder}
-         * @since 0.1.0
+         * @since 1.0.0
          */
         public Builder handshake(BiFunction<ServerWebExchange, WebFilterChain, Mono<?>> handshakeWithWebFilter,
                                  Function<ServerWebExchange, Mono<?>> principalExtractor) {
@@ -237,7 +237,7 @@ public abstract class SocketHandshakeService extends HandshakeWebSocketService {
          *
          * @param handshakeWithServerWebExchange function that processes request
          * @return {@link Builder}
-         * @since 0.1.0
+         * @since 1.0.0
          */
         public Builder handshake(Function<ServerWebExchange, Mono<?>> handshakeWithServerWebExchange) {
             this.handshakeWithServerWebExchange = handshakeWithServerWebExchange;
@@ -255,7 +255,7 @@ public abstract class SocketHandshakeService extends HandshakeWebSocketService {
          *
          * @param exchangeMatcher {@link ServerWebExchangeMatcher}
          * @return {@link Builder}
-         * @since 0.1.0
+         * @since 1.0.0
          */
         public Builder exchangeMatcher(ServerWebExchangeMatcher exchangeMatcher) {
             this.exchangeMatcher = exchangeMatcher;
@@ -268,7 +268,7 @@ public abstract class SocketHandshakeService extends HandshakeWebSocketService {
          *
          * @param handleRequest {@link TriFunction} synonym of {@link SocketHandshakeService#handleRequest(ServerWebExchange, WebSocketHandler)}
          * @return {@link Builder}
-         * @since 0.1.0
+         * @since 1.0.0
          */
         public Builder handleRequest(TriFunction<SocketHandshakeService, ServerWebExchange, WebSocketHandler, Mono<Void>> handleRequest) {
             this.requestHandler = handleRequest;
@@ -287,7 +287,7 @@ public abstract class SocketHandshakeService extends HandshakeWebSocketService {
          * </ul>
          *
          * @return {@link SocketHandshakeService}
-         * @since 0.1.0
+         * @since 1.0.0
          */
         public SocketHandshakeService build(final RequestUpgradeStrategy requestUpgradeStrategy) {
             return new SocketHandshakeService(requestUpgradeStrategy) {

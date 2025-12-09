@@ -1,0 +1,80 @@
+---
+engines:
+  # Static analysis tools for Java
+  spotbugs:
+    enabled: true
+    exclude_paths:
+      - "**/test/**"
+      - "**/generated/**"
+
+  pmd:
+    enabled: true
+    exclude_paths:
+      - "**/test/**"
+      - "**/generated/**"
+
+  checkstyle:
+    enabled: true
+    exclude_paths:
+      - "**/test/**"
+      - "**/generated/**"
+      - "**/docs/**"
+      - "**/.github/**"
+
+# Exclude patterns - files/directories to ignore
+exclude_paths:
+  - "src/test/**"
+  - "src/main/resources/**"
+  - "**/target/**"
+  - "**/build/**"
+  - "**/*.min.js"
+  - "**/vendor/**"
+  - "**/node_modules/**"
+  - "**/*.sql"
+  - "**/*.xml"
+  - "**/*.yml"
+  - "**/*.yaml"
+  - "**/*.properties"
+  - "**/generated/**"
+  - "**/*Test.java"
+  - "**/*Tests.java"
+  - "**/docs/**"
+  - "**/.github/**"
+
+# Code coverage settings
+coverage:
+  enabled: true
+  exclude_paths:
+    - "src/test/**"
+    - "**/config/**"
+    - "**/dto/**"
+    - "**/entity/**"
+    - "**/model/**"
+
+# Duplication detection
+duplication:
+  enabled: true
+  exclude_paths:
+    - "src/test/**"
+  config:
+    languages:
+      - java:
+          mass_threshold: 70
+          min_tokens: 100
+
+# Code patterns to ignore specific issues
+ignore:
+  # PMD rules
+  - "PMD.UseUtilityClass"
+  - "PMD.BeanMembersShouldSerialize"
+  - "PMD.DataflowAnomalyAnalysis"
+
+  # SpotBugs rules (if needed)
+  # - "SpotBugs.EI_EXPOSE_REP"
+  # - "SpotBugs.EI_EXPOSE_REP2"
+
+# File extensions to analyze
+languages:
+  java:
+    extensions:
+      - ".java"

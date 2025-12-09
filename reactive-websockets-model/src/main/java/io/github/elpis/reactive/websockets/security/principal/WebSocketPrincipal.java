@@ -15,9 +15,9 @@ import java.security.Principal;
  * }
  * </pre>
  *
- * @author Alex Zharkov
+ * @author Phillip J. Fry
  * @see Principal
- * @since 0.1.0
+ * @since 1.0.0
  */
 public class WebSocketPrincipal<T> implements Principal, Serializable {
     private final T authentication;

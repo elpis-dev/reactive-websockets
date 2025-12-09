@@ -18,9 +18,9 @@ import org.springframework.web.reactive.socket.server.support.WebSocketHandlerAd
 /**
  * Configuration class that setups a basic security principles for websocket connection handshake.
  *
- * @author Alex Zharkov
+ * @author Phillip J. Fry
  * @see org.springframework.context.annotation.Configuration
- * @since 0.1.0
+ * @since 1.0.0
  */
 @Lazy
 @Configuration
@@ -30,7 +30,7 @@ public class WebSocketSecurityConfiguration {
      * Creates a new {@link Bean @Bean} of type {@link WebSocketHandlerAdapter} with custom {@link SocketHandshakeService} if available.
      *
      * @param socketHandshakeService custom implemented {@link SocketHandshakeService} bean
-     * @since 0.1.0
+     * @since 1.0.0
      */
     @Bean
     @ConditionalOnBean(SocketHandshakeService.class)
@@ -41,7 +41,7 @@ public class WebSocketSecurityConfiguration {
     /**
      * Creates a new {@link Bean @Bean} of type {@link WebSocketHandlerAdapter} with default {@link org.springframework.web.reactive.socket.server.support.HandshakeWebSocketService HandshakeWebSocketService} if custom {@link SocketHandshakeService} is not found.
      *
-     * @since 0.1.0
+     * @since 1.0.0
      */
     @Bean
     @ConditionalOnMissingBean(SocketHandshakeService.class)
@@ -60,7 +60,7 @@ public class WebSocketSecurityConfiguration {
      *          excludeWebFilterChains: true
      * </pre>
      *
-     * @since 0.1.0
+     * @since 1.0.0
      */
     @Bean("defaultWebSocketFilterChain")
     @ConditionalOnProperty(value = "spring.reactive.websocket.security.excludeWebFilterChains", havingValue = "true")

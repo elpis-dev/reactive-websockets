@@ -8,9 +8,9 @@ import java.lang.annotation.*;
 /**
  * Imports {@link WebSocketConfiguration} class
  *
- * @author Alex Zharkov
+ * @author Phillip J. Fry
  * @see org.springframework.context.annotation.Configuration
- * @since 0.1.0
+ * @since 1.0.0
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)

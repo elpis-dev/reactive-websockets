@@ -29,9 +29,9 @@ import java.util.stream.Stream;
 /**
  * Configuration class that setups all the websocket endpoints and processes annotated methods.
  *
- * @author Alex Zharkov
+ * @author Phillip J. Fry
  * @see org.springframework.context.annotation.Configuration
- * @since 0.1.0
+ * @since 1.0.0
  */
 @SuppressWarnings("SpringComponentScan")
 @Configuration
@@ -59,7 +59,7 @@ public class WebSocketConfiguration {
      * {@link HandlerMapping} bean with all {@link SocketMapping @SocketMapping} resource.
      *
      * @return {@link HandlerMapping}
-     * @since 0.1.0
+     * @since 1.0.0
      */
     @Bean
     public HandlerMapping handlerMapping(final List<BaseWebSocketHandler> annotatedHandlers,

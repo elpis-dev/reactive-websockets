@@ -5,9 +5,9 @@ import java.security.Principal;
 /**
  * Default {@link Principal} implementation that is put to security context when anonymous request is allowed.
  *
- * @author Alex Zharkov
+ * @author Phillip J. Fry
  * @see Principal
- * @since 0.1.0
+ * @since 1.0.0
  */
 public class Anonymous implements Principal {
 
