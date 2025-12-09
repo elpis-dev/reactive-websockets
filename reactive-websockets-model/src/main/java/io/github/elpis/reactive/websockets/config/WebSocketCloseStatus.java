@@ -3,9 +3,9 @@ package io.github.elpis.reactive.websockets.config;
 /**
  * Static definition of common websocket close status codes. Synonym of {@link org.springframework.web.reactive.socket.CloseStatus CloseStatus}.
  *
- * @author Alex Zharkov
+ * @author Phillip J. Fry
  * @see org.springframework.web.reactive.socket.CloseStatus
- * @since 0.1.0
+ * @since 1.0.0
  */
 public enum WebSocketCloseStatus {
 

@@ -360,7 +360,7 @@ public class WebSocketEventConfiguration {
  * <p>This registry stores all active {@link ReactiveWebSocketSession} instances and provides
  * methods to retrieve, save, and remove sessions. Thread-safe via {@link ConcurrentHashMap}.
  *
- * @author Alex Zharkov
+ * @author Phillip J. Fry
  * @see ReactiveWebSocketSession
  * @since 1.0.0
  */

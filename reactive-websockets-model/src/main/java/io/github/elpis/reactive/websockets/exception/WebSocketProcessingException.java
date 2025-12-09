@@ -3,8 +3,8 @@ package io.github.elpis.reactive.websockets.exception;
 /**
  * Exception class used generally for pre-launch Spring configuration processes failures.
  *
- * @author Alex Zharkov
- * @since 0.1.0
+ * @author Phillip J. Fry
+ * @since 1.0.0
  */
 public class WebSocketProcessingException extends RuntimeException {
 

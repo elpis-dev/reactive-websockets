@@ -9,10 +9,10 @@ import reactor.util.concurrent.Queues;
 /**
  * Abstract implementation of {@link WebSocketEventManager} that uses {@code Sinks.many().multicast().onBackpressureBuffer()} as event queue.
  *
- * @author Alex Zharkov
+ * @author Phillip J. Fry
  * @see Sinks#many()
  * @see WebSocketEventManager
- * @since 0.1.0
+ * @since 1.0.0
  */
 public abstract class MulticastEventManager<T extends WebSocketEvent<?>> implements WebSocketEventManager<T> {
     private final Sinks.Many<T> sink;
@@ -20,7 +20,7 @@ public abstract class MulticastEventManager<T extends WebSocketEvent<?>> impleme
     /**
      * Sets sink with queue of size {@link Queues#SMALL_BUFFER_SIZE}.
      *
-     * @since 0.1.0
+     * @since 1.0.0
      */
     protected MulticastEventManager() {
         this(Queues.SMALL_BUFFER_SIZE);
@@ -30,7 +30,7 @@ public abstract class MulticastEventManager<T extends WebSocketEvent<?>> impleme
      * Sets sink with queue of custom size.
      *
      * @param eventQueueSize custom queue size
-     * @since 0.1.0
+     * @since 1.0.0
      */
     protected MulticastEventManager(final int eventQueueSize) {
         sink = Sinks.many().multicast().onBackpressureBuffer(eventQueueSize);
@@ -39,7 +39,7 @@ public abstract class MulticastEventManager<T extends WebSocketEvent<?>> impleme
     /**
      * See {@link WebSocketEventManager#fire(WebSocketEvent)}
      *
-     * @since 0.1.0
+     * @since 1.0.0
      */
     @Override
     public Sinks.EmitResult fire(final T t) {
@@ -49,7 +49,7 @@ public abstract class MulticastEventManager<T extends WebSocketEvent<?>> impleme
     /**
      * See {@link WebSocketEventManager#listen()}
      *
-     * @since 0.1.0
+     * @since 1.0.0
      */
     @Override
     public Publisher<T> listen() {

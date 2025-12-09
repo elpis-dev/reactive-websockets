@@ -33,10 +33,10 @@ import java.util.stream.Stream;
 /**
  * Configuration support {@link ClientSessionClosedEvent} handling for {@link CloseStatusHandler @CloseStatusHandler} annotated beans.
  *
- * @author Alex Zharkov
+ * @author Phillip J. Fry
  * @see org.springframework.context.annotation.Configuration
  * @see CloseStatusHandler
- * @since 0.1.0
+ * @since 1.0.0
  */
 @Configuration
 public class ClosedConnectionHandlerConfiguration {

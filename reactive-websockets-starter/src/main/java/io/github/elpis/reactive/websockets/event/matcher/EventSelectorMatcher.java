@@ -7,11 +7,11 @@ import io.github.elpis.reactive.websockets.event.model.WebSocketEvent;
 /**
  * Extension of {@link EventSelectorProcessor} with {@link Boolean} result returned by default.
  *
- * @author Alex Zharkov
+ * @author Phillip J. Fry
  * @see EventSelectorProcessor
  * @see WebSocketEvent
  * @see EventSelector
- * @since 0.1.0
+ * @since 1.0.0
  */
 public interface EventSelectorMatcher<E extends WebSocketEvent<?>> extends EventSelectorProcessor<E, Boolean> {
 }

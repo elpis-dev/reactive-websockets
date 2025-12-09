@@ -14,10 +14,10 @@ import java.util.function.Function;
  * @param <U> the type of the second argument to the function
  * @param <V> the type of the third argument to the function
  * @param <R> the type of the result of the function
- * @author Alex Zharkov
+ * @author Phillip J. Fry
  * @see Function
  * @see java.util.function.BiFunction
- * @since 0.1.0
+ * @since 1.0.0
  */
 @FunctionalInterface
 public interface TriFunction<T, U, V, R> {
@@ -29,7 +29,7 @@ public interface TriFunction<T, U, V, R> {
      * @param u the second function argument
      * @param v the third function argument
      * @return the function result
-     * @since 0.1.0
+     * @since 1.0.0
      */
     R apply(final T t, final U u, final V v);
 
@@ -45,7 +45,7 @@ public interface TriFunction<T, U, V, R> {
      * @return a composed function that first applies this function and then
      * applies the {@code after} function
      * @throws NullPointerException if after is null
-     * @since 0.1.0
+     * @since 1.0.0
      */
     default <B> TriFunction<T, U, V, B> andThen(Function<? super R, ? extends B> after) {
         Objects.requireNonNull(after);

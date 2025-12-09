@@ -12,10 +12,10 @@ import java.lang.annotation.*;
  * <p>Annotation works in a similar way as {@link org.springframework.stereotype.Controller @Controller} but generally will be combined
  * with {@link SocketMapping @SocketMapping} annotation. Includes {@link Component @Component} to create a bean from annotated class
  *
- * @author Alex Zharkov
+ * @author Phillip J. Fry
  * @see Component
  * @see SocketMapping
- * @since 0.1.0
+ * @since 1.0.0
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
@@ -29,7 +29,7 @@ public @interface SocketController {
      * for all the {@link SocketMapping @SocketMapping} annotated methods - the final path would be resulted to concatenation of
      * {@link SocketController @SocketController.value} and {@link SocketMapping#value() @SocketMapping.value}:
      *
-     * @since 0.1.0
+     * @since 1.0.0
      */
     @AliasFor(
             annotation = Component.class

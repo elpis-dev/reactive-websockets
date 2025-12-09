@@ -11,9 +11,9 @@ import java.lang.annotation.*;
  * aspects: {@link org.springframework.web.reactive.socket.server.support.WebSocketHandlerAdapter WebSocketHandlerAdapter} bean registration with or without custom {@link SocketHandshakeService SocketHandshakeService}
  * implementation and {@link org.springframework.security.web.server.SecurityWebFilterChain}
  *
- * @author Alex Zharkov
+ * @author Phillip J. Fry
  * @see org.springframework.context.annotation.Configuration
- * @since 0.1.0
+ * @since 1.0.0
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)

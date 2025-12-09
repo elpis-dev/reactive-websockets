@@ -7,10 +7,10 @@ import java.lang.annotation.*;
 /**
  * Applies additional filtering on {@link WebSocketEvent WebSocketEvent} selection.
  *
- * @author Alex Zharkov
+ * @author Phillip J. Fry
  * @see WebSocketEvent
  * @see io.github.elpis.reactive.websockets.event.EventSelectorProcessor
- * @since 0.1.0
+ * @since 1.0.0
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
@@ -23,7 +23,7 @@ public @interface EventSelector {
      * E.x. {@code &#064;EventSelector("sessionInfo.id eq '12345'")}
      * </p>
      *
-     * @since 0.1.0
+     * @since 1.0.0
      */
     String value();
 }

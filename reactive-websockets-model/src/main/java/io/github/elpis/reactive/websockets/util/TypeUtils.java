@@ -14,8 +14,8 @@ import static java.util.Objects.isNull;
 /**
  * Utility class to support safe class casting and type converting.
  *
- * @author Alex Zharkov
- * @since 0.1.0
+ * @author Phillip J. Fry
+ * @since 1.0.0
  */
 @SuppressWarnings({"unchecked", "rawtypes"})
 public final class TypeUtils {
@@ -23,7 +23,7 @@ public final class TypeUtils {
     /**
      * Registry of possible conversions from {@link String} to any supported type.
      *
-     * @since 0.1.0
+     * @since 1.0.0
      */
     private static final Map<Class<?>, BiFunction<String, Class<?>, ?>> convertRegistry = Map.ofEntries(
             //Wrappers
@@ -58,7 +58,7 @@ public final class TypeUtils {
     /**
      * Registry default values for primitives.
      *
-     * @since 0.1.0
+     * @since 1.0.0
      */
     private static final Map<Class<?>, ?> defaultValuesRegistry = Map.ofEntries(
             Map.entry(boolean.class, false),
@@ -90,7 +90,7 @@ public final class TypeUtils {
      *
      * @param clazz the primitive class
      * @return default value for primitive
-     * @since 0.1.0
+     * @since 1.0.0
      */
     public static <T> T getDefaultValueForType(final Class<T> clazz) {
         if (isNull(clazz)) {
@@ -105,7 +105,7 @@ public final class TypeUtils {
      *
      * @param type the primitive class
      * @return default value for primitive
-     * @since 0.1.0
+     * @since 1.0.0
      */
     public static <T> T getDefaultValueForType(final TypeKind type) {
         if (isNull(type)) {
@@ -121,7 +121,7 @@ public final class TypeUtils {
      * @param data  data to convert
      * @param clazz the type to convert to
      * @return conversion result
-     * @since 0.1.0
+     * @since 1.0.0
      */
     public static <T> T convert(final String data, final Class<T> clazz) {
         if (isNull(data) || data.isEmpty()) {

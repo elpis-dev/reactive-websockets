@@ -12,18 +12,16 @@ import org.springframework.context.annotation.Configuration;
 /**
  * Configuration of all system-supported {@link WebSocketEventManager}.
  *
- * @author Alex Zharkov
+ * @author Phillip J. Fry
  * @see org.springframework.context.annotation.Configuration
  * @see WebSocketEventManager
- * @since 0.1.0
+ * @since 1.0.0
  */
 @Configuration
 public class EventManagerConfiguration {
 
     /**
      * {@link WebSocketEventManager} to observe {@link SessionConnectedEvent}.
-     *
-     * @author Alex Zharkov
      */
     @Bean
     public WebSocketEventManager<SessionConnectedEvent> connectedEventWebSocketEventManager() {
@@ -32,8 +30,6 @@ public class EventManagerConfiguration {
 
     /**
      * {@link WebSocketEventManager} to observe {@link ClientSessionClosedEvent}.
-     *
-     * @author Alex Zharkov
      */
     @Bean
     public WebSocketEventManager<ClientSessionClosedEvent> clientClosedEventWebSocketEventManager() {
@@ -42,8 +38,6 @@ public class EventManagerConfiguration {
 
     /**
      * {@link WebSocketEventManager} to observe {@link ServerSessionClosedEvent}.
-     *
-     * @author Alex Zharkov
      */
     @Bean
     public WebSocketEventManager<ServerSessionClosedEvent> serverClosedEventWebSocketEventManager() {
