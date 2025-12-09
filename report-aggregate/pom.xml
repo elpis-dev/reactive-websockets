@@ -13,6 +13,7 @@
 
     <properties>
         <jacoco.coverage.rate>0.85</jacoco.coverage.rate>
+        <maven.deploy.skip>true</maven.deploy.skip>
     </properties>
 
     <dependencies>

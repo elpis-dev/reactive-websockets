@@ -16,6 +16,7 @@
 
     <properties>
         <logcaptor.version>2.9.3</logcaptor.version>
+        <maven.deploy.skip>true</maven.deploy.skip>
     </properties>
 
     <dependencies>
