@@ -1,8 +1,11 @@
 package io.github.elpis.reactive.websockets.event.annotation;
 
 import io.github.elpis.reactive.websockets.event.model.WebSocketEvent;
-
-import java.lang.annotation.*;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
  * Applies additional filtering on {@link WebSocketEvent WebSocketEvent} selection.
@@ -17,13 +20,13 @@ import java.lang.annotation.*;
 @Documented
 public @interface EventSelector {
 
-    /**
-     * Declares a SpeL expression that can process any {@link WebSocketEvent WebSocketEvent} from context.
-     * <p>
-     * E.x. {@code &#064;EventSelector("sessionInfo.id eq '12345'")}
-     * </p>
-     *
-     * @since 1.0.0
-     */
-    String value();
+  /**
+   * Declares a SpeL expression that can process any {@link WebSocketEvent WebSocketEvent} from
+   * context.
+   *
+   * <p>E.x. {@code &#064;EventSelector("sessionInfo.id eq '12345'")}
+   *
+   * @since 1.0.0
+   */
+  String value();
 }

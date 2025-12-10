@@ -1,10 +1,14 @@
 package io.github.elpis.reactive.websockets.web.annotation;
 
-import java.lang.annotation.*;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * Heartbeat configuration for WebSocket connections.
- * Defines ping/pong interval and timeout settings.
+ * Heartbeat configuration for WebSocket connections. Defines ping/pong interval and timeout
+ * settings.
  *
  * @author Phillip J. Fry
  * @since 1.0.0
@@ -14,22 +18,24 @@ import java.lang.annotation.*;
 @Documented
 public @interface Heartbeat {
 
-    /**
-     * Interval between heartbeat pings in seconds.
-     * @return the interval in seconds
-     */
-    long interval() default 30;
+  /**
+   * Interval between heartbeat pings in seconds.
+   *
+   * @return the interval in seconds
+   */
+  long interval() default 30;
 
-    /**
-     * Timeout for heartbeat response in seconds.
-     * @return the timeout in seconds
-     */
-    long timeout() default 60;
+  /**
+   * Timeout for heartbeat response in seconds.
+   *
+   * @return the timeout in seconds
+   */
+  long timeout() default 60;
 
-    /**
-     * Whether heartbeat is enabled.
-     * @return true if enabled, false otherwise
-     */
-    boolean enabled() default true;
+  /**
+   * Whether heartbeat is enabled.
+   *
+   * @return true if enabled, false otherwise
+   */
+  boolean enabled() default true;
 }
-

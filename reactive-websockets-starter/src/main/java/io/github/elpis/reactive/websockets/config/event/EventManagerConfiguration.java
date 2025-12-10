@@ -20,37 +20,30 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class EventManagerConfiguration {
 
-    /**
-     * {@link WebSocketEventManager} to observe {@link SessionConnectedEvent}.
-     */
-    @Bean
-    public WebSocketEventManager<SessionConnectedEvent> connectedEventWebSocketEventManager() {
-        return EventManagers.multicast();
-    }
+  /** {@link WebSocketEventManager} to observe {@link SessionConnectedEvent}. */
+  @Bean
+  public WebSocketEventManager<SessionConnectedEvent> connectedEventWebSocketEventManager() {
+    return EventManagers.multicast();
+  }
 
-    /**
-     * {@link WebSocketEventManager} to observe {@link ClientSessionClosedEvent}.
-     */
-    @Bean
-    public WebSocketEventManager<ClientSessionClosedEvent> clientClosedEventWebSocketEventManager() {
-        return EventManagers.multicast(WebSocketEventManager.MEDIUM_EVENT_QUEUE_SIZE);
-    }
+  /** {@link WebSocketEventManager} to observe {@link ClientSessionClosedEvent}. */
+  @Bean
+  public WebSocketEventManager<ClientSessionClosedEvent> clientClosedEventWebSocketEventManager() {
+    return EventManagers.multicast(WebSocketEventManager.MEDIUM_EVENT_QUEUE_SIZE);
+  }
 
-    /**
-     * {@link WebSocketEventManager} to observe {@link ServerSessionClosedEvent}.
-     */
-    @Bean
-    public WebSocketEventManager<ServerSessionClosedEvent> serverClosedEventWebSocketEventManager() {
-        return EventManagers.multicast(WebSocketEventManager.MEDIUM_EVENT_QUEUE_SIZE);
-    }
+  /** {@link WebSocketEventManager} to observe {@link ServerSessionClosedEvent}. */
+  @Bean
+  public WebSocketEventManager<ServerSessionClosedEvent> serverClosedEventWebSocketEventManager() {
+    return EventManagers.multicast(WebSocketEventManager.MEDIUM_EVENT_QUEUE_SIZE);
+  }
 
-    @Bean
-    public WebSocketEventManagerFactory eventManagerFactory() {
-        return WebSocketEventManagerFactory.builder()
-                .register(SessionConnectedEvent.class, connectedEventWebSocketEventManager())
-                .register(ClientSessionClosedEvent.class, clientClosedEventWebSocketEventManager())
-                .register(ServerSessionClosedEvent.class, serverClosedEventWebSocketEventManager())
-                .build();
-    }
-
+  @Bean
+  public WebSocketEventManagerFactory eventManagerFactory() {
+    return WebSocketEventManagerFactory.builder()
+        .register(SessionConnectedEvent.class, connectedEventWebSocketEventManager())
+        .register(ClientSessionClosedEvent.class, clientClosedEventWebSocketEventManager())
+        .register(ServerSessionClosedEvent.class, serverClosedEventWebSocketEventManager())
+        .build();
+  }
 }

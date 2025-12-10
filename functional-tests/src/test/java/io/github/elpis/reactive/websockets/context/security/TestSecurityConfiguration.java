@@ -10,6 +10,4 @@ import org.springframework.security.config.annotation.web.reactive.EnableWebFlux
 @EnableWebFluxSecurity
 @EnableReactiveMethodSecurity
 @Profile(SecurityProfiles.FULL)
-public class TestSecurityConfiguration {
-
-}
+public class TestSecurityConfiguration {}

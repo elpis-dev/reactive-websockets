@@ -4,7 +4,8 @@ import io.github.elpis.reactive.websockets.event.annotation.EventSelector;
 import io.github.elpis.reactive.websockets.event.model.WebSocketEvent;
 
 /**
- * Interface used by implementing class to process system or custom {@link WebSocketEvent} on method annotated with {@link EventSelector @EventSelector}.
+ * Interface used by implementing class to process system or custom {@link WebSocketEvent} on method
+ * annotated with {@link EventSelector @EventSelector}.
  *
  * @author Phillip J. Fry
  * @see WebSocketEvent
@@ -13,13 +14,13 @@ import io.github.elpis.reactive.websockets.event.model.WebSocketEvent;
  */
 public interface EventSelectorProcessor<E extends WebSocketEvent<?>, R> {
 
-    /**
-     * Takes an event and {@link EventSelector @EventSelector} and processes them to any result.
-     *
-     * @param event         any WebSocketEvent implementation
-     * @param eventSelector EventSelector annotation from annotated method
-     * @return any custom result to return
-     * @since 1.0.0
-     */
-    R process(E event, EventSelector eventSelector);
+  /**
+   * Takes an event and {@link EventSelector @EventSelector} and processes them to any result.
+   *
+   * @param event any WebSocketEvent implementation
+   * @param eventSelector EventSelector annotation from annotated method
+   * @return any custom result to return
+   * @since 1.0.0
+   */
+  R process(E event, EventSelector eventSelector);
 }

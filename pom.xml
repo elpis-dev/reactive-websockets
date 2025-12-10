@@ -111,7 +111,20 @@
                 <version>3.1.0</version>
                 <configuration>
                     <java>
+                        <!-- Apply Google Java Format -->
                         <googleJavaFormat/>
+
+                        <!-- Additional import order configuration -->
+                        <importOrder />
+
+                        <!-- Remove unused imports -->
+                        <removeUnusedImports />
+
+                        <!-- Format Annotations -->
+                        <formatAnnotations />
+
+                        <!-- Wildcard Imports are not allowed -->
+                        <forbidWildcardImports />
                     </java>
                 </configuration>
             </plugin>

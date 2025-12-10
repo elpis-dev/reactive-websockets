@@ -12,7 +12,7 @@ import org.springframework.context.annotation.Import;
 @EnableReactiveSockets
 @Import({SampleConfiguration.class, SecurityConfiguration.class, CloseStatusHandlers.class})
 public class BootStarter {
-    public static void main(String[] args) {
-        SpringApplication.run(BootStarter.class, args);
-    }
+  public static void main(String[] args) {
+    SpringApplication.run(BootStarter.class, args);
+  }
 }

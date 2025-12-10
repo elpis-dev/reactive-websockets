@@ -12,28 +12,27 @@ import io.github.elpis.reactive.websockets.event.model.WebSocketEvent;
  * @since 1.0.0
  */
 public class EventManagers {
-    private EventManagers() {
-    }
+  private EventManagers() {}
 
-    /**
-     * Creates default {@link MulticastEventManager} with default queue size of {@link reactor.util.concurrent.Queues#SMALL_BUFFER_SIZE}.
-     *
-     * @return {@link MulticastEventManager}
-     * @since 1.0.0
-     */
-    public static <T extends WebSocketEvent<?>> MulticastEventManager<T> multicast() {
-        return new MulticastEventManager<>() {
-        };
-    }
+  /**
+   * Creates default {@link MulticastEventManager} with default queue size of {@link
+   * reactor.util.concurrent.Queues#SMALL_BUFFER_SIZE}.
+   *
+   * @return {@link MulticastEventManager}
+   * @since 1.0.0
+   */
+  public static <T extends WebSocketEvent<?>> MulticastEventManager<T> multicast() {
+    return new MulticastEventManager<>() {};
+  }
 
-    /**
-     * Creates default {@link MulticastEventManager} with custom queue size.
-     *
-     * @return {@link MulticastEventManager}
-     * @since 1.0.0
-     */
-    public static <T extends WebSocketEvent<?>> MulticastEventManager<T> multicast(final int eventQueueSize) {
-        return new MulticastEventManager<>(eventQueueSize) {
-        };
-    }
+  /**
+   * Creates default {@link MulticastEventManager} with custom queue size.
+   *
+   * @return {@link MulticastEventManager}
+   * @since 1.0.0
+   */
+  public static <T extends WebSocketEvent<?>> MulticastEventManager<T> multicast(
+      final int eventQueueSize) {
+    return new MulticastEventManager<>(eventQueueSize) {};
+  }
 }

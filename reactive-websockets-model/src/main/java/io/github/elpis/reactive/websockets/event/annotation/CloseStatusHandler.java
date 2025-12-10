@@ -1,15 +1,21 @@
 package io.github.elpis.reactive.websockets.event.annotation;
 
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-
-import java.lang.annotation.*;
 
 /**
  * Indicates that an annotated class handles cases when websocket sessions are closing down.
  *
- * <p>Annotation works in a similar way as {@link org.springframework.web.bind.annotation.ControllerAdvice @ControllerAdvice} is used for exception handling.
- * For effective use should be combined with {@link SessionCloseStatus @SessionCloseStatus} and {@link EventSelector @EventSelector} annotations. Includes {@link Component @Component} to create a bean from annotated class
+ * <p>Annotation works in a similar way as {@link
+ * org.springframework.web.bind.annotation.ControllerAdvice @ControllerAdvice} is used for exception
+ * handling. For effective use should be combined with {@link
+ * SessionCloseStatus @SessionCloseStatus} and {@link EventSelector @EventSelector} annotations.
+ * Includes {@link Component @Component} to create a bean from annotated class
  *
  * @author Phillip J. Fry
  * @see SessionCloseStatus
@@ -21,6 +27,4 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Component
-@Qualifier
-public @interface CloseStatusHandler {
-}
+@Qualifier public @interface CloseStatusHandler {}

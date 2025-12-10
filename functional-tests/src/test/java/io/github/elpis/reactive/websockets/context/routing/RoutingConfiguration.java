@@ -1,7 +1,9 @@
 package io.github.elpis.reactive.websockets.context.routing;
 
-import io.github.elpis.reactive.websockets.handler.route.WebSocketHandlerFunction;
+import static io.github.elpis.reactive.websockets.handler.route.WebSocketHandlerFunctions.handle;
+
 import io.github.elpis.reactive.websockets.config.Mode;
+import io.github.elpis.reactive.websockets.handler.route.WebSocketHandlerFunction;
 import io.github.elpis.reactive.websockets.util.MessageUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,34 +12,45 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.reactive.socket.WebSocketMessage;
 import reactor.core.publisher.Mono;
 
-import static io.github.elpis.reactive.websockets.handler.route.WebSocketHandlerFunctions.handle;
-
 @Configuration
 public class RoutingConfiguration {
-    private static final Logger log = LoggerFactory.getLogger(RoutingConfiguration.class);
+  private static final Logger log = LoggerFactory.getLogger(RoutingConfiguration.class);
 
-    @Bean
-    public WebSocketHandlerFunction handlerFunction() {
-        final WebSocketHandlerFunction publish = handle("/routing/publish", Mode.BROADCAST, (context, messages) -> {
-            final String headerValue = context.getHeader("id", "", String.class)
-                    .orElse("");
-            return Mono.just(MessageUtils.textMessage(headerValue));
-        }).handle("/routing/connect", Mode.BROADCAST, (context, messages) -> {
-            final String headerValue = context.getHeader("id", "", String.class)
-                    .orElse("");
-            log.info("Connected with header {}", headerValue);
-        });
+  @Bean
+  public WebSocketHandlerFunction handlerFunction() {
+    final WebSocketHandlerFunction publish =
+        handle(
+                "/routing/publish",
+                Mode.BROADCAST,
+                (context, messages) -> {
+                  final String headerValue = context.getHeader("id", "", String.class).orElse("");
+                  return Mono.just(MessageUtils.textMessage(headerValue));
+                })
+            .handle(
+                "/routing/connect",
+                Mode.BROADCAST,
+                (context, messages) -> {
+                  final String headerValue = context.getHeader("id", "", String.class).orElse("");
+                  log.info("Connected with header {}", headerValue);
+                });
 
-        final WebSocketHandlerFunction listen = handle("/routing/listen", Mode.BROADCAST, (context, messages) -> {
-            messages.map(WebSocketMessage::getPayloadAsText)
-                    .subscribe((message) -> log.info("Received {} from '/routing/get'", message));
-        }).handle("/routing/publish/test", Mode.BROADCAST, (context, messages) -> {
-            final String headerValue = context.getHeader("id", "", String.class)
-                    .orElse("");
-            return Mono.just(MessageUtils.textMessage(headerValue));
-        });
+    final WebSocketHandlerFunction listen =
+        handle(
+                "/routing/listen",
+                Mode.BROADCAST,
+                (context, messages) -> {
+                  messages
+                      .map(WebSocketMessage::getPayloadAsText)
+                      .subscribe((message) -> log.info("Received {} from '/routing/get'", message));
+                })
+            .handle(
+                "/routing/publish/test",
+                Mode.BROADCAST,
+                (context, messages) -> {
+                  final String headerValue = context.getHeader("id", "", String.class).orElse("");
+                  return Mono.just(MessageUtils.textMessage(headerValue));
+                });
 
-
-        return publish.and(listen);
-    }
+    return publish.and(listen);
+  }
 }

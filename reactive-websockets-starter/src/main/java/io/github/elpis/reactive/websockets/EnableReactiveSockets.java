@@ -1,9 +1,13 @@
 package io.github.elpis.reactive.websockets;
 
 import io.github.elpis.reactive.websockets.config.WebSocketConfiguration;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import org.springframework.context.annotation.Import;
-
-import java.lang.annotation.*;
 
 /**
  * Imports {@link WebSocketConfiguration} class
@@ -17,5 +21,4 @@ import java.lang.annotation.*;
 @Inherited
 @Documented
 @Import(WebSocketConfiguration.class)
-public @interface EnableReactiveSockets {
-}
+public @interface EnableReactiveSockets {}

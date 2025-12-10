@@ -3,6 +3,7 @@ package io.github.elpis.reactive.sample.security;
 import io.github.elpis.reactive.websockets.EnableReactiveSocketSecurity;
 import io.github.elpis.reactive.websockets.security.SocketHandshakeService;
 import io.github.elpis.reactive.websockets.security.principal.Anonymous;
+import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
@@ -13,31 +14,28 @@ import org.springframework.security.web.server.authentication.AnonymousAuthentic
 import org.springframework.web.reactive.socket.server.upgrade.ReactorNettyRequestUpgradeStrategy;
 import org.springframework.web.server.WebFilter;
 
-import java.util.List;
-
 @EnableReactiveSocketSecurity
 @EnableWebFluxSecurity
 @EnableReactiveMethodSecurity
 public class SecurityConfiguration {
 
-    @Bean
-    public SecurityWebFilterChain securityWebFilterChain(final ServerHttpSecurity http) {
-        return http.authorizeExchange(exchange -> exchange.anyExchange().permitAll())
-                .formLogin(ServerHttpSecurity.FormLoginSpec::disable)
-                .build();
-    }
+  @Bean
+  public SecurityWebFilterChain securityWebFilterChain(final ServerHttpSecurity http) {
+    return http.authorizeExchange(exchange -> exchange.anyExchange().permitAll())
+        .formLogin(ServerHttpSecurity.FormLoginSpec::disable)
+        .build();
+  }
 
-    @Bean
-    public WebFilter anonymousFilter() {
-        return new AnonymousAuthenticationWebFilter("key", new Anonymous(),
-                List.of(new SimpleGrantedAuthority("role")));
-    }
+  @Bean
+  public WebFilter anonymousFilter() {
+    return new AnonymousAuthenticationWebFilter(
+        "key", new Anonymous(), List.of(new SimpleGrantedAuthority("role")));
+  }
 
-    @Bean
-    public SocketHandshakeService socketHandshakeService() {
-        return SocketHandshakeService.builder()
-                .handshake(anonymousFilter()::filter)
-                .build(new ReactorNettyRequestUpgradeStrategy());
-    }
-
+  @Bean
+  public SocketHandshakeService socketHandshakeService() {
+    return SocketHandshakeService.builder()
+        .handshake(anonymousFilter()::filter)
+        .build(new ReactorNettyRequestUpgradeStrategy());
+  }
 }

@@ -17,45 +17,56 @@ import org.springframework.web.reactive.socket.server.upgrade.ReactorNettyReques
 import reactor.core.publisher.Sinks;
 import reactor.test.StepVerifier;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = BootStarter.class)
+@SpringBootTest(
+    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+    classes = BootStarter.class)
 @ActiveProfiles({BaseWebSocketTest.DEFAULT_TEST_PROFILE, SecurityProfiles.FULL})
-@Import({AnonymousFallbackAuthenticationFilterTest.AnonymousFallbackTestSecurityConfiguration.class, SecurityChainResource.class})
+@Import({
+  AnonymousFallbackAuthenticationFilterTest.AnonymousFallbackTestSecurityConfiguration.class,
+  SecurityChainResource.class
+})
 @TestPropertySource("classpath:application-test-disabled-default-security.properties")
 class AnonymousFallbackAuthenticationFilterTest extends BaseWebSocketTest {
 
-    @Test
-    void anonymousFallbackAuthenticationTest() throws Exception {
-        //given
-        final String path = "/auth/security/anonymous";
-        final Sinks.One<String> sink = Sinks.one();
+  @Test
+  void anonymousFallbackAuthenticationTest() throws Exception {
+    // given
+    final String path = "/auth/security/anonymous";
+    final Sinks.One<String> sink = Sinks.one();
 
-        //expected
-        final String expected = "{\"anonymous\":true}";
+    // expected
+    final String expected = "{\"anonymous\":true}";
 
-        //test
-        this.withClient(path, (session) -> session.receive().map(WebSocketMessage::getPayloadAsText)
-                .log()
-                .doOnNext(sink::tryEmitValue)
-                .then()).subscribe();
+    // test
+    this.withClient(
+            path,
+            (session) ->
+                session
+                    .receive()
+                    .map(WebSocketMessage::getPayloadAsText)
+                    .log()
+                    .doOnNext(sink::tryEmitValue)
+                    .then())
+        .subscribe();
 
-        //verify
-        StepVerifier.create(sink.asMono())
-                .expectNext(expected)
-                .expectComplete()
-                .log()
-                .verify(DEFAULT_GENERIC_TEST_FALLBACK);
+    // verify
+    StepVerifier.create(sink.asMono())
+        .expectNext(expected)
+        .expectComplete()
+        .log()
+        .verify(DEFAULT_GENERIC_TEST_FALLBACK);
+  }
+
+  @TestConfiguration
+  public static class AnonymousFallbackTestSecurityConfiguration {
+
+    @Bean
+    public SocketHandshakeService socketHandshakeService() {
+      return SocketHandshakeService.builder()
+          .handshake(
+              (serverWebExchange, webFilterChain) -> webFilterChain.filter(serverWebExchange))
+          .fallbackToAnonymous(true)
+          .build(new ReactorNettyRequestUpgradeStrategy());
     }
-
-    @TestConfiguration
-    public static class AnonymousFallbackTestSecurityConfiguration {
-
-        @Bean
-        public SocketHandshakeService socketHandshakeService() {
-            return SocketHandshakeService.builder()
-                    .handshake((serverWebExchange, webFilterChain) -> webFilterChain.filter(serverWebExchange))
-                    .fallbackToAnonymous(true)
-                    .build(new ReactorNettyRequestUpgradeStrategy());
-        }
-    }
-
+  }
 }

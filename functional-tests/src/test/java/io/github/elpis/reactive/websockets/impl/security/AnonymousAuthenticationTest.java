@@ -12,32 +12,39 @@ import org.springframework.web.reactive.socket.WebSocketMessage;
 import reactor.core.publisher.Sinks;
 import reactor.test.StepVerifier;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = BootStarter.class)
+@SpringBootTest(
+    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+    classes = BootStarter.class)
 @ActiveProfiles({BaseWebSocketTest.DEFAULT_TEST_PROFILE, SecurityProfiles.FULL})
 @Import({BaseWebSocketTest.PermitAllSecurityConfiguration.class, SecurityChainResource.class})
 class AnonymousAuthenticationTest extends BaseWebSocketTest {
 
-    @Test
-    void anonymousAuthenticationTest() throws Exception {
-        //given
-        final String path = "/auth/security/anonymous";
-        final Sinks.One<String> sink = Sinks.one();
+  @Test
+  void anonymousAuthenticationTest() throws Exception {
+    // given
+    final String path = "/auth/security/anonymous";
+    final Sinks.One<String> sink = Sinks.one();
 
-        //expected
-        final String expected = "{\"anonymous\":true}";
+    // expected
+    final String expected = "{\"anonymous\":true}";
 
-        //test
-        this.withClient(path, (session) -> session.receive().map(WebSocketMessage::getPayloadAsText)
-                .log()
-                .doOnNext(sink::tryEmitValue)
-                .then()).subscribe();
+    // test
+    this.withClient(
+            path,
+            (session) ->
+                session
+                    .receive()
+                    .map(WebSocketMessage::getPayloadAsText)
+                    .log()
+                    .doOnNext(sink::tryEmitValue)
+                    .then())
+        .subscribe();
 
-        //verify
-        StepVerifier.create(sink.asMono())
-                .expectNext(expected)
-                .expectComplete()
-                .log()
-                .verify(DEFAULT_GENERIC_TEST_FALLBACK);
-    }
-
+    // verify
+    StepVerifier.create(sink.asMono())
+        .expectNext(expected)
+        .expectComplete()
+        .log()
+        .verify(DEFAULT_GENERIC_TEST_FALLBACK);
+  }
 }
