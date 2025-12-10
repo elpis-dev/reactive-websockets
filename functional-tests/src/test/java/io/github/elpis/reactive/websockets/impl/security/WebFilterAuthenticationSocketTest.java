@@ -80,6 +80,29 @@ class WebFilterAuthenticationSocketTest extends BaseWebSocketTest {
                 .verify(DEFAULT_GENERIC_TEST_FALLBACK);
     }
 
+    @Test
+    void withExpressionPrincipalTest() throws Exception {
+        //given
+        final String path = "/auth/filter/withExpressionPrincipal";
+        final Sinks.One<String> sink = Sinks.one();
+
+        //expected - the expression extracts the principal's name as a String
+        final String expected = TestPrincipal.class.getName();
+
+        //test
+        this.withClient(path, (session) -> session.receive().map(WebSocketMessage::getPayloadAsText)
+                .log()
+                .doOnNext(sink::tryEmitValue)
+                .then()).subscribe();
+
+        //verify
+        StepVerifier.create(sink.asMono())
+                .expectNext(expected)
+                .expectComplete()
+                .log()
+                .verify(DEFAULT_GENERIC_TEST_FALLBACK);
+    }
+
     @TestConfiguration
     static class WebFilterAuthorizationTestSecurityConfiguration {
 
