@@ -3,7 +3,7 @@ package io.github.elpis.reactive.websockets.session;
 import io.github.elpis.reactive.websockets.security.principal.Anonymous;
 import io.github.elpis.reactive.websockets.util.TypeUtils;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
-import org.springframework.expression.spel.support.StandardEvaluationContext;
+import org.springframework.expression.spel.support.SimpleEvaluationContext;
 import org.springframework.http.HttpHeaders;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -122,10 +122,13 @@ public class WebSocketSessionContext {
     }
 
     private Principal parseExpression(final String expression) {
-        StandardEvaluationContext context = new StandardEvaluationContext();
-        context.setRootObject(this.getAuthentication());
+        final SimpleEvaluationContext context = SimpleEvaluationContext.forReadWriteDataBinding()
+                .withRootObject(this.getAuthentication())
+                .withAssignmentDisabled()
+                .build();
         context.setVariable("this", this.getAuthentication());
-        return SPEL_EXPRESSION_PARSER.parseExpression(expression).getValue(context, Principal.class);
+        return SPEL_EXPRESSION_PARSER.parseExpression(expression)
+                .getValue(context, Principal.class);
     }
 
     public static Builder builder() {
