@@ -41,4 +41,9 @@ public class WebFilterSecurityResource {
         return Flux.just(authentication.getAuthentication());
     }
 
+    @OnMessage(value = "/withExpressionPrincipal", mode = BROADCAST)
+    public Publisher<?> withExpressionPrincipal(@AuthenticationPrincipal(expression = "principal.name") final String principalName) {
+        return Flux.just(principalName);
+    }
+
 }
