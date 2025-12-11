@@ -8,11 +8,11 @@ package io.github.elpis.reactive.websockets.exception;
  */
 public class WebSocketProcessingException extends RuntimeException {
 
-    public WebSocketProcessingException(final String message) {
-        super(message);
-    }
+  public WebSocketProcessingException(final String message) {
+    super(message);
+  }
 
-    public WebSocketProcessingException(final String message, Object... args) {
-        super(String.format(message, args));
-    }
+  public WebSocketProcessingException(final String message, Object... args) {
+    super(String.format(message, args));
+  }
 }

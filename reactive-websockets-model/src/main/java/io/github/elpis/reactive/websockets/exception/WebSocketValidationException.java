@@ -8,7 +8,7 @@ package io.github.elpis.reactive.websockets.exception;
  */
 public class WebSocketValidationException extends RuntimeException {
 
-    public WebSocketValidationException(final String message) {
-        super(message);
-    }
+  public WebSocketValidationException(final String message) {
+    super(message);
+  }
 }

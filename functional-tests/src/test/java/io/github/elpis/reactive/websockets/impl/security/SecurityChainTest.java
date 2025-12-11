@@ -1,11 +1,16 @@
 package io.github.elpis.reactive.websockets.impl.security;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import io.github.elpis.reactive.websockets.BaseWebSocketTest;
 import io.github.elpis.reactive.websockets.context.BootStarter;
 import io.github.elpis.reactive.websockets.context.resource.security.SecurityChainResource;
 import io.github.elpis.reactive.websockets.context.security.model.SecurityProfiles;
 import io.github.elpis.reactive.websockets.context.security.model.TestConstants;
 import io.github.elpis.reactive.websockets.security.SocketHandshakeService;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.concurrent.TimeoutException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -25,90 +30,121 @@ import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 import reactor.test.StepVerifier;
 
-import java.util.Optional;
-import java.util.UUID;
-import java.util.concurrent.TimeoutException;
-
-import static org.assertj.core.api.Assertions.assertThat;
-
 @ExtendWith(OutputCaptureExtension.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = BootStarter.class)
+@SpringBootTest(
+    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+    classes = BootStarter.class)
 @ActiveProfiles({BaseWebSocketTest.DEFAULT_TEST_PROFILE, SecurityProfiles.FULL})
-@Import({SecurityChainTest.SecurityChainTestSecurityConfiguration.class, SecurityChainResource.class})
+@Import({
+  SecurityChainTest.SecurityChainTestSecurityConfiguration.class,
+  SecurityChainResource.class
+})
 class SecurityChainTest extends BaseWebSocketTest {
 
-    @Test
-    void withExtractedAuthenticationValidChainTest() throws Exception {
-        //given
-        final HttpHeaders headers = new HttpHeaders();
-        headers.add(TestConstants.PRINCIPAL, TestConstants.TEST_VALUE);
+  @Test
+  void withExtractedAuthenticationValidChainTest() throws Exception {
+    // given
+    final HttpHeaders headers = new HttpHeaders();
+    headers.add(TestConstants.PRINCIPAL, TestConstants.TEST_VALUE);
 
-        final String path = "/auth/security/withExtractedAuthentication";
-        final Sinks.One<String> sink = Sinks.one();
+    final String path = "/auth/security/withExtractedAuthentication";
+    final Sinks.One<String> sink = Sinks.one();
 
-        //expected
-        final String expected = TestConstants.TEST_VALUE;
+    // expected
+    final String expected = TestConstants.TEST_VALUE;
 
-        //test
-        this.withClient(path, headers, (session) -> session.receive().map(WebSocketMessage::getPayloadAsText)
-                .log()
-                .doOnNext(sink::tryEmitValue)
-                .then()).subscribe();
+    // test
+    this.withClient(
+            path,
+            headers,
+            (session) ->
+                session
+                    .receive()
+                    .map(WebSocketMessage::getPayloadAsText)
+                    .log()
+                    .doOnNext(sink::tryEmitValue)
+                    .then())
+        .subscribe();
 
-        //verify
-        StepVerifier.create(sink.asMono())
-                .expectNext(expected)
-                .expectComplete()
-                .log()
-                .verify(DEFAULT_GENERIC_TEST_FALLBACK);
+    // verify
+    StepVerifier.create(sink.asMono())
+        .expectNext(expected)
+        .expectComplete()
+        .log()
+        .verify(DEFAULT_GENERIC_TEST_FALLBACK);
+  }
+
+  @Test
+  void withExtractedAuthenticationChainValidationUnauthorizedTest(final CapturedOutput output)
+      throws Exception {
+    // given
+    final HttpHeaders headers = new HttpHeaders();
+    headers.add(TestConstants.PRINCIPAL, UUID.randomUUID().toString());
+
+    final String path = "/auth/security/withExtractedAuthentication";
+    final Sinks.One<String> sink = Sinks.one();
+
+    // test
+    this.withClient(
+            path,
+            headers,
+            (session) ->
+                session
+                    .receive()
+                    .map(WebSocketMessage::getPayloadAsText)
+                    .log()
+                    .doOnNext(sink::tryEmitValue)
+                    .then())
+        .subscribe();
+
+    // verify
+    StepVerifier.create(sink.asMono().timeout(DEFAULT_FAST_TEST_FALLBACK))
+        .verifyError(TimeoutException.class);
+
+    assertThat(output).contains("Invalid handshake response getStatus: 401 Unauthorized");
+  }
+
+  @TestConfiguration
+  static class SecurityChainTestSecurityConfiguration {
+
+    @Bean
+    SecurityWebFilterChain securityWebFilterChain(final ServerHttpSecurity http) {
+      return http.authorizeExchange(
+              authorizeExchangeSpec ->
+                  authorizeExchangeSpec
+                      .anyExchange()
+                      .access(
+                          (authentication, context) -> {
+                            final boolean hasValidHeader =
+                                Optional.ofNullable(
+                                        context
+                                            .getExchange()
+                                            .getRequest()
+                                            .getHeaders()
+                                            .get(TestConstants.PRINCIPAL))
+                                    .flatMap(headers -> headers.stream().findFirst())
+                                    .map(TestConstants.TEST_VALUE::equals)
+                                    .orElse(false);
+
+                            return Mono.just(new AuthorizationDecision(hasValidHeader));
+                          }))
+          .formLogin(ServerHttpSecurity.FormLoginSpec::disable)
+          .build();
     }
 
-    @Test
-    void withExtractedAuthenticationChainValidationUnauthorizedTest(final CapturedOutput output) throws Exception {
-        //given
-        final HttpHeaders headers = new HttpHeaders();
-        headers.add(TestConstants.PRINCIPAL, UUID.randomUUID().toString());
-
-        final String path = "/auth/security/withExtractedAuthentication";
-        final Sinks.One<String> sink = Sinks.one();
-
-        //test
-        this.withClient(path, headers, (session) -> session.receive().map(WebSocketMessage::getPayloadAsText)
-                .log()
-                .doOnNext(sink::tryEmitValue)
-                .then()).subscribe();
-
-        //verify
-        StepVerifier.create(sink.asMono().timeout(DEFAULT_FAST_TEST_FALLBACK))
-                .verifyError(TimeoutException.class);
-
-        assertThat(output).contains("Invalid handshake response getStatus: 401 Unauthorized");
+    @Bean
+    SocketHandshakeService socketHandshakeService() {
+      return SocketHandshakeService.builder()
+          .handshake(
+              serverWebExchange ->
+                  Mono.justOrEmpty(
+                      Optional.ofNullable(
+                              serverWebExchange
+                                  .getRequest()
+                                  .getHeaders()
+                                  .get(TestConstants.PRINCIPAL))
+                          .flatMap(headers -> headers.stream().findFirst())))
+          .build(new ReactorNettyRequestUpgradeStrategy());
     }
-
-    @TestConfiguration
-    static class SecurityChainTestSecurityConfiguration {
-
-        @Bean
-        SecurityWebFilterChain securityWebFilterChain(final ServerHttpSecurity http) {
-            return http.authorizeExchange(authorizeExchangeSpec -> authorizeExchangeSpec.anyExchange()
-                    .access((authentication, context) -> {
-                        final boolean hasValidHeader = Optional.ofNullable(context.getExchange().getRequest().getHeaders().get(TestConstants.PRINCIPAL))
-                                .flatMap(headers -> headers.stream().findFirst())
-                                .map(TestConstants.TEST_VALUE::equals)
-                                .orElse(false);
-
-                        return Mono.just(new AuthorizationDecision(hasValidHeader));
-                    })).formLogin(ServerHttpSecurity.FormLoginSpec::disable)
-                    .build();
-        }
-
-        @Bean
-        SocketHandshakeService socketHandshakeService() {
-            return SocketHandshakeService.builder()
-                    .handshake(serverWebExchange -> Mono.justOrEmpty(Optional.ofNullable(serverWebExchange.getRequest().getHeaders().get(TestConstants.PRINCIPAL))
-                            .flatMap(headers -> headers.stream().findFirst())))
-                    .build(new ReactorNettyRequestUpgradeStrategy());
-        }
-    }
-
+  }
 }

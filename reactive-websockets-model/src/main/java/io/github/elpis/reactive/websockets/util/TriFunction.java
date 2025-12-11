@@ -4,11 +4,11 @@ import java.util.Objects;
 import java.util.function.Function;
 
 /**
- * Represents a function that accepts three arguments and produces a result.
- * This is the three-arity specialization of {@link Function}.
+ * Represents a function that accepts three arguments and produces a result. This is the three-arity
+ * specialization of {@link Function}.
  *
- * <p>This is a <a href="package-summary.html">functional interface</a>
- * whose functional method is {@link #apply(Object, Object, Object)}.
+ * <p>This is a <a href="package-summary.html">functional interface</a> whose functional method is
+ * {@link #apply(Object, Object, Object)}.
  *
  * @param <T> the type of the first argument to the function
  * @param <U> the type of the second argument to the function
@@ -22,33 +22,31 @@ import java.util.function.Function;
 @FunctionalInterface
 public interface TriFunction<T, U, V, R> {
 
-    /**
-     * Applies this function to the given arguments.
-     *
-     * @param t the first function argument
-     * @param u the second function argument
-     * @param v the third function argument
-     * @return the function result
-     * @since 1.0.0
-     */
-    R apply(final T t, final U u, final V v);
+  /**
+   * Applies this function to the given arguments.
+   *
+   * @param t the first function argument
+   * @param u the second function argument
+   * @param v the third function argument
+   * @return the function result
+   * @since 1.0.0
+   */
+  R apply(final T t, final U u, final V v);
 
-    /**
-     * Returns a composed function that first applies this function to
-     * its input, and then applies the {@code after} function to the result.
-     * If evaluation of either function throws an exception, it is relayed to
-     * the caller of the composed function.
-     *
-     * @param <B>   the type of output of the {@code after} function, and of the
-     *              composed function
-     * @param after the function to apply after this function is applied
-     * @return a composed function that first applies this function and then
-     * applies the {@code after} function
-     * @throws NullPointerException if after is null
-     * @since 1.0.0
-     */
-    default <B> TriFunction<T, U, V, B> andThen(Function<? super R, ? extends B> after) {
-        Objects.requireNonNull(after);
-        return (T t, U u, V v) -> after.apply(apply(t, u, v));
-    }
+  /**
+   * Returns a composed function that first applies this function to its input, and then applies the
+   * {@code after} function to the result. If evaluation of either function throws an exception, it
+   * is relayed to the caller of the composed function.
+   *
+   * @param <B> the type of output of the {@code after} function, and of the composed function
+   * @param after the function to apply after this function is applied
+   * @return a composed function that first applies this function and then applies the {@code after}
+   *     function
+   * @throws NullPointerException if after is null
+   * @since 1.0.0
+   */
+  default <B> TriFunction<T, U, V, B> andThen(Function<? super R, ? extends B> after) {
+    Objects.requireNonNull(after);
+    return (T t, U u, V v) -> after.apply(apply(t, u, v));
+  }
 }

@@ -9,6 +9,10 @@ import io.github.elpis.reactive.websockets.handler.route.WebSocketHandlerFunctio
 import io.github.elpis.reactive.websockets.handler.route.WebSocketHandlerRouteResolver;
 import io.github.elpis.reactive.websockets.session.WebSocketSessionRegistry;
 import io.github.elpis.reactive.websockets.web.annotation.OnMessage;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Stream;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -21,11 +25,6 @@ import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebSession;
 import reactor.util.context.Context;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Stream;
-
 /**
  * Configuration class that setups all the websocket endpoints and processes annotated methods.
  *
@@ -35,47 +34,54 @@ import java.util.stream.Stream;
  */
 @SuppressWarnings("SpringComponentScan")
 @Configuration
-@Import({WebSocketSessionRegistry.class,
-        WebSocketEventConfiguration.class,
-        WebSocketRouteConfiguration.class})
+@Import({
+  WebSocketSessionRegistry.class,
+  WebSocketEventConfiguration.class,
+  WebSocketRouteConfiguration.class
+})
 @ComponentScan("io.github.elpis.reactive.websockets.generated")
 public class WebSocketConfiguration {
 
-    private static final int HANDLER_ORDER = 10;
+  private static final int HANDLER_ORDER = 10;
 
-    @Bean
-    @ConditionalOnMissingBean(WebSocketHandlerFunction.class)
-    public WebSocketHandlerFunction webSocketRouterFunction() {
-        return WebSocketHandlerFunctions.empty();
-    }
+  @Bean
+  @ConditionalOnMissingBean(WebSocketHandlerFunction.class)
+  public WebSocketHandlerFunction webSocketRouterFunction() {
+    return WebSocketHandlerFunctions.empty();
+  }
 
-    @Bean
-    public WebFilter sessionFilter() {
-        return (exchange, chain) -> chain.filter(exchange)
-                .contextWrite(Context.of("sessionId", exchange.getSession().map(WebSession::getId)));
-    }
+  @Bean
+  public WebFilter sessionFilter() {
+    return (exchange, chain) ->
+        chain
+            .filter(exchange)
+            .contextWrite(Context.of("sessionId", exchange.getSession().map(WebSession::getId)));
+  }
 
-    /**
-     * {@link HandlerMapping} bean with all {@link OnMessage @SocketMapping} resource.
-     *
-     * @return {@link HandlerMapping}
-     * @since 1.0.0
-     */
-    @Bean
-    public HandlerMapping handlerMapping(final List<BaseWebSocketHandler> annotatedHandlers,
-                                         final WebSocketHandlerRouteResolver routeResolver) {
+  /**
+   * {@link HandlerMapping} bean with all {@link OnMessage @SocketMapping} resource.
+   *
+   * @return {@link HandlerMapping}
+   * @since 1.0.0
+   */
+  @Bean
+  public HandlerMapping handlerMapping(
+      final List<BaseWebSocketHandler> annotatedHandlers,
+      final WebSocketHandlerRouteResolver routeResolver) {
 
-        final Map<String, WebSocketHandler> handlerMap = new HashMap<>();
+    final Map<String, WebSocketHandler> handlerMap = new HashMap<>();
 
-        final List<BaseWebSocketHandler> routeHandlers = routeResolver.resolve();
-        Stream.concat(annotatedHandlers.stream(), routeHandlers.stream())
-                .forEach(handler -> {
-                    if (handlerMap.putIfAbsent(handler.getPathTemplate(), handler) != null) {
-                        throw new WebSocketMappingException("WebSocketHandler with path %s was already registered", handler.getPathTemplate());
-                    }
-                });
+    final List<BaseWebSocketHandler> routeHandlers = routeResolver.resolve();
+    Stream.concat(annotatedHandlers.stream(), routeHandlers.stream())
+        .forEach(
+            handler -> {
+              if (handlerMap.putIfAbsent(handler.getPathTemplate(), handler) != null) {
+                throw new WebSocketMappingException(
+                    "WebSocketHandler with path %s was already registered",
+                    handler.getPathTemplate());
+              }
+            });
 
-        return new SimpleUrlHandlerMapping(handlerMap, HANDLER_ORDER);
-    }
-
+    return new SimpleUrlHandlerMapping(handlerMap, HANDLER_ORDER);
+  }
 }

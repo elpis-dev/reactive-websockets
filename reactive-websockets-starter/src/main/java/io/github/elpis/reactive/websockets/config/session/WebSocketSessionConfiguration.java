@@ -7,9 +7,8 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class WebSocketSessionConfiguration {
 
-    @Bean
-    public WebSocketSessionRegistry webSocketSessionRegistry() {
-        return new WebSocketSessionRegistry();
-    }
-
+  @Bean
+  public WebSocketSessionRegistry webSocketSessionRegistry() {
+    return new WebSocketSessionRegistry();
+  }
 }

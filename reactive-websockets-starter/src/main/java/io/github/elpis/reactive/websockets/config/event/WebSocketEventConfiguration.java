@@ -5,5 +5,4 @@ import org.springframework.context.annotation.Import;
 
 @Configuration
 @Import({EventManagerConfiguration.class, ClosedConnectionHandlerConfiguration.class})
-public class WebSocketEventConfiguration {
-}
+public class WebSocketEventConfiguration {}

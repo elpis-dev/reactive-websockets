@@ -1,28 +1,29 @@
 package io.github.elpis.reactive.websockets.event.matcher.impl;
 
 import io.github.elpis.reactive.websockets.config.SessionCloseInfo;
-import io.github.elpis.reactive.websockets.event.matcher.EventSelectorMatcher;
 import io.github.elpis.reactive.websockets.event.annotation.EventSelector;
+import io.github.elpis.reactive.websockets.event.matcher.EventSelectorMatcher;
 import io.github.elpis.reactive.websockets.event.model.impl.ClientSessionClosedEvent;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.SimpleEvaluationContext;
 
-public class ClosedSessionEventSelectorMatcher implements EventSelectorMatcher<ClientSessionClosedEvent> {
-    private final ExpressionParser expressionParser = new SpelExpressionParser();
+public class ClosedSessionEventSelectorMatcher
+    implements EventSelectorMatcher<ClientSessionClosedEvent> {
+  private final ExpressionParser expressionParser = new SpelExpressionParser();
 
-    @Override
-    public Boolean process(final ClientSessionClosedEvent event, final EventSelector annotation) {
-        final SessionCloseInfo sessionCloseInfo = event.payload();
-        final Expression expression = expressionParser.parseExpression(annotation.value());
-        final SimpleEvaluationContext context = SimpleEvaluationContext.forReadWriteDataBinding()
-                .withAssignmentDisabled()
-                .withRootObject(SessionCloseInfo.builder()
-                    .session(sessionCloseInfo.getSession())
-                    .build())
-                .build();
+  @Override
+  public Boolean process(final ClientSessionClosedEvent event, final EventSelector annotation) {
+    final SessionCloseInfo sessionCloseInfo = event.payload();
+    final Expression expression = expressionParser.parseExpression(annotation.value());
+    final SimpleEvaluationContext context =
+        SimpleEvaluationContext.forReadWriteDataBinding()
+            .withAssignmentDisabled()
+            .withRootObject(
+                SessionCloseInfo.builder().session(sessionCloseInfo.getSession()).build())
+            .build();
 
-        return expression.getValue(context, Boolean.class);
-    }
+    return expression.getValue(context, Boolean.class);
+  }
 }

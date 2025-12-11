@@ -20,51 +20,60 @@ import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 import reactor.test.StepVerifier;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = BootStarter.class)
+@SpringBootTest(
+    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+    classes = BootStarter.class)
 @ActiveProfiles({BaseWebSocketTest.DEFAULT_TEST_PROFILE, SecurityProfiles.FULL})
 @Import({JustPrincipalTest.PrincipalWebFilterConfiguration.class, SecurityChainResource.class})
 class JustPrincipalTest extends BaseWebSocketTest {
 
-    @Test
-    void principalAuthenticationTest() throws Exception {
-        //given
-        final String path = "/auth/security/principal";
-        final Sinks.One<String> sink = Sinks.one();
+  @Test
+  void principalAuthenticationTest() throws Exception {
+    // given
+    final String path = "/auth/security/principal";
+    final Sinks.One<String> sink = Sinks.one();
 
-        //expected
-        final String expected = TestPrincipal.class.getName();
+    // expected
+    final String expected = TestPrincipal.class.getName();
 
-        //test
-        this.withClient(path, (session) -> session.receive().map(WebSocketMessage::getPayloadAsText)
-                .log()
-                .doOnNext(sink::tryEmitValue)
-                .then()).subscribe();
+    // test
+    this.withClient(
+            path,
+            (session) ->
+                session
+                    .receive()
+                    .map(WebSocketMessage::getPayloadAsText)
+                    .log()
+                    .doOnNext(sink::tryEmitValue)
+                    .then())
+        .subscribe();
 
-        //verify
-        StepVerifier.create(sink.asMono())
-                .expectNext(expected)
-                .expectComplete()
-                .log()
-                .verify(DEFAULT_GENERIC_TEST_FALLBACK);
+    // verify
+    StepVerifier.create(sink.asMono())
+        .expectNext(expected)
+        .expectComplete()
+        .log()
+        .verify(DEFAULT_GENERIC_TEST_FALLBACK);
+  }
+
+  @TestConfiguration
+  static class PrincipalWebFilterConfiguration {
+
+    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
+    @Bean
+    SecurityWebFilterChain securityWebFilterChain(final ServerHttpSecurity http) {
+      return http.authorizeExchange(exchange -> exchange.anyExchange().permitAll())
+          .formLogin(ServerHttpSecurity.FormLoginSpec::disable)
+          .build();
     }
 
-    @TestConfiguration
-    static class PrincipalWebFilterConfiguration {
-
-        @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
-        @Bean
-        SecurityWebFilterChain securityWebFilterChain(final ServerHttpSecurity http) {
-            return http.authorizeExchange(exchange -> exchange.anyExchange().permitAll())
-                    .formLogin(ServerHttpSecurity.FormLoginSpec::disable)
-                    .build();
-        }
-
-        @Bean
-        SocketHandshakeService socketHandshakeService() {
-            return SocketHandshakeService.builder()
-                    .handshake((exchange, chain) -> chain.filter(exchange.mutate().principal(Mono.just(new TestPrincipal())).build()))
-                    .build(new ReactorNettyRequestUpgradeStrategy());
-        }
+    @Bean
+    SocketHandshakeService socketHandshakeService() {
+      return SocketHandshakeService.builder()
+          .handshake(
+              (exchange, chain) ->
+                  chain.filter(exchange.mutate().principal(Mono.just(new TestPrincipal())).build()))
+          .build(new ReactorNettyRequestUpgradeStrategy());
     }
-
+  }
 }

@@ -8,11 +8,11 @@ package io.github.elpis.reactive.websockets.exception;
  */
 public class WebSocketMappingException extends RuntimeException {
 
-    public WebSocketMappingException(final String message) {
-        super(message);
-    }
+  public WebSocketMappingException(final String message) {
+    super(message);
+  }
 
-    public WebSocketMappingException(final String message, Object... args) {
-        super(String.format(message, args));
-    }
+  public WebSocketMappingException(final String message, Object... args) {
+    super(String.format(message, args));
+  }
 }

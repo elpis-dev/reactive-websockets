@@ -8,11 +8,10 @@ package io.github.elpis.reactive.websockets.event.model;
  */
 public interface WebSocketEvent<T> {
 
-    /**
-     * Abstract {@code get} method to return a payload from event.
-     *
-     * @since 1.0.0
-     */
-    T payload();
-
+  /**
+   * Abstract {@code get} method to return a payload from event.
+   *
+   * @since 1.0.0
+   */
+  T payload();
 }

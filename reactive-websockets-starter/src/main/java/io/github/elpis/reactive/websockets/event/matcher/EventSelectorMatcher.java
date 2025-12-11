@@ -13,5 +13,5 @@ import io.github.elpis.reactive.websockets.event.model.WebSocketEvent;
  * @see EventSelector
  * @since 1.0.0
  */
-public interface EventSelectorMatcher<E extends WebSocketEvent<?>> extends EventSelectorProcessor<E, Boolean> {
-}
+public interface EventSelectorMatcher<E extends WebSocketEvent<?>>
+    extends EventSelectorProcessor<E, Boolean> {}

@@ -1,14 +1,19 @@
 package io.github.elpis.reactive.websockets.event.annotation;
 
 import io.github.elpis.reactive.websockets.config.WebSocketCloseStatus;
-
-import java.lang.annotation.*;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
  * Indicates which close code should be handled by annotated method.
  *
- * <p>Annotation works in a similar way as {@link org.springframework.web.bind.annotation.ExceptionHandler @ExceptionHandler}.
- * Could be combined with {@link EventSelector @EventSelector} annotation to add additional filters on close event hit.
+ * <p>Annotation works in a similar way as {@link
+ * org.springframework.web.bind.annotation.ExceptionHandler @ExceptionHandler}. Could be combined
+ * with {@link EventSelector @EventSelector} annotation to add additional filters on close event
+ * hit.
  *
  * @author Phillip J. Fry
  * @see org.springframework.web.bind.annotation.ExceptionHandler
@@ -22,20 +27,25 @@ import java.lang.annotation.*;
 @Documented
 public @interface SessionCloseStatus {
 
-    /**
-     * Standard status codes covered by the annotated method. If empty, will default to {@link WebSocketCloseStatus#ALL WebSocketCloseStatus.ALL} that would omit all occurred close events.
-     *
-     * @since 1.0.0
-     */
-    WebSocketCloseStatus[] value() default {};
+  /**
+   * Standard status codes covered by the annotated method. If empty, will default to {@link
+   * WebSocketCloseStatus#ALL WebSocketCloseStatus.ALL} that would omit all occurred close events.
+   *
+   * @since 1.0.0
+   */
+  WebSocketCloseStatus[] value() default {};
 
-    /**
-     * Standard and custom status codes covered by the annotated method. If empty, will default to {@link WebSocketCloseStatus#ALL WebSocketCloseStatus.ALL} that would omit all occurred close events.
-     * <p>Setting this value will discard {@link #value() @SessionCloseStatus.value}.
-     *
-     * <p><strong>NOTE: </strong> Allowed values for this value are in range from 1000 to 4999. Other values will trigger throwing a validation exception.
-     *
-     * @since 1.0.0
-     */
-    int[] code() default {};
+  /**
+   * Standard and custom status codes covered by the annotated method. If empty, will default to
+   * {@link WebSocketCloseStatus#ALL WebSocketCloseStatus.ALL} that would omit all occurred close
+   * events.
+   *
+   * <p>Setting this value will discard {@link #value() @SessionCloseStatus.value}.
+   *
+   * <p><strong>NOTE: </strong> Allowed values for this value are in range from 1000 to 4999. Other
+   * values will trigger throwing a validation exception.
+   *
+   * @since 1.0.0
+   */
+  int[] code() default {};
 }
