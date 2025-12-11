@@ -7,6 +7,8 @@ import io.github.elpis.reactive.websockets.event.manager.WebSocketEventManagerFa
 import io.github.elpis.reactive.websockets.event.model.impl.ClientSessionClosedEvent;
 import io.github.elpis.reactive.websockets.event.model.impl.ServerSessionClosedEvent;
 import io.github.elpis.reactive.websockets.event.model.impl.SessionConnectedEvent;
+import io.github.elpis.reactive.websockets.handler.config.HeartbeatConfig;
+import io.github.elpis.reactive.websockets.handler.config.RateLimitConfig;
 import io.github.elpis.reactive.websockets.mapper.JsonMapper;
 import io.github.elpis.reactive.websockets.security.principal.Anonymous;
 import io.github.elpis.reactive.websockets.session.ReactiveWebSocketSession;
@@ -36,25 +38,21 @@ public abstract class BaseWebSocketHandler implements WebSocketHandler {
   private final WebSocketSessionRegistry sessionRegistry;
 
   private final String pathTemplate;
-  private final boolean heartbeatEnabled;
-  private final long heartbeatInterval;
-  private final long heartbeatTimeout;
+  private final HeartbeatConfig heartbeatConfig;
+  private final RateLimitConfig rateLimitConfig;
 
   protected BaseWebSocketHandler(
       final WebSocketEventManagerFactory eventManagerFactory,
       final WebSocketSessionRegistry sessionRegistry,
       final String pathTemplate,
-      final boolean heartbeatEnabled,
-      final long heartbeatInterval,
-      final long heartbeatTimeout) {
+      final HeartbeatConfig heartbeatConfig,
+      final RateLimitConfig rateLimitConfig) {
 
     this.eventManagerFactory = eventManagerFactory;
     this.sessionRegistry = sessionRegistry;
-
     this.pathTemplate = pathTemplate;
-    this.heartbeatEnabled = heartbeatEnabled;
-    this.heartbeatInterval = heartbeatInterval;
-    this.heartbeatTimeout = heartbeatTimeout;
+    this.heartbeatConfig = heartbeatConfig;
+    this.rateLimitConfig = rateLimitConfig;
   }
 
   @Override
@@ -221,7 +219,7 @@ public abstract class BaseWebSocketHandler implements WebSocketHandler {
   }
 
   boolean isHeartbeatEnabled() {
-    return heartbeatEnabled;
+    return heartbeatConfig.isEnabled();
   }
 
   public String getPathTemplate() {
@@ -229,14 +227,46 @@ public abstract class BaseWebSocketHandler implements WebSocketHandler {
   }
 
   public long getHeartbeatInterval() {
-    return heartbeatInterval;
+    return heartbeatConfig.getInterval();
   }
 
   public long getHeartbeatTimeout() {
-    return heartbeatTimeout;
+    return heartbeatConfig.getTimeout();
   }
 
   protected WebSocketSessionRegistry getSessionRegistry() {
     return sessionRegistry;
+  }
+
+  protected HeartbeatConfig getHeartbeatConfig() {
+    return heartbeatConfig;
+  }
+
+  protected RateLimitConfig getRateLimitConfig() {
+    return rateLimitConfig;
+  }
+
+  protected boolean isRateLimitEnabled() {
+    return rateLimitConfig.isEnabled();
+  }
+
+  protected int getRateLimitForPeriod() {
+    return rateLimitConfig.getLimitForPeriod();
+  }
+
+  protected long getRateLimitRefreshPeriod() {
+    return rateLimitConfig.getLimitRefreshPeriod();
+  }
+
+  protected String getRateLimitTimeUnit() {
+    return rateLimitConfig.getTimeUnit();
+  }
+
+  protected long getRateLimitTimeout() {
+    return rateLimitConfig.getTimeout();
+  }
+
+  protected String getRateLimitScope() {
+    return rateLimitConfig.getScope();
   }
 }

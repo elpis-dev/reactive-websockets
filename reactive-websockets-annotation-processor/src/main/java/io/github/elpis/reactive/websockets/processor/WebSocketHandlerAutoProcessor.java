@@ -1,20 +1,23 @@
 package io.github.elpis.reactive.websockets.processor;
 
+import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.WildcardTypeName;
 import io.github.elpis.reactive.websockets.config.Mode;
 import io.github.elpis.reactive.websockets.processor.exception.WebSocketProcessorException;
+import io.github.elpis.reactive.websockets.processor.flowcontrol.HeartbeatFlowController;
+import io.github.elpis.reactive.websockets.processor.flowcontrol.RateLimitFlowController;
 import io.github.elpis.reactive.websockets.processor.resolver.SocketAnnotationResolverFactory;
 import io.github.elpis.reactive.websockets.session.WebSocketSessionContext;
 import io.github.elpis.reactive.websockets.util.TypeUtils;
-import io.github.elpis.reactive.websockets.web.annotation.Heartbeat;
 import io.github.elpis.reactive.websockets.web.annotation.MessageEndpoint;
 import io.github.elpis.reactive.websockets.web.annotation.OnMessage;
 import java.io.IOException;
@@ -102,13 +105,22 @@ public class WebSocketHandlerAutoProcessor extends AbstractProcessor {
                 ClassName.bestGuess(
                     "io.github.elpis.reactive.websockets.session.WebSocketSessionRegistry"),
                 "sessionRegistry")
+            .addParameter(
+                ParameterSpec.builder(
+                        ClassName.bestGuess(
+                            "io.github.elpis.reactive.websockets.handler.ratelimit.RateLimiterService"),
+                        "rateLimiterService")
+                    .addAnnotation(
+                        AnnotationSpec.builder(Autowired.class)
+                            .addMember("required", "false")
+                            .build())
+                    .build())
             .addParameter(TypeName.get(descriptor.clazz().asType()), "socketResource")
             .addStatement(
-                "super(eventFactory, sessionRegistry, $S, $L, $L, $L)",
+                "super(eventFactory, sessionRegistry, rateLimiterService, $S, $L, $L)",
                 descriptor.pathTemplate(),
-                descriptor.heartbeatEnabled(),
-                descriptor.heartbeatInterval(),
-                descriptor.heartbeatTimeout())
+                generateHeartbeatConfig(descriptor),
+                generateRateLimitConfig(descriptor))
             .addStatement("this.socketResource = socketResource")
             .build();
 
@@ -211,33 +223,8 @@ public class WebSocketHandlerAutoProcessor extends AbstractProcessor {
     final OnMessage onMessage = method.getAnnotation(OnMessage.class);
     final String pathTemplate = resource.value() + onMessage.value();
 
-    // Heartbeat precedence logic:
-    // 1. If @OnMessage has @Heartbeat with enabled=true, use it
-    // 2. Else if @MessageEndpoint has @Heartbeat with enabled=true, use it
-    // 3. Else heartbeat is disabled
-    final Heartbeat onMessageHeartbeat = onMessage.heartbeat();
-    final Heartbeat endpointHeartbeat = resource.heartbeat();
-
-    final boolean heartbeatEnabled;
-    final long heartbeatInterval;
-    final long heartbeatTimeout;
-
-    if (onMessageHeartbeat.enabled()) {
-      // @OnMessage heartbeat takes precedence
-      heartbeatEnabled = true;
-      heartbeatInterval = onMessageHeartbeat.interval();
-      heartbeatTimeout = onMessageHeartbeat.timeout();
-    } else if (endpointHeartbeat.enabled()) {
-      // Use @MessageEndpoint heartbeat if @OnMessage doesn't have it
-      heartbeatEnabled = true;
-      heartbeatInterval = endpointHeartbeat.interval();
-      heartbeatTimeout = endpointHeartbeat.timeout();
-    } else {
-      // No heartbeat configured
-      heartbeatEnabled = false;
-      heartbeatInterval = 30;
-      heartbeatTimeout = 60;
-    }
+    final HeartbeatConfigData heartbeatConfig = resolveHeartbeatConfig(onMessage, resource);
+    final RateLimitConfigData rateLimitConfig = resolveRateLimitConfig(onMessage, resource);
 
     final WebHandlerResourceDescriptor descriptor =
         new WebHandlerResourceDescriptor(
@@ -246,9 +233,8 @@ public class WebSocketHandlerAutoProcessor extends AbstractProcessor {
             method.getReturnType().getKind() != TypeKind.VOID,
             pathTemplate,
             onMessage.mode(),
-            heartbeatEnabled,
-            heartbeatInterval,
-            heartbeatTimeout);
+            heartbeatConfig,
+            rateLimitConfig);
 
     final TypeMirror returnType = method.getReturnType();
 
@@ -268,15 +254,53 @@ public class WebSocketHandlerAutoProcessor extends AbstractProcessor {
     return descriptor;
   }
 
+  /**
+   * Resolves heartbeat configuration with precedence logic. Delegates to {@link
+   * HeartbeatFlowController}.
+   */
+  private HeartbeatConfigData resolveHeartbeatConfig(
+      final OnMessage onMessage, final MessageEndpoint resource) {
+    return HeartbeatFlowController.resolveHeartbeatConfig(onMessage, resource);
+  }
+
+  /**
+   * Resolves rate limit configuration with precedence logic. Delegates to {@link
+   * RateLimitFlowController}.
+   */
+  private RateLimitConfigData resolveRateLimitConfig(
+      final OnMessage onMessage, final MessageEndpoint resource) {
+    return RateLimitFlowController.resolveRateLimitConfig(onMessage, resource);
+  }
+
+  /**
+   * Generates code block for HeartbeatConfig creation. Delegates to {@link
+   * HeartbeatFlowController}.
+   */
+  private String generateHeartbeatConfig(WebHandlerResourceDescriptor descriptor) {
+    return HeartbeatFlowController.generateHeartbeatConfig(descriptor.heartbeatConfig());
+  }
+
+  /**
+   * Generates code block for RateLimitConfig creation. Delegates to {@link
+   * RateLimitFlowController}.
+   */
+  private String generateRateLimitConfig(WebHandlerResourceDescriptor descriptor) {
+    return RateLimitFlowController.generateRateLimitConfig(descriptor.rateLimitConfig());
+  }
+
+  public record HeartbeatConfigData(long interval, long timeout) {}
+
+  public record RateLimitConfigData(
+      int limitForPeriod, long limitRefreshPeriod, String timeUnit, long timeout, String scope) {}
+
   private record WebHandlerResourceDescriptor(
       ExecutableElement method,
       Element clazz,
       boolean useReturn,
       String pathTemplate,
       Mode mode,
-      boolean heartbeatEnabled,
-      long heartbeatInterval,
-      long heartbeatTimeout) {
+      HeartbeatConfigData heartbeatConfig,
+      RateLimitConfigData rateLimitConfig) {
 
     private String getPostfix() {
       final String uniqueKey =

@@ -48,4 +48,12 @@ public @interface MessageEndpoint {
    * @since 1.0.0
    */
   Heartbeat heartbeat() default @Heartbeat(enabled = false);
+
+  /**
+   * Rate limiting configuration for all WebSocket connections in this endpoint. Can be overridden
+   * by {@link OnMessage} annotation on individual methods.
+   *
+   * @since 1.0.0
+   */
+  RateLimit rateLimit() default @RateLimit(enabled = false);
 }

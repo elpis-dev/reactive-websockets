@@ -4,6 +4,7 @@ import io.github.elpis.reactive.websockets.config.event.WebSocketEventConfigurat
 import io.github.elpis.reactive.websockets.config.handler.route.WebSocketRouteConfiguration;
 import io.github.elpis.reactive.websockets.exception.WebSocketMappingException;
 import io.github.elpis.reactive.websockets.handler.BaseWebSocketHandler;
+import io.github.elpis.reactive.websockets.handler.ratelimit.RateLimiterService;
 import io.github.elpis.reactive.websockets.handler.route.WebSocketHandlerFunction;
 import io.github.elpis.reactive.websockets.handler.route.WebSocketHandlerFunctions;
 import io.github.elpis.reactive.websockets.handler.route.WebSocketHandlerRouteResolver;
@@ -37,7 +38,8 @@ import reactor.util.context.Context;
 @Import({
   WebSocketSessionRegistry.class,
   WebSocketEventConfiguration.class,
-  WebSocketRouteConfiguration.class
+  WebSocketRouteConfiguration.class,
+  RateLimiterService.class,
 })
 @ComponentScan("io.github.elpis.reactive.websockets.generated")
 public class WebSocketConfiguration {

@@ -56,6 +56,8 @@
         <log4j2.version>2.25.2</log4j2.version>
 
         <reactive-websockets.version>1.0.0-alpha</reactive-websockets.version>
+
+        <resilience4j.version>2.3.0</resilience4j.version>
     </properties>
 
     <modules>
