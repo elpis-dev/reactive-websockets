@@ -4,6 +4,9 @@ import io.github.elpis.reactive.websockets.config.Mode;
 import io.github.elpis.reactive.websockets.event.manager.WebSocketEventManagerFactory;
 import io.github.elpis.reactive.websockets.handler.BaseWebSocketHandler;
 import io.github.elpis.reactive.websockets.handler.BroadcastWebSocketResourceHandler;
+import io.github.elpis.reactive.websockets.handler.config.HeartbeatConfig;
+import io.github.elpis.reactive.websockets.handler.config.RateLimitConfig;
+import io.github.elpis.reactive.websockets.handler.ratelimit.RateLimiterService;
 import io.github.elpis.reactive.websockets.session.WebSocketSessionContext;
 import io.github.elpis.reactive.websockets.session.WebSocketSessionRegistry;
 import java.util.function.BiConsumer;
@@ -58,7 +61,8 @@ public final class WebSocketHandlerFunctions {
       @Override
       public BaseWebSocketHandler register(
           final WebSocketEventManagerFactory eventManagerFactory,
-          final WebSocketSessionRegistry sessionRegistry) {
+          final WebSocketSessionRegistry sessionRegistry,
+          final RateLimiterService rateLimiterService) {
         return null;
       }
     };
@@ -115,17 +119,18 @@ public final class WebSocketHandlerFunctions {
     @Override
     public BaseWebSocketHandler register(
         final WebSocketEventManagerFactory eventManagerFactory,
-        final WebSocketSessionRegistry sessionRegistry) {
+        final WebSocketSessionRegistry sessionRegistry,
+        final RateLimiterService rateLimiterService) {
 
       return switch (this.mode) {
         case BROADCAST ->
             new BroadcastWebSocketResourceHandler(
                 eventManagerFactory,
                 sessionRegistry,
+                rateLimiterService,
                 path,
-                heartbeatEnabled,
-                heartbeatInterval,
-                heartbeatTimeout) {
+                HeartbeatConfig.of(heartbeatInterval, heartbeatTimeout),
+                RateLimitConfig.disabled()) {
               @Override
               public Publisher<?> apply(
                   WebSocketSessionContext context, Flux<WebSocketMessage> messages) {
@@ -155,16 +160,17 @@ public final class WebSocketHandlerFunctions {
     @Override
     public BaseWebSocketHandler register(
         final WebSocketEventManagerFactory eventManagerFactory,
-        final WebSocketSessionRegistry sessionRegistry) {
+        final WebSocketSessionRegistry sessionRegistry,
+        final RateLimiterService rateLimiterService) {
       return switch (this.mode) {
         case BROADCAST ->
             new BroadcastWebSocketResourceHandler(
                 eventManagerFactory,
                 sessionRegistry,
+                rateLimiterService,
                 path,
-                heartbeatEnabled,
-                heartbeatInterval,
-                heartbeatTimeout) {
+                HeartbeatConfig.of(heartbeatInterval, heartbeatTimeout),
+                RateLimitConfig.disabled()) {
               @Override
               public void run(WebSocketSessionContext context, Flux<WebSocketMessage> messages) {
                 handlerFunction.accept(context, messages);

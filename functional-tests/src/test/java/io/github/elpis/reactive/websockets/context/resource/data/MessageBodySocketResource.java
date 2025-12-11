@@ -20,7 +20,7 @@ public class MessageBodySocketResource {
   public void receiveDefaultMessage(
       @RequestBody final Flux<WebSocketMessage> webSocketMessageFlux) {
     webSocketMessageFlux.subscribe(
-        message -> log.info("Received message: " + message.getPayloadAsText()));
+        message -> log.info("Received message: {}", message.getPayloadAsText()));
   }
 
   @OnMessage(value = "/post/binary", mode = Mode.BROADCAST)

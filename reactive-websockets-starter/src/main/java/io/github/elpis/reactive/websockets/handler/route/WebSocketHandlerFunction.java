@@ -3,13 +3,15 @@ package io.github.elpis.reactive.websockets.handler.route;
 import io.github.elpis.reactive.websockets.config.Mode;
 import io.github.elpis.reactive.websockets.event.manager.WebSocketEventManagerFactory;
 import io.github.elpis.reactive.websockets.handler.BaseWebSocketHandler;
+import io.github.elpis.reactive.websockets.handler.ratelimit.RateLimiterService;
 import io.github.elpis.reactive.websockets.session.WebSocketSessionRegistry;
 
 @FunctionalInterface
 public interface WebSocketHandlerFunction {
   BaseWebSocketHandler register(
       final WebSocketEventManagerFactory eventManagerFactory,
-      final WebSocketSessionRegistry sessionRegistry);
+      final WebSocketSessionRegistry sessionRegistry,
+      final RateLimiterService rateLimiterService);
 
   default <T> WebSocketHandlerFunction handle(
       final String path,

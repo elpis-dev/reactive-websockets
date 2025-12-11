@@ -14,7 +14,7 @@ import org.springframework.context.annotation.Import;
 @Import({
   // Event Matchers
   ClosedSessionEventSelectorMatcher.class,
-  WebSocketSessionRegistry.class
+  WebSocketSessionRegistry.class,
 })
 public class BootStarter {
   public static void main(String[] args) {
