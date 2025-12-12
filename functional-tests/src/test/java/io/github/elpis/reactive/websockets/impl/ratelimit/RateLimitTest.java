@@ -168,9 +168,9 @@ public class RateLimitTest extends BaseWebSocketTest {
   }
 
   /**
-   * Tests IP-scoped rate limiting which uses getRateLimiterIdentifier with scope = IP.
-   * The rate limiter identifier should be based on the client's IP address.
-   * Multiple connections from the same IP share the same rate limit.
+   * Tests IP-scoped rate limiting which uses getRateLimiterIdentifier with scope = IP. The rate
+   * limiter identifier should be based on the client's IP address. Multiple connections from the
+   * same IP share the same rate limit.
    */
   @Test
   public void testIpScopedRateLimit() throws Exception {
@@ -208,9 +208,9 @@ public class RateLimitTest extends BaseWebSocketTest {
   }
 
   /**
-   * Tests that multiple connections from the same IP share the same rate limit.
-   * This verifies that getRateLimiterIdentifier correctly generates the same identifier
-   * for connections from the same IP address.
+   * Tests that multiple connections from the same IP share the same rate limit. This verifies that
+   * getRateLimiterIdentifier correctly generates the same identifier for connections from the same
+   * IP address.
    */
   @Test
   public void testIpScopedRateLimitSharedAcrossConnections() throws Exception {
@@ -223,9 +223,7 @@ public class RateLimitTest extends BaseWebSocketTest {
 
     // First connection - send 3 messages (within limit)
     final Flux<String> data1 =
-        Flux.interval(Duration.ofMillis(150))
-            .map(i -> "Connection 1, Message: " + (i + 1))
-            .take(3);
+        Flux.interval(Duration.ofMillis(150)).map(i -> "Connection 1, Message: " + (i + 1)).take(3);
 
     this.withClient(
             path,
@@ -244,9 +242,7 @@ public class RateLimitTest extends BaseWebSocketTest {
 
     // Second connection from same IP - send 4 more messages (should exceed shared limit of 5)
     final Flux<String> data2 =
-        Flux.interval(Duration.ofMillis(150))
-            .map(i -> "Connection 2, Message: " + (i + 1))
-            .take(4);
+        Flux.interval(Duration.ofMillis(150)).map(i -> "Connection 2, Message: " + (i + 1)).take(4);
 
     this.withClient(
             path,
