@@ -166,4 +166,106 @@ public class RateLimitTest extends BaseWebSocketTest {
     assertThat(logCaptor.getWarnLogs())
         .anySatisfy(log -> assertThat(log).contains("Rate limit exceeded"));
   }
+
+  /**
+   * Tests IP-scoped rate limiting which uses getRateLimiterIdentifier with scope = IP.
+   * The rate limiter identifier should be based on the client's IP address.
+   * Multiple connections from the same IP share the same rate limit.
+   */
+  @Test
+  public void testIpScopedRateLimit() throws Exception {
+    // given - IP scope allows 5 messages per 10 seconds
+    final Flux<String> data =
+        Flux.interval(Duration.ofMillis(150))
+            .map(i -> "Message from IP: " + (i + 1))
+            .take(8); // Send 8 messages to exceed the limit of 5
+
+    final String path = "/ratelimit/by-ip";
+    final Sinks.Many<String> sink = Sinks.many().replay().all();
+
+    final LogCaptor logCaptor = LogCaptor.forClass(BroadcastWebSocketResourceHandler.class);
+
+    // test - connect from localhost (127.0.0.1 or similar)
+    this.withClient(
+            path,
+            session ->
+                session
+                    .send(data.map(session::textMessage))
+                    .thenMany(
+                        session
+                            .receive()
+                            .doOnNext(value -> sink.tryEmitNext(value.getPayloadAsText())))
+                    .then())
+        .subscribe();
+
+    // verify - should timeout because rate limit is hit and no more messages are received
+    StepVerifier.create(sink.asFlux().timeout(DEFAULT_FAST_TEST_FALLBACK))
+        .verifyError(TimeoutException.class);
+
+    // verify rate limit warning was logged
+    assertThat(logCaptor.getWarnLogs())
+        .anySatisfy(log -> assertThat(log).contains("Rate limit exceeded"));
+  }
+
+  /**
+   * Tests that multiple connections from the same IP share the same rate limit.
+   * This verifies that getRateLimiterIdentifier correctly generates the same identifier
+   * for connections from the same IP address.
+   */
+  @Test
+  public void testIpScopedRateLimitSharedAcrossConnections() throws Exception {
+    // given - IP scope allows 5 messages per 10 seconds
+    final String path = "/ratelimit/by-ip";
+    final Sinks.Many<String> sink1 = Sinks.many().replay().all();
+    final Sinks.Many<String> sink2 = Sinks.many().replay().all();
+
+    final LogCaptor logCaptor = LogCaptor.forClass(BroadcastWebSocketResourceHandler.class);
+
+    // First connection - send 3 messages (within limit)
+    final Flux<String> data1 =
+        Flux.interval(Duration.ofMillis(150))
+            .map(i -> "Connection 1, Message: " + (i + 1))
+            .take(3);
+
+    this.withClient(
+            path,
+            session ->
+                session
+                    .send(data1.map(session::textMessage))
+                    .thenMany(
+                        session
+                            .receive()
+                            .doOnNext(value -> sink1.tryEmitNext(value.getPayloadAsText())))
+                    .then())
+        .subscribe();
+
+    // Allow first connection to process
+    Thread.sleep(600);
+
+    // Second connection from same IP - send 4 more messages (should exceed shared limit of 5)
+    final Flux<String> data2 =
+        Flux.interval(Duration.ofMillis(150))
+            .map(i -> "Connection 2, Message: " + (i + 1))
+            .take(4);
+
+    this.withClient(
+            path,
+            session ->
+                session
+                    .send(data2.map(session::textMessage))
+                    .thenMany(
+                        session
+                            .receive()
+                            .doOnNext(value -> sink2.tryEmitNext(value.getPayloadAsText())))
+                    .then())
+        .subscribe();
+
+    // verify - second connection should hit rate limit because total is 3 + 4 = 7 (exceeds 5)
+    StepVerifier.create(sink2.asFlux().timeout(DEFAULT_FAST_TEST_FALLBACK))
+        .verifyError(TimeoutException.class);
+
+    // verify rate limit warning was logged
+    assertThat(logCaptor.getWarnLogs())
+        .anySatisfy(log -> assertThat(log).contains("Rate limit exceeded"));
+  }
 }

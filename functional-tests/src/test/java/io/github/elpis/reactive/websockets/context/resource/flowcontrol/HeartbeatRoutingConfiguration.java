@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Configuration;
 import reactor.core.publisher.Flux;
 
 @Configuration
-public class PingRoutingConfiguration {
+public class HeartbeatRoutingConfiguration {
 
   @Bean
   public WebSocketHandlerFunction pingRouting() {

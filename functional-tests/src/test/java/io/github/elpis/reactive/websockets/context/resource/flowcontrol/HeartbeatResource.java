@@ -6,7 +6,7 @@ import io.github.elpis.reactive.websockets.web.annotation.MessageEndpoint;
 import io.github.elpis.reactive.websockets.web.annotation.OnMessage;
 
 @MessageEndpoint("/connection")
-public class PingResource {
+public class HeartbeatResource {
   @OnMessage(value = "/ping", mode = Mode.BROADCAST)
   @Heartbeat(interval = 1, timeout = 5)
   public void ping() {
