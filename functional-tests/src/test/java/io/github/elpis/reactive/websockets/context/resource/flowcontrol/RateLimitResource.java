@@ -52,4 +52,16 @@ public class RateLimitResource {
     webSocketMessageFlux.subscribe(
         message -> log.info("Received message: {}", message.getPayloadAsText()));
   }
+
+  /** Endpoint with rate limit by IP scope. Allows 5 messages per 10 seconds. */
+  @OnMessage(value = "/by-ip", mode = Mode.BROADCAST)
+  @RateLimit(
+      limitForPeriod = 5,
+      limitRefreshPeriod = 10,
+      timeUnit = TimeUnit.SECONDS,
+      scope = RateLimit.RateLimitScope.IP)
+  public void ipScopedRateLimit(@RequestBody final Flux<WebSocketMessage> webSocketMessageFlux) {
+    webSocketMessageFlux.subscribe(
+        message -> log.info("Received message: {}", message.getPayloadAsText()));
+  }
 }

@@ -7,6 +7,7 @@ import io.github.elpis.reactive.websockets.event.manager.WebSocketEventManagerFa
 import io.github.elpis.reactive.websockets.event.model.impl.ClientSessionClosedEvent;
 import io.github.elpis.reactive.websockets.event.model.impl.ServerSessionClosedEvent;
 import io.github.elpis.reactive.websockets.event.model.impl.SessionConnectedEvent;
+import io.github.elpis.reactive.websockets.handler.config.BackpressureConfig;
 import io.github.elpis.reactive.websockets.handler.config.HeartbeatConfig;
 import io.github.elpis.reactive.websockets.handler.config.RateLimitConfig;
 import io.github.elpis.reactive.websockets.mapper.JsonMapper;
@@ -40,19 +41,22 @@ public abstract class BaseWebSocketHandler implements WebSocketHandler {
   private final String pathTemplate;
   private final HeartbeatConfig heartbeatConfig;
   private final RateLimitConfig rateLimitConfig;
+  private final BackpressureConfig backpressureConfig;
 
   protected BaseWebSocketHandler(
       final WebSocketEventManagerFactory eventManagerFactory,
       final WebSocketSessionRegistry sessionRegistry,
       final String pathTemplate,
       final HeartbeatConfig heartbeatConfig,
-      final RateLimitConfig rateLimitConfig) {
+      final RateLimitConfig rateLimitConfig,
+      final BackpressureConfig backpressureConfig) {
 
     this.eventManagerFactory = eventManagerFactory;
     this.sessionRegistry = sessionRegistry;
     this.pathTemplate = pathTemplate;
     this.heartbeatConfig = heartbeatConfig;
     this.rateLimitConfig = rateLimitConfig;
+    this.backpressureConfig = backpressureConfig;
   }
 
   @Override
@@ -230,6 +234,7 @@ public abstract class BaseWebSocketHandler implements WebSocketHandler {
     return heartbeatConfig.getInterval();
   }
 
+  @SuppressWarnings("unused")
   public long getHeartbeatTimeout() {
     return heartbeatConfig.getTimeout();
   }
@@ -238,16 +243,55 @@ public abstract class BaseWebSocketHandler implements WebSocketHandler {
     return sessionRegistry;
   }
 
+  @SuppressWarnings("unused")
   protected HeartbeatConfig getHeartbeatConfig() {
     return heartbeatConfig;
   }
 
+  @SuppressWarnings("unused")
   protected RateLimitConfig getRateLimitConfig() {
     return rateLimitConfig;
   }
 
   protected boolean isRateLimitEnabled() {
     return rateLimitConfig.isEnabled();
+  }
+
+  @SuppressWarnings("unused")
+  protected BackpressureConfig getBackpressureConfig() {
+    return backpressureConfig;
+  }
+
+  @SuppressWarnings("unused")
+  protected boolean isBackpressureEnabled() {
+    return backpressureConfig.isEnabled();
+  }
+
+  /**
+   * Applies the configured backpressure strategy to the given Flux.
+   *
+   * @param flux the Flux to apply backpressure to
+   * @param <T> the type of elements in the Flux
+   * @return the Flux with backpressure applied, or the original Flux if disabled
+   */
+  protected <T> Flux<T> applyBackpressure(final Flux<T> flux) {
+    if (!backpressureConfig.isEnabled()) {
+      return flux;
+    }
+
+    final String strategy = backpressureConfig.getStrategy();
+    final int bufferSize = backpressureConfig.getBufferSize();
+
+    return switch (strategy) {
+      case "BUFFER" -> flux.onBackpressureBuffer(bufferSize);
+      case "DROP_OLDEST" -> flux.onBackpressureLatest();
+      case "DROP_LATEST" -> flux.onBackpressureDrop();
+      case "ERROR" -> flux.onBackpressureError();
+      default -> {
+        log.warn("Unknown backpressure strategy: {}. No backpressure applied.", strategy);
+        yield flux;
+      }
+    };
   }
 
   protected int getRateLimitForPeriod() {
