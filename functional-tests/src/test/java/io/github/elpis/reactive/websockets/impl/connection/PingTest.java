@@ -4,8 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.github.elpis.reactive.websockets.BaseWebSocketTest;
 import io.github.elpis.reactive.websockets.context.BootStarter;
-import io.github.elpis.reactive.websockets.context.resource.connection.PingResource;
-import io.github.elpis.reactive.websockets.context.resource.connection.PingRoutingConfiguration;
+import io.github.elpis.reactive.websockets.context.resource.flowcontrol.PingResource;
+import io.github.elpis.reactive.websockets.context.resource.flowcontrol.PingRoutingConfiguration;
 import java.time.Duration;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;

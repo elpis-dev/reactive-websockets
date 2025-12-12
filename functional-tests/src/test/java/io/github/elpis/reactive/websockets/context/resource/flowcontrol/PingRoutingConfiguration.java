@@ -1,4 +1,4 @@
-package io.github.elpis.reactive.websockets.context.resource.connection;
+package io.github.elpis.reactive.websockets.context.resource.flowcontrol;
 
 import static io.github.elpis.reactive.websockets.handler.route.WebSocketHandlerFunctions.handle;
 

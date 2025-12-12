@@ -223,8 +223,10 @@ public class WebSocketHandlerAutoProcessor extends AbstractProcessor {
     final OnMessage onMessage = method.getAnnotation(OnMessage.class);
     final String pathTemplate = resource.value() + onMessage.value();
 
-    final HeartbeatConfigData heartbeatConfig = resolveHeartbeatConfig(onMessage, resource);
-    final RateLimitConfigData rateLimitConfig = resolveRateLimitConfig(onMessage, resource);
+    final HeartbeatConfigData heartbeatConfig =
+        HeartbeatFlowController.resolveHeartbeatConfig(method, clazz);
+    final RateLimitConfigData rateLimitConfig =
+        RateLimitFlowController.resolveRateLimitConfig(method, clazz);
 
     final WebHandlerResourceDescriptor descriptor =
         new WebHandlerResourceDescriptor(
@@ -252,24 +254,6 @@ public class WebSocketHandlerAutoProcessor extends AbstractProcessor {
     }
 
     return descriptor;
-  }
-
-  /**
-   * Resolves heartbeat configuration with precedence logic. Delegates to {@link
-   * HeartbeatFlowController}.
-   */
-  private HeartbeatConfigData resolveHeartbeatConfig(
-      final OnMessage onMessage, final MessageEndpoint resource) {
-    return HeartbeatFlowController.resolveHeartbeatConfig(onMessage, resource);
-  }
-
-  /**
-   * Resolves rate limit configuration with precedence logic. Delegates to {@link
-   * RateLimitFlowController}.
-   */
-  private RateLimitConfigData resolveRateLimitConfig(
-      final OnMessage onMessage, final MessageEndpoint resource) {
-    return RateLimitFlowController.resolveRateLimitConfig(onMessage, resource);
   }
 
   /**

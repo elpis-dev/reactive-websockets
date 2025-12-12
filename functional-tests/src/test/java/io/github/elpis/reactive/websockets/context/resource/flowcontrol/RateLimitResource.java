@@ -1,20 +1,22 @@
-package io.github.elpis.reactive.websockets.context.resource.ratelimit;
+package io.github.elpis.reactive.websockets.context.resource.flowcontrol;
 
 import io.github.elpis.reactive.websockets.config.Mode;
 import io.github.elpis.reactive.websockets.web.annotation.MessageEndpoint;
 import io.github.elpis.reactive.websockets.web.annotation.OnMessage;
 import io.github.elpis.reactive.websockets.web.annotation.RateLimit;
+import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.reactive.socket.WebSocketMessage;
 import reactor.core.publisher.Flux;
 
-@MessageEndpoint(value = "/ratelimit", rateLimit = @RateLimit(limitForPeriod = 5))
+@MessageEndpoint("/ratelimit")
+@RateLimit(limitForPeriod = 5, limitRefreshPeriod = 10, timeUnit = TimeUnit.SECONDS)
 public class RateLimitResource {
   private static final Logger log = LoggerFactory.getLogger(RateLimitResource.class);
 
-  /** Endpoint that inherits rate limit from @MessageEndpoint. Allows 5 messages per second. */
+  /** Endpoint that inherits rate limit from class level. Allows 5 messages per 10 seconds. */
   @OnMessage(value = "/default", mode = Mode.BROADCAST)
   public void defaultRateLimit(@RequestBody final Flux<WebSocketMessage> webSocketMessageFlux) {
     webSocketMessageFlux.subscribe(
@@ -22,26 +24,30 @@ public class RateLimitResource {
   }
 
   /**
-   * Endpoint with custom rate limit that overrides @MessageEndpoint. Allows 10 messages per second.
+   * Endpoint with custom rate limit that overrides class level. Allows 10 messages per 10 seconds.
    */
-  @OnMessage(value = "/custom", mode = Mode.BROADCAST, rateLimit = @RateLimit(limitForPeriod = 10))
+  @OnMessage(value = "/custom", mode = Mode.BROADCAST)
+  @RateLimit(limitRefreshPeriod = 10, timeUnit = TimeUnit.SECONDS)
   public void customRateLimit(@RequestBody final Flux<WebSocketMessage> webSocketMessageFlux) {
     webSocketMessageFlux.subscribe(
         message -> log.info("Received message: {}", message.getPayloadAsText()));
   }
 
   /** Endpoint with rate limiting disabled. */
-  @OnMessage(value = "/disabled", mode = Mode.BROADCAST, rateLimit = @RateLimit(enabled = false))
+  @OnMessage(value = "/disabled", mode = Mode.BROADCAST)
+  @RateLimit(enabled = false)
   public void disabledRateLimit(@RequestBody final Flux<WebSocketMessage> webSocketMessageFlux) {
     webSocketMessageFlux.subscribe(
         message -> log.info("Received message: {}", message.getPayloadAsText()));
   }
 
-  /** Endpoint with rate limit by USER scope. */
-  @OnMessage(
-      value = "/by-user",
-      mode = Mode.BROADCAST,
-      rateLimit = @RateLimit(limitForPeriod = 3, scope = RateLimit.RateLimitScope.USER))
+  /** Endpoint with rate limit by USER scope. Allows 3 messages per 10 seconds. */
+  @OnMessage(value = "/by-user", mode = Mode.BROADCAST)
+  @RateLimit(
+      limitForPeriod = 3,
+      limitRefreshPeriod = 10,
+      timeUnit = TimeUnit.SECONDS,
+      scope = RateLimit.RateLimitScope.USER)
   public void userScopedRateLimit(@RequestBody final Flux<WebSocketMessage> webSocketMessageFlux) {
     webSocketMessageFlux.subscribe(
         message -> log.info("Received message: {}", message.getPayloadAsText()));

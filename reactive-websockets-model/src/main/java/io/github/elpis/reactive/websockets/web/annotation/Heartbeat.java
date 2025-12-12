@@ -10,10 +10,25 @@ import java.lang.annotation.Target;
  * Heartbeat configuration for WebSocket connections. Defines ping/pong interval and timeout
  * settings.
  *
+ * <p>Can be applied at:
+ *
+ * <ul>
+ *   <li>Class level - applies to all methods in the @MessageEndpoint
+ *   <li>Method level - applies to specific @OnMessage method, overrides class-level
+ * </ul>
+ *
+ * <p>Precedence (highest to lowest):
+ *
+ * <ol>
+ *   <li>@Heartbeat on method
+ *   <li>@Heartbeat on class
+ *   <li>Disabled (default)
+ * </ol>
+ *
  * @author Phillip J. Fry
  * @since 1.0.0
  */
-@Target(ElementType.ANNOTATION_TYPE)
+@Target({ElementType.TYPE, ElementType.METHOD, ElementType.ANNOTATION_TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface Heartbeat {

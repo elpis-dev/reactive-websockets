@@ -4,7 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.github.elpis.reactive.websockets.BaseWebSocketTest;
 import io.github.elpis.reactive.websockets.context.BootStarter;
-import io.github.elpis.reactive.websockets.context.resource.ratelimit.RateLimitResource;
+import io.github.elpis.reactive.websockets.context.resource.flowcontrol.RateLimitResource;
 import io.github.elpis.reactive.websockets.handler.BroadcastWebSocketResourceHandler;
 import java.time.Duration;
 import java.util.concurrent.TimeoutException;
@@ -37,7 +37,7 @@ public class RateLimitTest extends BaseWebSocketTest {
     // given
     final Flux<String> data =
         Flux.interval(Duration.ofMillis(150))
-            .map(i -> "Till Rate Limit is hit: " + (DEFAULT_TEST_MESSAGE_COUNT - i))
+            .map(i -> "Till Rate Limit is hit: " + (i + 1))
             .take(DEFAULT_TEST_MESSAGE_COUNT);
 
     final String path = "/ratelimit/default";
@@ -71,7 +71,7 @@ public class RateLimitTest extends BaseWebSocketTest {
     // given
     final Flux<String> data =
         Flux.interval(Duration.ofMillis(50))
-            .map(i -> "Till Rate Limit is hit: " + (CUSTOM_TEST_MESSAGE_COUNT - i))
+            .map(i -> "Till Rate Limit is hit: " + (i + 1))
             .take(CUSTOM_TEST_MESSAGE_COUNT);
 
     final String path = "/ratelimit/custom";
@@ -138,7 +138,7 @@ public class RateLimitTest extends BaseWebSocketTest {
     // given
     final Flux<String> data =
         Flux.interval(Duration.ofMillis(150))
-            .map(i -> "Till Rate Limit is hit: " + (USER_TEST_MESSAGE_COUNT - i))
+            .map(i -> "Till Rate Limit is hit: " + (i + 1))
             .take(USER_TEST_MESSAGE_COUNT);
 
     final String path = "/ratelimit/by-user";

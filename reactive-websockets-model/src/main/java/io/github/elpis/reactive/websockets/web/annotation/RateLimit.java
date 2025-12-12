@@ -14,10 +14,25 @@ import java.util.concurrent.TimeUnit;
  * <p>Uses Resilience4j rate limiter to prevent abuse and DoS attacks. When the rate limit is
  * exceeded, an error response is sent to the client.
  *
+ * <p>Can be applied at:
+ *
+ * <ul>
+ *   <li>Class level - applies to all methods in the @MessageEndpoint
+ *   <li>Method level - applies to specific @OnMessage method, overrides class-level
+ * </ul>
+ *
+ * <p>Precedence (highest to lowest):
+ *
+ * <ol>
+ *   <li>@RateLimit on method
+ *   <li>@RateLimit on class
+ *   <li>Disabled (default)
+ * </ol>
+ *
  * @author Phillip J. Fry
  * @since 1.0.0
  */
-@Target(ElementType.ANNOTATION_TYPE)
+@Target({ElementType.TYPE, ElementType.METHOD, ElementType.ANNOTATION_TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface RateLimit {
