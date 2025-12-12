@@ -90,4 +90,70 @@ public class JsonMapper {
       return Flux.empty();
     }
   }
+
+  /**
+   * Deserializes JSON string to the specified type. If not possible to deserialize - throws {@link
+   * RuntimeJsonMappingException}. {@link String} type parameters are returned as they are.
+   *
+   * @param json the JSON string to deserialize
+   * @param clazz the target class type
+   * @param <T> the type of the deserialized object
+   * @return the deserialized object
+   * @throws RuntimeJsonMappingException if deserialization fails
+   * @since 1.0.0
+   */
+  public static <T> T deserialize(final String json, final Class<T> clazz) {
+    try {
+      return String.class.equals(clazz) ? clazz.cast(json) : objectMapper.readValue(json, clazz);
+    } catch (JsonProcessingException e) {
+      throw new RuntimeJsonMappingException(
+          "Unable to deserialize JSON to " + clazz.getSimpleName() + ": " + e.getMessage());
+    }
+  }
+
+  /**
+   * Deserializes JSON string to the specified type and returns a {@link Mono}. If not possible to
+   * deserialize - returns {@link Mono#error(Throwable)}. {@link String} type parameters are
+   * returned as they are, wrapped into {@link Mono}.
+   *
+   * @param json the JSON string to deserialize
+   * @param clazz the target class type
+   * @param <T> the type of the deserialized object
+   * @return a Mono containing the deserialized object or an error
+   * @since 1.0.0
+   */
+  public static <T> Mono<T> deserializeWithMono(final String json, final Class<T> clazz) {
+    try {
+      final T value =
+          String.class.equals(clazz) ? clazz.cast(json) : objectMapper.readValue(json, clazz);
+      return Mono.just(value);
+    } catch (JsonProcessingException e) {
+      return Mono.error(
+          new RuntimeJsonMappingException(
+              "Unable to deserialize JSON to " + clazz.getSimpleName() + ": " + e.getMessage()));
+    }
+  }
+
+  /**
+   * Deserializes JSON string to the specified type and returns a {@link Flux}. If not possible to
+   * deserialize - returns {@link Flux#error(Throwable)}. {@link String} type parameters are
+   * returned as they are, wrapped into {@link Flux}.
+   *
+   * @param json the JSON string to deserialize
+   * @param clazz the target class type
+   * @param <T> the type of the deserialized object
+   * @return a Flux containing the deserialized object or an error
+   * @since 1.0.0
+   */
+  public static <T> Flux<T> deserializeWithFlux(final String json, final Class<T> clazz) {
+    try {
+      final T value =
+          String.class.equals(clazz) ? clazz.cast(json) : objectMapper.readValue(json, clazz);
+      return Flux.just(value);
+    } catch (JsonProcessingException e) {
+      return Flux.error(
+          new RuntimeJsonMappingException(
+              "Unable to deserialize JSON to " + clazz.getSimpleName() + ": " + e.getMessage()));
+    }
+  }
 }

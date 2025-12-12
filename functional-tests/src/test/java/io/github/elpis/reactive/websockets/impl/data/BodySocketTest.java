@@ -159,4 +159,181 @@ class BodySocketTest extends BaseWebSocketTest {
 
     assertThat(logCaptor.getInfoLogs()).isEmpty();
   }
+
+  @Test
+  void receiveStringFluxTest() throws Exception {
+    // given
+    final String path = "/body/post/string";
+    final Flux<String> data = Flux.just("Hello", "World", "Test");
+    final Sinks.Many<String> sink = Sinks.many().replay().all();
+
+    final LogCaptor logCaptor = LogCaptor.forClass(MessageBodySocketResource.class);
+
+    // test
+    this.withClient(
+            path,
+            session ->
+                session
+                    .send(data.map(session::textMessage))
+                    .thenMany(
+                        session
+                            .receive()
+                            .doOnNext(value -> sink.tryEmitNext(value.getPayloadAsText())))
+                    .then())
+        .subscribe();
+
+    // verify
+    StepVerifier.create(sink.asFlux().timeout(DEFAULT_FAST_TEST_FALLBACK))
+        .verifyError(TimeoutException.class);
+
+    assertThat(logCaptor.getInfoLogs())
+        .containsSequence("String: Hello", "String: World", "String: Test");
+  }
+
+  @Test
+  void receiveStringMonoTest() throws Exception {
+    // given
+    final String path = "/body/post/string/mono";
+    final Mono<String> data = Mono.just("SingleMessage");
+    final Sinks.Many<String> sink = Sinks.many().replay().all();
+
+    final LogCaptor logCaptor = LogCaptor.forClass(MessageBodySocketResource.class);
+
+    // test
+    this.withClient(
+            path,
+            session ->
+                session
+                    .send(data.map(session::textMessage))
+                    .thenMany(
+                        session
+                            .receive()
+                            .doOnNext(value -> sink.tryEmitNext(value.getPayloadAsText())))
+                    .then())
+        .subscribe();
+
+    // verify
+    StepVerifier.create(sink.asFlux().timeout(DEFAULT_FAST_TEST_FALLBACK))
+        .verifyError(TimeoutException.class);
+
+    assertThat(logCaptor.getInfoLogs()).contains("String (Mono): SingleMessage");
+  }
+
+  @Test
+  void receiveIntegerFluxTest() throws Exception {
+    // given
+    final String path = "/body/post/integer";
+    final Flux<Integer> data = Flux.just(42, 100, 999);
+    final Sinks.Many<String> sink = Sinks.many().replay().all();
+
+    final LogCaptor logCaptor = LogCaptor.forClass(MessageBodySocketResource.class);
+
+    // test
+    this.withClient(
+            path,
+            session ->
+                session
+                    .send(data.map(val -> session.textMessage(val.toString())))
+                    .thenMany(
+                        session
+                            .receive()
+                            .doOnNext(value -> sink.tryEmitNext(value.getPayloadAsText())))
+                    .then())
+        .subscribe();
+
+    // verify
+    StepVerifier.create(sink.asFlux().timeout(DEFAULT_FAST_TEST_FALLBACK))
+        .verifyError(TimeoutException.class);
+
+    assertThat(logCaptor.getInfoLogs())
+        .containsSequence("Integer: 42", "Integer: 100", "Integer: 999");
+  }
+
+  @Test
+  void receiveIntegerMonoTest() throws Exception {
+    // given
+    final String path = "/body/post/integer/mono";
+    final Mono<Integer> data = Mono.just(777);
+    final Sinks.Many<String> sink = Sinks.many().replay().all();
+
+    final LogCaptor logCaptor = LogCaptor.forClass(MessageBodySocketResource.class);
+
+    // test
+    this.withClient(
+            path,
+            session ->
+                session
+                    .send(data.map(val -> session.textMessage(val.toString())))
+                    .thenMany(
+                        session
+                            .receive()
+                            .doOnNext(value -> sink.tryEmitNext(value.getPayloadAsText())))
+                    .then())
+        .subscribe();
+
+    // verify
+    StepVerifier.create(sink.asFlux().timeout(DEFAULT_FAST_TEST_FALLBACK))
+        .verifyError(TimeoutException.class);
+
+    assertThat(logCaptor.getInfoLogs()).contains("Integer (Mono): 777");
+  }
+
+  @Test
+  void receiveLongFluxTest() throws Exception {
+    // given
+    final String path = "/body/post/long";
+    final Flux<Long> data = Flux.just(1234567890L, 9876543210L);
+    final Sinks.Many<String> sink = Sinks.many().replay().all();
+
+    final LogCaptor logCaptor = LogCaptor.forClass(MessageBodySocketResource.class);
+
+    // test
+    this.withClient(
+            path,
+            session ->
+                session
+                    .send(data.map(val -> session.textMessage(val.toString())))
+                    .thenMany(
+                        session
+                            .receive()
+                            .doOnNext(value -> sink.tryEmitNext(value.getPayloadAsText())))
+                    .then())
+        .subscribe();
+
+    // verify
+    StepVerifier.create(sink.asFlux().timeout(DEFAULT_FAST_TEST_FALLBACK))
+        .verifyError(TimeoutException.class);
+
+    assertThat(logCaptor.getInfoLogs()).containsSequence("Long: 1234567890", "Long: 9876543210");
+  }
+
+  @Test
+  void receiveBooleanFluxTest() throws Exception {
+    // given
+    final String path = "/body/post/boolean";
+    final Flux<Boolean> data = Flux.just(true, false, true);
+    final Sinks.Many<String> sink = Sinks.many().replay().all();
+
+    final LogCaptor logCaptor = LogCaptor.forClass(MessageBodySocketResource.class);
+
+    // test
+    this.withClient(
+            path,
+            session ->
+                session
+                    .send(data.map(val -> session.textMessage(val.toString())))
+                    .thenMany(
+                        session
+                            .receive()
+                            .doOnNext(value -> sink.tryEmitNext(value.getPayloadAsText())))
+                    .then())
+        .subscribe();
+
+    // verify
+    StepVerifier.create(sink.asFlux().timeout(DEFAULT_FAST_TEST_FALLBACK))
+        .verifyError(TimeoutException.class);
+
+    assertThat(logCaptor.getInfoLogs())
+        .containsSequence("Boolean: true", "Boolean: false", "Boolean: true");
+  }
 }

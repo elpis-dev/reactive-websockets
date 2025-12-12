@@ -38,6 +38,8 @@ public class SessionResolver extends SocketApiAnnotationResolver<SessionAttribut
   public CodeBlock resolve(final VariableElement parameter) {
     final TypeMirror parameterType = parameter.asType();
     final SessionAttribute sessionAttribute = parameter.getAnnotation(SessionAttribute.class);
+    final String varName =
+        parameter.getSimpleName().toString() + RequestBodyResolver.VARIABLE_SUFFIX;
 
     final Element optionalType =
         this.getElements().getTypeElement(Optional.class.getCanonicalName());
@@ -56,11 +58,11 @@ public class SessionResolver extends SocketApiAnnotationResolver<SessionAttribut
             "Cannot process @SessionAttribute parameter: bad return type: %s", parameterType);
       }
 
-      return CodeBlock.of(GET_SESSION_OPTIONAL, parameter.getSimpleName());
+      return CodeBlock.of(GET_SESSION_OPTIONAL, varName);
     } else if (this.getTypes().isSameType(parameterType, sessionType)) {
       return sessionAttribute.required()
-          ? CodeBlock.of(GET_SESSION_REQUIRED, parameter.getSimpleName())
-          : CodeBlock.of(GET_SESSION_NOT_REQUIRED, parameter.getSimpleName());
+          ? CodeBlock.of(GET_SESSION_REQUIRED, varName)
+          : CodeBlock.of(GET_SESSION_NOT_REQUIRED, varName);
     } else {
       throw new WebSocketResolverException(
           "Only 'ReactiveWebSocketSession' type is supported for "

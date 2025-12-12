@@ -16,6 +16,7 @@ import io.github.elpis.reactive.websockets.processor.exception.WebSocketProcesso
 import io.github.elpis.reactive.websockets.processor.flowcontrol.BackpressureFlowController;
 import io.github.elpis.reactive.websockets.processor.flowcontrol.HeartbeatFlowController;
 import io.github.elpis.reactive.websockets.processor.flowcontrol.RateLimitFlowController;
+import io.github.elpis.reactive.websockets.processor.resolver.RequestBodyResolver;
 import io.github.elpis.reactive.websockets.processor.resolver.SocketAnnotationResolverFactory;
 import io.github.elpis.reactive.websockets.session.WebSocketSessionContext;
 import io.github.elpis.reactive.websockets.util.TypeUtils;
@@ -167,7 +168,8 @@ public class WebSocketHandlerAutoProcessor extends AbstractProcessor {
               parameterPlaces.add("$L");
 
               if (codeBlocks.get(parameter.getSimpleName().toString()).isPresent()) {
-                parameters.add(parameter.getSimpleName().toString());
+                parameters.add(
+                    parameter.getSimpleName().toString() + RequestBodyResolver.VARIABLE_SUFFIX);
               } else {
                 parameters.add(TypeUtils.getDefaultValueForType(parameter.asType().getKind()));
               }

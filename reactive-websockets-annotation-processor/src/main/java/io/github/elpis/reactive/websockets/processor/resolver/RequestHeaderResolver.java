@@ -52,6 +52,8 @@ public final class RequestHeaderResolver extends SocketApiAnnotationResolver<Req
   public CodeBlock resolve(final VariableElement parameter) {
     final TypeMirror parameterType = parameter.asType();
     final RequestHeader annotation = parameter.getAnnotation(this.getAnnotationType());
+    final String varName =
+        parameter.getSimpleName().toString() + RequestBodyResolver.VARIABLE_SUFFIX;
 
     final Element httpHeadersType =
         this.getElements().getTypeElement(HttpHeaders.class.getCanonicalName());
@@ -65,8 +67,7 @@ public final class RequestHeaderResolver extends SocketApiAnnotationResolver<Req
             .orElse(null);
 
     if (this.getTypes().isAssignable(parameterType, httpHeadersType.asType())) {
-      return CodeBlock.of(
-          CODE_FOR_GET_HEADERS, HttpHeaders.class, parameter.getSimpleName().toString());
+      return CodeBlock.of(CODE_FOR_GET_HEADERS, HttpHeaders.class, varName);
     } else if (this.getTypes()
         .isAssignable(this.getTypes().erasure(parameterType), multiValueMapType.asType())) {
       if (!this.isMultimapParamValid(parameterType)) {
@@ -82,8 +83,7 @@ public final class RequestHeaderResolver extends SocketApiAnnotationResolver<Req
               TypeName.get(String.class),
               TypeName.get(String.class));
 
-      return CodeBlock.of(
-          CODE_FOR_GET_HEADERS, multiValueMapTypeName, parameter.getSimpleName().toString());
+      return CodeBlock.of(CODE_FOR_GET_HEADERS, multiValueMapTypeName, varName);
     } else if (this.getTypes()
         .isAssignable(this.getTypes().erasure(parameterType), listType.asType())) {
       if (annotation.value().isEmpty()) {
@@ -99,11 +99,11 @@ public final class RequestHeaderResolver extends SocketApiAnnotationResolver<Req
           return CodeBlock.of(
               CODE_FOR_GET_LIST_HEADER_REQUIRED,
               parameterType,
-              parameter.getSimpleName().toString(),
+              varName,
               annotation.value(),
               defaultValue,
               listDeclaredType,
-              parameter.getSimpleName().toString(),
+              varName,
               String.format(
                   "@RequestHeader %s %s is marked as required but was not present on request. "
                       + "Default value was not set.",
@@ -112,7 +112,7 @@ public final class RequestHeaderResolver extends SocketApiAnnotationResolver<Req
           return CodeBlock.of(
               CODE_FOR_GET_LIST_HEADER,
               parameterType,
-              parameter.getSimpleName().toString(),
+              varName,
               annotation.value(),
               defaultValue,
               listDeclaredType);
@@ -133,7 +133,7 @@ public final class RequestHeaderResolver extends SocketApiAnnotationResolver<Req
         return CodeBlock.of(
             CODE_FOR_GET_SINGLE_HEADER_REQUIRED,
             parameterType,
-            parameter.getSimpleName().toString(),
+            varName,
             annotation.value(),
             defaultValue,
             parameterType,
@@ -145,7 +145,7 @@ public final class RequestHeaderResolver extends SocketApiAnnotationResolver<Req
         return CodeBlock.of(
             CODE_FOR_GET_SINGLE_HEADER,
             parameterType,
-            parameter.getSimpleName().toString(),
+            varName,
             annotation.value(),
             defaultValue,
             parameterType,

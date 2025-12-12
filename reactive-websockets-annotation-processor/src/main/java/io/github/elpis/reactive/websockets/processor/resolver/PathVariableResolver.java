@@ -28,12 +28,14 @@ public final class PathVariableResolver extends SocketApiAnnotationResolver<Path
   public CodeBlock resolve(final VariableElement parameter) {
     final TypeMirror parameterType = parameter.asType();
     final PathVariable annotation = parameter.getAnnotation(this.getAnnotationType());
+    final String varName =
+        parameter.getSimpleName().toString() + RequestBodyResolver.VARIABLE_SUFFIX;
 
     if (annotation.required()) {
       return CodeBlock.of(
           CODE_FOR_GET_PATH_REQUIRED,
           parameterType,
-          parameter.getSimpleName().toString(),
+          varName,
           annotation.value(),
           parameterType,
           String.format(
@@ -43,7 +45,7 @@ public final class PathVariableResolver extends SocketApiAnnotationResolver<Path
       return CodeBlock.of(
           CODE_FOR_GET_SINGLE_PATH,
           parameterType,
-          parameter.getSimpleName().toString(),
+          varName,
           annotation.value(),
           parameterType,
           parameterType);

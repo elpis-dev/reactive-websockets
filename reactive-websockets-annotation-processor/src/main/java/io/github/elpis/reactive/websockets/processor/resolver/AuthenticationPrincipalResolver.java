@@ -24,6 +24,8 @@ public final class AuthenticationPrincipalResolver
   public CodeBlock resolve(final VariableElement parameter) {
     final TypeMirror parameterType = parameter.asType();
     final AuthenticationPrincipal annotation = parameter.getAnnotation(this.getAnnotationType());
+    final String varName =
+        parameter.getSimpleName().toString() + RequestBodyResolver.VARIABLE_SUFFIX;
 
     final Element principalType =
         this.getElements().getTypeElement(WebSocketPrincipal.class.getCanonicalName());
@@ -38,7 +40,7 @@ public final class AuthenticationPrincipalResolver
     return CodeBlock.of(
         CODE_FOR_PRINCIPAL,
         parameterTypeValue,
-        parameter.getSimpleName(),
+        varName,
         annotation.expression(),
         annotation.errorOnInvalidType(),
         parameterTypeValue);

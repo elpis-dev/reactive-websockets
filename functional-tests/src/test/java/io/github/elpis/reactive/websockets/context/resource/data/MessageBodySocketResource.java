@@ -23,6 +23,42 @@ public class MessageBodySocketResource {
         message -> log.info("Received message: {}", message.getPayloadAsText()));
   }
 
+  // Primitive types - String with Flux
+  @OnMessage(value = "/post/string", mode = Mode.BROADCAST)
+  public void receiveString(@RequestBody final Flux<String> messages) {
+    messages.subscribe(msg -> log.info("String: {}", msg));
+  }
+
+  // Primitive types - String with Mono
+  @OnMessage(value = "/post/string/mono", mode = Mode.BROADCAST)
+  public void receiveStringSingle(@RequestBody final Mono<String> message) {
+    message.subscribe(msg -> log.info("String (Mono): {}", msg));
+  }
+
+  // Primitive types - Integer with Flux
+  @OnMessage(value = "/post/integer", mode = Mode.BROADCAST)
+  public void receiveInteger(@RequestBody final Flux<Integer> messages) {
+    messages.subscribe(num -> log.info("Integer: {}", num));
+  }
+
+  // Primitive types - Integer with Mono
+  @OnMessage(value = "/post/integer/mono", mode = Mode.BROADCAST)
+  public void receiveIntegerSingle(@RequestBody final Mono<Integer> message) {
+    message.subscribe(num -> log.info("Integer (Mono): {}", num));
+  }
+
+  // Primitive types - Long with Flux
+  @OnMessage(value = "/post/long", mode = Mode.BROADCAST)
+  public void receiveLong(@RequestBody final Flux<Long> messages) {
+    messages.subscribe(num -> log.info("Long: {}", num));
+  }
+
+  // Primitive types - Boolean with Flux
+  @OnMessage(value = "/post/boolean", mode = Mode.BROADCAST)
+  public void receiveBoolean(@RequestBody final Flux<Boolean> messages) {
+    messages.subscribe(bool -> log.info("Boolean: {}", bool));
+  }
+
   @OnMessage(value = "/post/binary", mode = Mode.BROADCAST)
   public Flux<byte[]> sendBinaryMessage() {
     return Flux.just("Binary".getBytes());

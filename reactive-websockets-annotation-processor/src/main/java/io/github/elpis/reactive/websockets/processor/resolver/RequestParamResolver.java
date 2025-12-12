@@ -44,6 +44,8 @@ public final class RequestParamResolver extends SocketApiAnnotationResolver<Requ
   public CodeBlock resolve(final VariableElement parameter) {
     final TypeMirror parameterType = parameter.asType();
     final RequestParam annotation = parameter.getAnnotation(this.getAnnotationType());
+    final String varName =
+        parameter.getSimpleName().toString() + RequestBodyResolver.VARIABLE_SUFFIX;
 
     final Element listType = this.getElements().getTypeElement(List.class.getCanonicalName());
 
@@ -66,11 +68,11 @@ public final class RequestParamResolver extends SocketApiAnnotationResolver<Requ
           return CodeBlock.of(
               CODE_FOR_GET_LIST_QUERY_REQUIRED,
               parameterType,
-              parameter.getSimpleName().toString(),
+              varName,
               annotation.value(),
               defaultValue,
               listDeclaredType,
-              parameter.getSimpleName().toString(),
+              varName,
               String.format(
                   "@RequestParam List<%s> %s is marked as required but was not present on request. "
                       + "Default value was not set.",
@@ -79,7 +81,7 @@ public final class RequestParamResolver extends SocketApiAnnotationResolver<Requ
           return CodeBlock.of(
               CODE_FOR_GET_LIST_QUERY,
               parameterType,
-              parameter.getSimpleName().toString(),
+              varName,
               annotation.value(),
               defaultValue,
               listDeclaredType);
@@ -100,7 +102,7 @@ public final class RequestParamResolver extends SocketApiAnnotationResolver<Requ
         return CodeBlock.of(
             CODE_FOR_GET_SINGLE_QUERY_REQUIRED,
             parameterType,
-            parameter.getSimpleName().toString(),
+            varName,
             annotation.value(),
             defaultValue,
             parameterType,
@@ -112,7 +114,7 @@ public final class RequestParamResolver extends SocketApiAnnotationResolver<Requ
         return CodeBlock.of(
             CODE_FOR_GET_SINGLE_QUERY,
             parameterType,
-            parameter.getSimpleName().toString(),
+            varName,
             annotation.value(),
             defaultValue,
             parameterType,
