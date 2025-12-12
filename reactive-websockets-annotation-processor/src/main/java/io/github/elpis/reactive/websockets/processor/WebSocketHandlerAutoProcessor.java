@@ -13,6 +13,7 @@ import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.WildcardTypeName;
 import io.github.elpis.reactive.websockets.config.Mode;
 import io.github.elpis.reactive.websockets.processor.exception.WebSocketProcessorException;
+import io.github.elpis.reactive.websockets.processor.flowcontrol.BackpressureFlowController;
 import io.github.elpis.reactive.websockets.processor.flowcontrol.HeartbeatFlowController;
 import io.github.elpis.reactive.websockets.processor.flowcontrol.RateLimitFlowController;
 import io.github.elpis.reactive.websockets.processor.resolver.SocketAnnotationResolverFactory;
@@ -117,10 +118,11 @@ public class WebSocketHandlerAutoProcessor extends AbstractProcessor {
                     .build())
             .addParameter(TypeName.get(descriptor.clazz().asType()), "socketResource")
             .addStatement(
-                "super(eventFactory, sessionRegistry, rateLimiterService, $S, $L, $L)",
+                "super(eventFactory, sessionRegistry, rateLimiterService, $S, $L, $L, $L)",
                 descriptor.pathTemplate(),
                 generateHeartbeatConfig(descriptor),
-                generateRateLimitConfig(descriptor))
+                generateRateLimitConfig(descriptor),
+                generateBackpressureConfig(descriptor))
             .addStatement("this.socketResource = socketResource")
             .build();
 
@@ -206,13 +208,11 @@ public class WebSocketHandlerAutoProcessor extends AbstractProcessor {
   }
 
   private String getHandlerType(final Mode mode) {
-    switch (mode) {
-      case BROADCAST:
-        return "io.github.elpis.reactive.websockets.handler.BroadcastWebSocketResourceHandler";
-    }
-
-    throw new WebSocketProcessorException(
-        "Cannot find WebSocketHandler implementation for mode %s", mode);
+    return switch (mode) {
+      case BROADCAST ->
+          "io.github.elpis.reactive.websockets.handler.BroadcastWebSocketResourceHandler";
+      case SESSION -> "io.github.elpis.reactive.websockets.handler.SessionWebSocketResourceHandler";
+    };
   }
 
   private WebHandlerResourceDescriptor configure(
@@ -227,6 +227,8 @@ public class WebSocketHandlerAutoProcessor extends AbstractProcessor {
         HeartbeatFlowController.resolveHeartbeatConfig(method, clazz);
     final RateLimitConfigData rateLimitConfig =
         RateLimitFlowController.resolveRateLimitConfig(method, clazz);
+    final BackpressureConfigData backpressureConfig =
+        BackpressureFlowController.resolveBackpressureConfig(method, clazz);
 
     final WebHandlerResourceDescriptor descriptor =
         new WebHandlerResourceDescriptor(
@@ -236,7 +238,8 @@ public class WebSocketHandlerAutoProcessor extends AbstractProcessor {
             pathTemplate,
             onMessage.mode(),
             heartbeatConfig,
-            rateLimitConfig);
+            rateLimitConfig,
+            backpressureConfig);
 
     final TypeMirror returnType = method.getReturnType();
 
@@ -272,10 +275,20 @@ public class WebSocketHandlerAutoProcessor extends AbstractProcessor {
     return RateLimitFlowController.generateRateLimitConfig(descriptor.rateLimitConfig());
   }
 
+  /**
+   * Generates code block for BackpressureConfig creation. Delegates to {@link
+   * BackpressureFlowController}.
+   */
+  private String generateBackpressureConfig(WebHandlerResourceDescriptor descriptor) {
+    return BackpressureFlowController.generateBackpressureConfig(descriptor.backpressureConfig());
+  }
+
   public record HeartbeatConfigData(long interval, long timeout) {}
 
   public record RateLimitConfigData(
       int limitForPeriod, long limitRefreshPeriod, String timeUnit, long timeout, String scope) {}
+
+  public record BackpressureConfigData(String strategy, int bufferSize) {}
 
   private record WebHandlerResourceDescriptor(
       ExecutableElement method,
@@ -284,7 +297,8 @@ public class WebSocketHandlerAutoProcessor extends AbstractProcessor {
       String pathTemplate,
       Mode mode,
       HeartbeatConfigData heartbeatConfig,
-      RateLimitConfigData rateLimitConfig) {
+      RateLimitConfigData rateLimitConfig,
+      BackpressureConfigData backpressureConfig) {
 
     private String getPostfix() {
       final String uniqueKey =

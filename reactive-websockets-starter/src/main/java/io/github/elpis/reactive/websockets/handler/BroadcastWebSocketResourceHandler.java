@@ -2,6 +2,7 @@ package io.github.elpis.reactive.websockets.handler;
 
 import io.github.elpis.reactive.websockets.event.manager.WebSocketEventManagerFactory;
 import io.github.elpis.reactive.websockets.exception.RateLimitExceededException;
+import io.github.elpis.reactive.websockets.handler.config.BackpressureConfig;
 import io.github.elpis.reactive.websockets.handler.config.HeartbeatConfig;
 import io.github.elpis.reactive.websockets.handler.config.RateLimitConfig;
 import io.github.elpis.reactive.websockets.handler.ratelimit.RateLimiterService;
@@ -40,14 +41,16 @@ public abstract class BroadcastWebSocketResourceHandler extends BaseWebSocketHan
       final RateLimiterService rateLimiterService,
       final String pathTemplate,
       final HeartbeatConfig heartbeatConfig,
-      final RateLimitConfig rateLimitConfig) {
+      final RateLimitConfig rateLimitConfig,
+      final BackpressureConfig backpressureConfig) {
 
     super(
         eventManagerFactory,
         webSocketSessionRegistry,
         pathTemplate,
         heartbeatConfig,
-        rateLimitConfig);
+        rateLimitConfig,
+        backpressureConfig);
     this.rateLimiterService = rateLimiterService;
   }
 
@@ -141,7 +144,11 @@ public abstract class BroadcastWebSocketResourceHandler extends BaseWebSocketHan
                         dataBufferFactory -> session.bufferFactory().allocateBuffer(256)));
     final Flux<WebSocketMessage> pongs = this.pongMessages.asFlux();
     if (publisher != null) {
-      final Flux<WebSocketMessage> messages = this.mapOutput(session, publisher);
+      Flux<WebSocketMessage> messages = this.mapOutput(session, publisher);
+
+      // Apply backpressure strategy to outgoing messages
+      messages = this.applyBackpressure(messages);
+
       return this.isHeartbeatEnabled() ? Flux.merge(messages, serverPings, pongs) : messages;
     } else {
       this.run(webSocketSessionContext, socketMessageFlux);

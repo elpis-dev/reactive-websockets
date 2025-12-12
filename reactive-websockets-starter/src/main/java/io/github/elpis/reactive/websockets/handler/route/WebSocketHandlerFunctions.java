@@ -4,6 +4,7 @@ import io.github.elpis.reactive.websockets.config.Mode;
 import io.github.elpis.reactive.websockets.event.manager.WebSocketEventManagerFactory;
 import io.github.elpis.reactive.websockets.handler.BaseWebSocketHandler;
 import io.github.elpis.reactive.websockets.handler.BroadcastWebSocketResourceHandler;
+import io.github.elpis.reactive.websockets.handler.config.BackpressureConfig;
 import io.github.elpis.reactive.websockets.handler.config.HeartbeatConfig;
 import io.github.elpis.reactive.websockets.handler.config.RateLimitConfig;
 import io.github.elpis.reactive.websockets.handler.ratelimit.RateLimiterService;
@@ -130,7 +131,8 @@ public final class WebSocketHandlerFunctions {
                 rateLimiterService,
                 path,
                 HeartbeatConfig.of(heartbeatInterval, heartbeatTimeout),
-                RateLimitConfig.disabled()) {
+                RateLimitConfig.disabled(),
+                BackpressureConfig.disabled()) {
               @Override
               public Publisher<?> apply(
                   WebSocketSessionContext context, Flux<WebSocketMessage> messages) {
@@ -170,7 +172,8 @@ public final class WebSocketHandlerFunctions {
                 rateLimiterService,
                 path,
                 HeartbeatConfig.of(heartbeatInterval, heartbeatTimeout),
-                RateLimitConfig.disabled()) {
+                RateLimitConfig.disabled(),
+                BackpressureConfig.disabled()) {
               @Override
               public void run(WebSocketSessionContext context, Flux<WebSocketMessage> messages) {
                 handlerFunction.accept(context, messages);
