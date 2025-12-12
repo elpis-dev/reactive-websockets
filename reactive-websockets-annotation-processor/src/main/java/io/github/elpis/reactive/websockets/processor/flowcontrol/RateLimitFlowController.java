@@ -1,9 +1,8 @@
 package io.github.elpis.reactive.websockets.processor.flowcontrol;
 
 import io.github.elpis.reactive.websockets.processor.WebSocketHandlerAutoProcessor.RateLimitConfigData;
-import io.github.elpis.reactive.websockets.web.annotation.MessageEndpoint;
-import io.github.elpis.reactive.websockets.web.annotation.OnMessage;
 import io.github.elpis.reactive.websockets.web.annotation.RateLimit;
+import javax.lang.model.element.Element;
 
 /**
  * Controller for resolving and generating rate limit configuration during annotation processing.
@@ -11,8 +10,8 @@ import io.github.elpis.reactive.websockets.web.annotation.RateLimit;
  * <p>Handles the precedence logic for rate limit configuration:
  *
  * <ol>
- *   <li>If @OnMessage has @RateLimit with scope != INHERIT, use it (enabled or disabled)
- *   <li>Else if @MessageEndpoint has @RateLimit with enabled=true, use it
+ *   <li>If @RateLimit is directly on the method, use it (enabled or disabled)
+ *   <li>Else if @RateLimit is directly on the class, use it (enabled or disabled)
  *   <li>Else rate limiting is disabled (returns null)
  * </ol>
  *
@@ -28,56 +27,51 @@ public final class RateLimitFlowController {
   /**
    * Resolves rate limit configuration from annotations with proper precedence.
    *
-   * @param onMessage the @OnMessage annotation
-   * @param resource the @MessageEndpoint annotation
+   * @param method the method element (for direct @RateLimit on method)
+   * @param classElement the class element (for direct @RateLimit on class)
    * @return the resolved rate limit configuration data, or null if disabled
    */
   public static RateLimitConfigData resolveRateLimitConfig(
-      final OnMessage onMessage, final MessageEndpoint resource) {
-    final RateLimit onMessageRateLimit = onMessage.rateLimit();
-    final RateLimit endpointRateLimit = resource.rateLimit();
-
-    // Check if @OnMessage has explicitly defined a @RateLimit by checking if it's not the default
-    // The default @RateLimit uses scope=INHERIT to indicate inheritance
-    final boolean hasOnMessageRateLimit = !isDefaultRateLimit(onMessageRateLimit);
-
-    if (hasOnMessageRateLimit) {
-      // @OnMessage explicitly defines @RateLimit, use it (even if disabled)
-      if (onMessageRateLimit.enabled()) {
-        return new RateLimitConfigData(
-            onMessageRateLimit.limitForPeriod(),
-            onMessageRateLimit.limitRefreshPeriod(),
-            onMessageRateLimit.timeUnit().name(),
-            onMessageRateLimit.timeoutDuration(),
-            onMessageRateLimit.scope().name());
+      final Element method, final Element classElement) {
+    // Priority 1: @RateLimit directly on method
+    final RateLimit methodRateLimit = method.getAnnotation(RateLimit.class);
+    if (methodRateLimit != null) {
+      if (methodRateLimit.enabled()) {
+        return createRateLimitConfigData(methodRateLimit);
       } else {
         // Explicitly disabled at method level
         return null;
       }
-    } else if (endpointRateLimit.enabled()) {
-      // Fall back to @MessageEndpoint rate limit if enabled
-      return new RateLimitConfigData(
-          endpointRateLimit.limitForPeriod(),
-          endpointRateLimit.limitRefreshPeriod(),
-          endpointRateLimit.timeUnit().name(),
-          endpointRateLimit.timeoutDuration(),
-          endpointRateLimit.scope().name());
-    } else {
-      // Return null to indicate disabled
-      return null;
     }
+
+    // Priority 2: @RateLimit directly on class
+    final RateLimit classRateLimit = classElement.getAnnotation(RateLimit.class);
+    if (classRateLimit != null) {
+      if (classRateLimit.enabled()) {
+        return createRateLimitConfigData(classRateLimit);
+      } else {
+        // Explicitly disabled at class level
+        return null;
+      }
+    }
+
+    // Return null to indicate disabled
+    return null;
   }
 
   /**
-   * Checks if a @RateLimit annotation is using the default INHERIT scope. The
-   * default @OnMessage.rateLimit() uses scope = INHERIT to indicate "inherit
-   * from @MessageEndpoint".
+   * Creates RateLimitConfigData from a RateLimit annotation.
    *
-   * @param rateLimit the rate limit annotation to check
-   * @return true if using default INHERIT scope, false otherwise
+   * @param rateLimit the rate limit annotation
+   * @return the rate limit configuration data
    */
-  private static boolean isDefaultRateLimit(final RateLimit rateLimit) {
-    return rateLimit.scope() == RateLimit.RateLimitScope.INHERIT;
+  private static RateLimitConfigData createRateLimitConfigData(final RateLimit rateLimit) {
+    return new RateLimitConfigData(
+        rateLimit.limitForPeriod(),
+        rateLimit.limitRefreshPeriod(),
+        rateLimit.timeUnit().name(),
+        rateLimit.timeoutDuration(),
+        rateLimit.scope().name());
   }
 
   /**

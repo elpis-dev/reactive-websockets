@@ -20,23 +20,4 @@ public @interface OnMessage {
    * @since 1.0.0
    */
   Mode mode() default Mode.BROADCAST;
-
-  /**
-   * Heartbeat configuration for this specific WebSocket connection. Takes precedence over {@link
-   * MessageEndpoint#heartbeat()} if specified.
-   *
-   * @since 1.0.0
-   */
-  Heartbeat heartbeat() default @Heartbeat(enabled = false);
-
-  /**
-   * Rate limiting configuration for this specific WebSocket connection. Takes precedence over
-   * {@link MessageEndpoint#rateLimit()} if specified.
-   *
-   * <p>By default, uses {@link RateLimit.RateLimitScope#INHERIT} to inherit from @MessageEndpoint.
-   * To explicitly disable, use @RateLimit(enabled = false).
-   *
-   * @since 1.0.0
-   */
-  RateLimit rateLimit() default @RateLimit(scope = RateLimit.RateLimitScope.INHERIT);
 }

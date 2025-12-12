@@ -2,8 +2,7 @@ package io.github.elpis.reactive.websockets.processor.flowcontrol;
 
 import io.github.elpis.reactive.websockets.processor.WebSocketHandlerAutoProcessor.HeartbeatConfigData;
 import io.github.elpis.reactive.websockets.web.annotation.Heartbeat;
-import io.github.elpis.reactive.websockets.web.annotation.MessageEndpoint;
-import io.github.elpis.reactive.websockets.web.annotation.OnMessage;
+import javax.lang.model.element.Element;
 
 /**
  * Controller for resolving and generating heartbeat configuration during annotation processing.
@@ -11,8 +10,8 @@ import io.github.elpis.reactive.websockets.web.annotation.OnMessage;
  * <p>Handles the precedence logic for heartbeat configuration:
  *
  * <ol>
- *   <li>If @OnMessage has @Heartbeat with enabled=true, use it
- *   <li>Else if @MessageEndpoint has @Heartbeat with enabled=true, use it
+ *   <li>If @Heartbeat is directly on the method, use it
+ *   <li>Else if @Heartbeat is directly on the class, use it
  *   <li>Else heartbeat is disabled (returns null)
  * </ol>
  *
@@ -28,23 +27,26 @@ public final class HeartbeatFlowController {
   /**
    * Resolves heartbeat configuration from annotations with proper precedence.
    *
-   * @param onMessage the @OnMessage annotation
-   * @param resource the @MessageEndpoint annotation
+   * @param method the method element (for direct @Heartbeat on method)
+   * @param classElement the class element (for direct @Heartbeat on class)
    * @return the resolved heartbeat configuration data, or null if disabled
    */
   public static HeartbeatConfigData resolveHeartbeatConfig(
-      final OnMessage onMessage, final MessageEndpoint resource) {
-    final Heartbeat onMessageHeartbeat = onMessage.heartbeat();
-    final Heartbeat endpointHeartbeat = resource.heartbeat();
-
-    if (onMessageHeartbeat.enabled()) {
-      return new HeartbeatConfigData(onMessageHeartbeat.interval(), onMessageHeartbeat.timeout());
-    } else if (endpointHeartbeat.enabled()) {
-      return new HeartbeatConfigData(endpointHeartbeat.interval(), endpointHeartbeat.timeout());
-    } else {
-      // Return null to indicate disabled
-      return null;
+      final Element method, final Element classElement) {
+    // Priority 1: @Heartbeat directly on method
+    final Heartbeat methodHeartbeat = method.getAnnotation(Heartbeat.class);
+    if (methodHeartbeat != null && methodHeartbeat.enabled()) {
+      return new HeartbeatConfigData(methodHeartbeat.interval(), methodHeartbeat.timeout());
     }
+
+    // Priority 2: @Heartbeat directly on class
+    final Heartbeat classHeartbeat = classElement.getAnnotation(Heartbeat.class);
+    if (classHeartbeat != null && classHeartbeat.enabled()) {
+      return new HeartbeatConfigData(classHeartbeat.interval(), classHeartbeat.timeout());
+    }
+
+    // Return null to indicate disabled
+    return null;
   }
 
   /**

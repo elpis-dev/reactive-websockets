@@ -1,6 +1,4 @@
-# Pull Request
-
-## [#{YOU_TRACK_ISSUE_ID}](https://elpisdev.youtrack.cloud/projects/RWS/issues/{YOU_TRACK_ISSUE_ID})
+# Pull Request ## [RWS-XX](https://elpisdev.youtrack.cloud/projects/RWS/issues/RWS-XX)
 
 ## Description ✍️
 Please include a summary of the changes and the related issue. Include relevant motivation and context. List any dependencies that are required for this change.
@@ -10,4 +8,7 @@ Please include a summary of the changes and the related issue. Include relevant 
 - [ ] ✨ New Feature
 - [ ] 💥 Breaking Change
 - [ ] 📚 Documentation Update
+- [ ] 🛠️ Refactoring
+- [ ] 🚀 Performance Improvement
+- [ ] 🧪 Tests
 - [ ] 🔧 Other (please specify):
