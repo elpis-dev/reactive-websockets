@@ -1,5 +1,7 @@
 package io.github.elpis.reactive.websockets.processor.resolver;
 
+import static io.github.elpis.reactive.websockets.processor.util.Constants.VARIABLE_SUFFIX;
+
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.ParameterizedTypeName;
@@ -52,6 +54,7 @@ public final class RequestHeaderResolver extends SocketApiAnnotationResolver<Req
   public CodeBlock resolve(final VariableElement parameter) {
     final TypeMirror parameterType = parameter.asType();
     final RequestHeader annotation = parameter.getAnnotation(this.getAnnotationType());
+    final String varName = parameter.getSimpleName().toString() + VARIABLE_SUFFIX;
 
     final Element httpHeadersType =
         this.getElements().getTypeElement(HttpHeaders.class.getCanonicalName());
@@ -65,8 +68,7 @@ public final class RequestHeaderResolver extends SocketApiAnnotationResolver<Req
             .orElse(null);
 
     if (this.getTypes().isAssignable(parameterType, httpHeadersType.asType())) {
-      return CodeBlock.of(
-          CODE_FOR_GET_HEADERS, HttpHeaders.class, parameter.getSimpleName().toString());
+      return CodeBlock.of(CODE_FOR_GET_HEADERS, HttpHeaders.class, varName);
     } else if (this.getTypes()
         .isAssignable(this.getTypes().erasure(parameterType), multiValueMapType.asType())) {
       if (!this.isMultimapParamValid(parameterType)) {
@@ -82,15 +84,14 @@ public final class RequestHeaderResolver extends SocketApiAnnotationResolver<Req
               TypeName.get(String.class),
               TypeName.get(String.class));
 
-      return CodeBlock.of(
-          CODE_FOR_GET_HEADERS, multiValueMapTypeName, parameter.getSimpleName().toString());
+      return CodeBlock.of(CODE_FOR_GET_HEADERS, multiValueMapTypeName, varName);
     } else if (this.getTypes()
         .isAssignable(this.getTypes().erasure(parameterType), listType.asType())) {
-      if (annotation.value().isEmpty()) {
-        throw new WebSocketResolverException(
-            "Value cannot be empty at @RequestHeader %s %s",
-            parameterType, parameter.getSimpleName().toString());
-      }
+      validateAnnotationValue(
+          annotation.value(),
+          "@RequestHeader",
+          parameterType,
+          parameter.getSimpleName().toString());
 
       if (parameterType instanceof DeclaredType declaredReturnType) {
         final TypeMirror listDeclaredType = declaredReturnType.getTypeArguments().get(0);
@@ -99,11 +100,11 @@ public final class RequestHeaderResolver extends SocketApiAnnotationResolver<Req
           return CodeBlock.of(
               CODE_FOR_GET_LIST_HEADER_REQUIRED,
               parameterType,
-              parameter.getSimpleName().toString(),
+              varName,
               annotation.value(),
               defaultValue,
               listDeclaredType,
-              parameter.getSimpleName().toString(),
+              varName,
               String.format(
                   "@RequestHeader %s %s is marked as required but was not present on request. "
                       + "Default value was not set.",
@@ -112,7 +113,7 @@ public final class RequestHeaderResolver extends SocketApiAnnotationResolver<Req
           return CodeBlock.of(
               CODE_FOR_GET_LIST_HEADER,
               parameterType,
-              parameter.getSimpleName().toString(),
+              varName,
               annotation.value(),
               defaultValue,
               listDeclaredType);
@@ -123,17 +124,17 @@ public final class RequestHeaderResolver extends SocketApiAnnotationResolver<Req
             parameter.asType().toString(), parameter.getSimpleName().toString(), parameterType);
       }
     } else {
-      if (annotation.value().isEmpty()) {
-        throw new WebSocketResolverException(
-            "Value cannot be empty at @RequestHeader %s %s",
-            parameterType, parameter.getSimpleName().toString());
-      }
+      validateAnnotationValue(
+          annotation.value(),
+          "@RequestHeader",
+          parameterType,
+          parameter.getSimpleName().toString());
 
       if (annotation.required()) {
         return CodeBlock.of(
             CODE_FOR_GET_SINGLE_HEADER_REQUIRED,
             parameterType,
-            parameter.getSimpleName().toString(),
+            varName,
             annotation.value(),
             defaultValue,
             parameterType,
@@ -145,7 +146,7 @@ public final class RequestHeaderResolver extends SocketApiAnnotationResolver<Req
         return CodeBlock.of(
             CODE_FOR_GET_SINGLE_HEADER,
             parameterType,
-            parameter.getSimpleName().toString(),
+            varName,
             annotation.value(),
             defaultValue,
             parameterType,

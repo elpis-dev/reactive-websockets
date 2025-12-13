@@ -1,5 +1,7 @@
 package io.github.elpis.reactive.websockets.processor;
 
+import static io.github.elpis.reactive.websockets.processor.util.Constants.VARIABLE_SUFFIX;
+
 import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
@@ -167,7 +169,7 @@ public class WebSocketHandlerAutoProcessor extends AbstractProcessor {
               parameterPlaces.add("$L");
 
               if (codeBlocks.get(parameter.getSimpleName().toString()).isPresent()) {
-                parameters.add(parameter.getSimpleName().toString());
+                parameters.add(parameter.getSimpleName().toString() + VARIABLE_SUFFIX);
               } else {
                 parameters.add(TypeUtils.getDefaultValueForType(parameter.asType().getKind()));
               }

@@ -1,5 +1,7 @@
 package io.github.elpis.reactive.websockets.processor.resolver;
 
+import static io.github.elpis.reactive.websockets.processor.util.Constants.VARIABLE_SUFFIX;
+
 import com.squareup.javapoet.CodeBlock;
 import io.github.elpis.reactive.websockets.processor.exception.WebSocketResolverException;
 import java.util.List;
@@ -44,6 +46,7 @@ public final class RequestParamResolver extends SocketApiAnnotationResolver<Requ
   public CodeBlock resolve(final VariableElement parameter) {
     final TypeMirror parameterType = parameter.asType();
     final RequestParam annotation = parameter.getAnnotation(this.getAnnotationType());
+    final String varName = parameter.getSimpleName().toString() + VARIABLE_SUFFIX;
 
     final Element listType = this.getElements().getTypeElement(List.class.getCanonicalName());
 
@@ -53,11 +56,8 @@ public final class RequestParamResolver extends SocketApiAnnotationResolver<Requ
             .orElse(null);
 
     if (this.getTypes().isAssignable(this.getTypes().erasure(parameterType), listType.asType())) {
-      if (annotation.value().isEmpty()) {
-        throw new WebSocketResolverException(
-            "Value cannot be empty at @RequestParam %s %s",
-            parameterType, parameter.getSimpleName().toString());
-      }
+      validateAnnotationValue(
+          annotation.value(), "@RequestParam", parameterType, parameter.getSimpleName().toString());
 
       if (parameterType instanceof DeclaredType declaredReturnType) {
         final TypeMirror listDeclaredType = declaredReturnType.getTypeArguments().get(0);
@@ -66,11 +66,11 @@ public final class RequestParamResolver extends SocketApiAnnotationResolver<Requ
           return CodeBlock.of(
               CODE_FOR_GET_LIST_QUERY_REQUIRED,
               parameterType,
-              parameter.getSimpleName().toString(),
+              varName,
               annotation.value(),
               defaultValue,
               listDeclaredType,
-              parameter.getSimpleName().toString(),
+              varName,
               String.format(
                   "@RequestParam List<%s> %s is marked as required but was not present on request. "
                       + "Default value was not set.",
@@ -79,7 +79,7 @@ public final class RequestParamResolver extends SocketApiAnnotationResolver<Requ
           return CodeBlock.of(
               CODE_FOR_GET_LIST_QUERY,
               parameterType,
-              parameter.getSimpleName().toString(),
+              varName,
               annotation.value(),
               defaultValue,
               listDeclaredType);
@@ -90,17 +90,14 @@ public final class RequestParamResolver extends SocketApiAnnotationResolver<Requ
             parameter.getSimpleName().toString(), parameterType);
       }
     } else {
-      if (annotation.value().isEmpty()) {
-        throw new WebSocketResolverException(
-            "Value cannot be empty at @RequestParam %s %s",
-            parameterType, parameter.getSimpleName().toString());
-      }
+      validateAnnotationValue(
+          annotation.value(), "@RequestParam", parameterType, parameter.getSimpleName().toString());
 
       if (annotation.required()) {
         return CodeBlock.of(
             CODE_FOR_GET_SINGLE_QUERY_REQUIRED,
             parameterType,
-            parameter.getSimpleName().toString(),
+            varName,
             annotation.value(),
             defaultValue,
             parameterType,
@@ -112,7 +109,7 @@ public final class RequestParamResolver extends SocketApiAnnotationResolver<Requ
         return CodeBlock.of(
             CODE_FOR_GET_SINGLE_QUERY,
             parameterType,
-            parameter.getSimpleName().toString(),
+            varName,
             annotation.value(),
             defaultValue,
             parameterType,

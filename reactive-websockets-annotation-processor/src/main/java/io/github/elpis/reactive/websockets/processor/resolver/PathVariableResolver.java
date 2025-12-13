@@ -1,5 +1,7 @@
 package io.github.elpis.reactive.websockets.processor.resolver;
 
+import static io.github.elpis.reactive.websockets.processor.util.Constants.VARIABLE_SUFFIX;
+
 import com.squareup.javapoet.CodeBlock;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
@@ -28,12 +30,13 @@ public final class PathVariableResolver extends SocketApiAnnotationResolver<Path
   public CodeBlock resolve(final VariableElement parameter) {
     final TypeMirror parameterType = parameter.asType();
     final PathVariable annotation = parameter.getAnnotation(this.getAnnotationType());
+    final String varName = parameter.getSimpleName().toString() + VARIABLE_SUFFIX;
 
     if (annotation.required()) {
       return CodeBlock.of(
           CODE_FOR_GET_PATH_REQUIRED,
           parameterType,
-          parameter.getSimpleName().toString(),
+          varName,
           annotation.value(),
           parameterType,
           String.format(
@@ -43,7 +46,7 @@ public final class PathVariableResolver extends SocketApiAnnotationResolver<Path
       return CodeBlock.of(
           CODE_FOR_GET_SINGLE_PATH,
           parameterType,
-          parameter.getSimpleName().toString(),
+          varName,
           annotation.value(),
           parameterType,
           parameterType);
