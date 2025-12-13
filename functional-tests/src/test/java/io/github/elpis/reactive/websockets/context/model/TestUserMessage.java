@@ -7,4 +7,4 @@ package io.github.elpis.reactive.websockets.context.model;
  * @param message the nested message
  * @since 1.0.0
  */
-public record TestUserMessage(String userId, MessageDto message) {}
+public record TestUserMessage(String userId, TestMessage message) {}

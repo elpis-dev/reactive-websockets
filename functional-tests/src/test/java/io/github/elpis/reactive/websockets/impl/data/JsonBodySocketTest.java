@@ -6,8 +6,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.elpis.reactive.websockets.BaseWebSocketTest;
 import io.github.elpis.reactive.websockets.context.BootStarter;
-import io.github.elpis.reactive.websockets.context.model.MessageDto;
 import io.github.elpis.reactive.websockets.context.model.TestChatMessage;
+import io.github.elpis.reactive.websockets.context.model.TestMessage;
 import io.github.elpis.reactive.websockets.context.model.TestUserMessage;
 import io.github.elpis.reactive.websockets.context.resource.data.JsonBodySocketResource;
 import java.time.Duration;
@@ -232,8 +232,8 @@ class JsonBodySocketTest extends BaseWebSocketTest {
   void testFluxPojoDeserialization() throws Exception {
     // given
     final String path = "/json/message/flux";
-    final MessageDto msg1 = new MessageDto("Hello", 1000L);
-    final MessageDto msg2 = new MessageDto("World", 2000L);
+    final TestMessage msg1 = new TestMessage("Hello", 1000L);
+    final TestMessage msg2 = new TestMessage("World", 2000L);
 
     final Flux<String> data =
         Flux.just(msg1, msg2).map(this::toJson).delayElements(Duration.ofMillis(100));
@@ -272,7 +272,7 @@ class JsonBodySocketTest extends BaseWebSocketTest {
   void testMonoPojoDeserialization() throws Exception {
     // given
     final String path = "/json/message/mono";
-    final MessageDto msg = new MessageDto("SinglePojo", 3000L);
+    final TestMessage msg = new TestMessage("SinglePojo", 3000L);
 
     final Mono<String> data = Mono.just(msg).map(this::toJson);
 
@@ -307,7 +307,7 @@ class JsonBodySocketTest extends BaseWebSocketTest {
   void testNestedPojoDeserialization() throws Exception {
     // given
     final String path = "/json/user-message";
-    final MessageDto innerMsg = new MessageDto("NestedMessage", 4000L);
+    final TestMessage innerMsg = new TestMessage("NestedMessage", 4000L);
     final TestUserMessage userMsg = new TestUserMessage("user123", innerMsg);
 
     final Flux<String> data = Flux.just(userMsg).map(this::toJson);
@@ -345,7 +345,7 @@ class JsonBodySocketTest extends BaseWebSocketTest {
   void testNestedPojoMonoDeserialization() throws Exception {
     // given
     final String path = "/json/user-message/mono";
-    final MessageDto innerMsg = new MessageDto("SingleNested", 5000L);
+    final TestMessage innerMsg = new TestMessage("SingleNested", 5000L);
     final TestUserMessage userMsg = new TestUserMessage("user456", innerMsg);
 
     final Mono<String> data = Mono.just(userMsg).map(this::toJson);
@@ -455,13 +455,13 @@ class JsonBodySocketTest extends BaseWebSocketTest {
   void testMultipleMessagesWithFlux() throws Exception {
     // given
     final String path = "/json/message/flux";
-    final List<MessageDto> messages =
+    final List<TestMessage> messages =
         List.of(
-            new MessageDto("Message1", 1000L),
-            new MessageDto("Message2", 2000L),
-            new MessageDto("Message3", 3000L),
-            new MessageDto("Message4", 4000L),
-            new MessageDto("Message5", 5000L));
+            new TestMessage("Message1", 1000L),
+            new TestMessage("Message2", 2000L),
+            new TestMessage("Message3", 3000L),
+            new TestMessage("Message4", 4000L),
+            new TestMessage("Message5", 5000L));
 
     final Flux<String> data =
         Flux.fromIterable(messages).map(this::toJson).delayElements(Duration.ofMillis(50));

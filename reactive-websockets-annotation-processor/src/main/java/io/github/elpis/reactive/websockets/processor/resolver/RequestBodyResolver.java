@@ -1,5 +1,7 @@
 package io.github.elpis.reactive.websockets.processor.resolver;
 
+import static io.github.elpis.reactive.websockets.processor.util.Constants.VARIABLE_SUFFIX;
+
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.TypeName;
 import io.github.elpis.reactive.websockets.processor.exception.WebSocketResolverException;
@@ -17,7 +19,6 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 public class RequestBodyResolver extends SocketApiAnnotationResolver<RequestBody> {
-  public static final String VARIABLE_SUFFIX = "Generated";
 
   /**
    * Enum to represent the publisher type.

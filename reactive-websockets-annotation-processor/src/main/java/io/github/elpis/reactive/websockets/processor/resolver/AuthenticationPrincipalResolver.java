@@ -1,5 +1,7 @@
 package io.github.elpis.reactive.websockets.processor.resolver;
 
+import static io.github.elpis.reactive.websockets.processor.util.Constants.VARIABLE_SUFFIX;
+
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.TypeName;
@@ -24,8 +26,7 @@ public final class AuthenticationPrincipalResolver
   public CodeBlock resolve(final VariableElement parameter) {
     final TypeMirror parameterType = parameter.asType();
     final AuthenticationPrincipal annotation = parameter.getAnnotation(this.getAnnotationType());
-    final String varName =
-        parameter.getSimpleName().toString() + RequestBodyResolver.VARIABLE_SUFFIX;
+    final String varName = parameter.getSimpleName().toString() + VARIABLE_SUFFIX;
 
     final Element principalType =
         this.getElements().getTypeElement(WebSocketPrincipal.class.getCanonicalName());

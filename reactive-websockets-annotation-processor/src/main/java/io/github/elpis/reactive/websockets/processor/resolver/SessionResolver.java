@@ -1,5 +1,7 @@
 package io.github.elpis.reactive.websockets.processor.resolver;
 
+import static io.github.elpis.reactive.websockets.processor.util.Constants.VARIABLE_SUFFIX;
+
 import com.squareup.javapoet.CodeBlock;
 import io.github.elpis.reactive.websockets.processor.exception.WebSocketResolverException;
 import io.github.elpis.reactive.websockets.session.ReactiveWebSocketSession;
@@ -38,8 +40,7 @@ public class SessionResolver extends SocketApiAnnotationResolver<SessionAttribut
   public CodeBlock resolve(final VariableElement parameter) {
     final TypeMirror parameterType = parameter.asType();
     final SessionAttribute sessionAttribute = parameter.getAnnotation(SessionAttribute.class);
-    final String varName =
-        parameter.getSimpleName().toString() + RequestBodyResolver.VARIABLE_SUFFIX;
+    final String varName = parameter.getSimpleName().toString() + VARIABLE_SUFFIX;
 
     final Element optionalType =
         this.getElements().getTypeElement(Optional.class.getCanonicalName());

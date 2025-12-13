@@ -1,5 +1,7 @@
 package io.github.elpis.reactive.websockets.processor.resolver;
 
+import static io.github.elpis.reactive.websockets.processor.util.Constants.VARIABLE_SUFFIX;
+
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.ParameterizedTypeName;
@@ -52,8 +54,7 @@ public final class RequestHeaderResolver extends SocketApiAnnotationResolver<Req
   public CodeBlock resolve(final VariableElement parameter) {
     final TypeMirror parameterType = parameter.asType();
     final RequestHeader annotation = parameter.getAnnotation(this.getAnnotationType());
-    final String varName =
-        parameter.getSimpleName().toString() + RequestBodyResolver.VARIABLE_SUFFIX;
+    final String varName = parameter.getSimpleName().toString() + VARIABLE_SUFFIX;
 
     final Element httpHeadersType =
         this.getElements().getTypeElement(HttpHeaders.class.getCanonicalName());

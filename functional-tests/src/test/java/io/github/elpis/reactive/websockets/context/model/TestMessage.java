@@ -6,4 +6,4 @@ package io.github.elpis.reactive.websockets.context.model;
  * @param text the message text
  *     <p>Simple POJO for testing JSON deserialization.
  */
-public record MessageDto(String text, Long timestamp) {}
+public record TestMessage(String text, Long timestamp) {}
