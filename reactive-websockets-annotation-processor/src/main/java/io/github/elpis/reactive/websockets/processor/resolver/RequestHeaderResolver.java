@@ -87,11 +87,11 @@ public final class RequestHeaderResolver extends SocketApiAnnotationResolver<Req
       return CodeBlock.of(CODE_FOR_GET_HEADERS, multiValueMapTypeName, varName);
     } else if (this.getTypes()
         .isAssignable(this.getTypes().erasure(parameterType), listType.asType())) {
-      if (annotation.value().isEmpty()) {
-        throw new WebSocketResolverException(
-            "Value cannot be empty at @RequestHeader %s %s",
-            parameterType, parameter.getSimpleName().toString());
-      }
+      validateAnnotationValue(
+          annotation.value(),
+          "@RequestHeader",
+          parameterType,
+          parameter.getSimpleName().toString());
 
       if (parameterType instanceof DeclaredType declaredReturnType) {
         final TypeMirror listDeclaredType = declaredReturnType.getTypeArguments().get(0);
@@ -124,11 +124,11 @@ public final class RequestHeaderResolver extends SocketApiAnnotationResolver<Req
             parameter.asType().toString(), parameter.getSimpleName().toString(), parameterType);
       }
     } else {
-      if (annotation.value().isEmpty()) {
-        throw new WebSocketResolverException(
-            "Value cannot be empty at @RequestHeader %s %s",
-            parameterType, parameter.getSimpleName().toString());
-      }
+      validateAnnotationValue(
+          annotation.value(),
+          "@RequestHeader",
+          parameterType,
+          parameter.getSimpleName().toString());
 
       if (annotation.required()) {
         return CodeBlock.of(

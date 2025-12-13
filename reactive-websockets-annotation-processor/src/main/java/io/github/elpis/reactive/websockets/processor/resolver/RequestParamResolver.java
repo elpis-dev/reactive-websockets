@@ -56,11 +56,8 @@ public final class RequestParamResolver extends SocketApiAnnotationResolver<Requ
             .orElse(null);
 
     if (this.getTypes().isAssignable(this.getTypes().erasure(parameterType), listType.asType())) {
-      if (annotation.value().isEmpty()) {
-        throw new WebSocketResolverException(
-            "Value cannot be empty at @RequestParam %s %s",
-            parameterType, parameter.getSimpleName().toString());
-      }
+      validateAnnotationValue(
+          annotation.value(), "@RequestParam", parameterType, parameter.getSimpleName().toString());
 
       if (parameterType instanceof DeclaredType declaredReturnType) {
         final TypeMirror listDeclaredType = declaredReturnType.getTypeArguments().get(0);
@@ -93,11 +90,8 @@ public final class RequestParamResolver extends SocketApiAnnotationResolver<Requ
             parameter.getSimpleName().toString(), parameterType);
       }
     } else {
-      if (annotation.value().isEmpty()) {
-        throw new WebSocketResolverException(
-            "Value cannot be empty at @RequestParam %s %s",
-            parameterType, parameter.getSimpleName().toString());
-      }
+      validateAnnotationValue(
+          annotation.value(), "@RequestParam", parameterType, parameter.getSimpleName().toString());
 
       if (annotation.required()) {
         return CodeBlock.of(

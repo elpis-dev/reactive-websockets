@@ -256,15 +256,15 @@ class JsonBodySocketTest extends BaseWebSocketTest {
 
       // verify
       StepVerifier.create(sink.asFlux().take(2))
-          .expectNext("Message: MessageDto[text=Hello, timestamp=1000]")
-          .expectNext("Message: MessageDto[text=World, timestamp=2000]")
+          .expectNext("Message: TestMessage[text=Hello, timestamp=1000]")
+          .expectNext("Message: TestMessage[text=World, timestamp=2000]")
           .expectComplete()
           .verify(DEFAULT_FAST_TEST_FALLBACK);
 
       assertThat(logCaptor.getInfoLogs())
           .contains(
-              "Message: MessageDto[text=Hello, timestamp=1000]",
-              "Message: MessageDto[text=World, timestamp=2000]");
+              "Message: TestMessage[text=Hello, timestamp=1000]",
+              "Message: TestMessage[text=World, timestamp=2000]");
     }
   }
 
@@ -294,12 +294,12 @@ class JsonBodySocketTest extends BaseWebSocketTest {
 
       // verify
       StepVerifier.create(sink.asMono())
-          .expectNext("Single Message: MessageDto[text=SinglePojo, timestamp=3000]")
+          .expectNext("Single Message: TestMessage[text=SinglePojo, timestamp=3000]")
           .expectComplete()
           .verify(DEFAULT_FAST_TEST_FALLBACK);
 
       assertThat(logCaptor.getInfoLogs())
-          .contains("Single Message: MessageDto[text=SinglePojo, timestamp=3000]");
+          .contains("Single Message: TestMessage[text=SinglePojo, timestamp=3000]");
     }
   }
 
@@ -331,13 +331,13 @@ class JsonBodySocketTest extends BaseWebSocketTest {
       // verify
       StepVerifier.create(sink.asFlux().take(1))
           .expectNext(
-              "User Message: TestUserMessage[userId=user123, message=MessageDto[text=NestedMessage, timestamp=4000]]")
+              "User Message: TestUserMessage[userId=user123, message=TestMessage[text=NestedMessage, timestamp=4000]]")
           .expectComplete()
           .verify(DEFAULT_FAST_TEST_FALLBACK);
 
       assertThat(logCaptor.getInfoLogs())
           .contains(
-              "User Message: TestUserMessage[userId=user123, message=MessageDto[text=NestedMessage, timestamp=4000]]");
+              "User Message: TestUserMessage[userId=user123, message=TestMessage[text=NestedMessage, timestamp=4000]]");
     }
   }
 
@@ -369,13 +369,13 @@ class JsonBodySocketTest extends BaseWebSocketTest {
       // verify
       StepVerifier.create(sink.asMono())
           .expectNext(
-              "User Message (Mono): TestUserMessage[userId=user456, message=MessageDto[text=SingleNested, timestamp=5000]]")
+              "User Message (Mono): TestUserMessage[userId=user456, message=TestMessage[text=SingleNested, timestamp=5000]]")
           .expectComplete()
           .verify(DEFAULT_FAST_TEST_FALLBACK);
 
       assertThat(logCaptor.getInfoLogs())
           .contains(
-              "User Message (Mono): TestUserMessage[userId=user456, message=MessageDto[text=SingleNested, timestamp=5000]]");
+              "User Message (Mono): TestUserMessage[userId=user456, message=TestMessage[text=SingleNested, timestamp=5000]]");
     }
   }
 
@@ -475,11 +475,11 @@ class JsonBodySocketTest extends BaseWebSocketTest {
       Thread.sleep(1000);
       assertThat(logCaptor.getInfoLogs())
           .contains(
-              "Message: MessageDto[text=Message1, timestamp=1000]",
-              "Message: MessageDto[text=Message2, timestamp=2000]",
-              "Message: MessageDto[text=Message3, timestamp=3000]",
-              "Message: MessageDto[text=Message4, timestamp=4000]",
-              "Message: MessageDto[text=Message5, timestamp=5000]");
+              "Message: TestMessage[text=Message1, timestamp=1000]",
+              "Message: TestMessage[text=Message2, timestamp=2000]",
+              "Message: TestMessage[text=Message3, timestamp=3000]",
+              "Message: TestMessage[text=Message4, timestamp=4000]",
+              "Message: TestMessage[text=Message5, timestamp=5000]");
     }
   }
 

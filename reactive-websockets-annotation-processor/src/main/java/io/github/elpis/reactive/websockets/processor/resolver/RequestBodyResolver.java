@@ -140,30 +140,11 @@ public class RequestBodyResolver extends SocketApiAnnotationResolver<RequestBody
       final VariableElement parameter,
       final PublisherType publisherType,
       final TypeMirror genericType) {
-    final TypeName genericTypeName = TypeName.get(genericType);
-    final String paramName = parameter.getSimpleName().toString() + VARIABLE_SUFFIX;
-
-    if (publisherType == PublisherType.FLUX) {
-      return CodeBlock.builder()
-          .add("final $T $L = messages\n", parameter.asType(), paramName)
-          .indent()
-          .add(".map(org.springframework.web.reactive.socket.WebSocketMessage::getPayloadAsText)\n")
-          .add(
-              ".map(text -> io.github.elpis.reactive.websockets.util.TypeUtils.convert(text, $T.class));\n",
-              genericTypeName)
-          .unindent()
-          .build();
-    } else {
-      return CodeBlock.builder()
-          .add("final $T $L = messages.next()\n", parameter.asType(), paramName)
-          .indent()
-          .add(".map(org.springframework.web.reactive.socket.WebSocketMessage::getPayloadAsText)\n")
-          .add(
-              ".map(text -> io.github.elpis.reactive.websockets.util.TypeUtils.convert(text, $T.class));\n",
-              genericTypeName)
-          .unindent()
-          .build();
-    }
+    return generateMappingCode(
+        parameter,
+        publisherType,
+        genericType,
+        "io.github.elpis.reactive.websockets.util.TypeUtils.convert(text, $T.class)");
   }
 
   /**
@@ -179,30 +160,41 @@ public class RequestBodyResolver extends SocketApiAnnotationResolver<RequestBody
       final VariableElement parameter,
       final PublisherType publisherType,
       final TypeMirror genericType) {
+    return generateMappingCode(
+        parameter,
+        publisherType,
+        genericType,
+        "io.github.elpis.reactive.websockets.mapper.JsonMapper.deserialize(text, $T.class)");
+  }
+
+  /**
+   * Generates mapping code for both Flux and Mono publishers.
+   *
+   * @param parameter the parameter element
+   * @param publisherType the publisher type (Flux or Mono)
+   * @param genericType the generic type
+   * @param mapperExpression the mapper expression to use (e.g., TypeUtils.convert or
+   *     JsonMapper.deserialize)
+   * @return the generated code block
+   * @since 1.0.0
+   */
+  private CodeBlock generateMappingCode(
+      final VariableElement parameter,
+      final PublisherType publisherType,
+      final TypeMirror genericType,
+      final String mapperExpression) {
     final TypeName genericTypeName = TypeName.get(genericType);
     final String paramName = parameter.getSimpleName().toString() + VARIABLE_SUFFIX;
+    final String sourceExpression =
+        publisherType == PublisherType.FLUX ? "messages" : "messages.next()";
 
-    if (publisherType == PublisherType.FLUX) {
-      return CodeBlock.builder()
-          .add("final $T $L = messages\n", parameter.asType(), paramName)
-          .indent()
-          .add(".map(org.springframework.web.reactive.socket.WebSocketMessage::getPayloadAsText)\n")
-          .add(
-              ".map(text -> io.github.elpis.reactive.websockets.mapper.JsonMapper.deserialize(text, $T.class));\n",
-              genericTypeName)
-          .unindent()
-          .build();
-    } else {
-      return CodeBlock.builder()
-          .add("final $T $L = messages.next()\n", parameter.asType(), paramName)
-          .indent()
-          .add(".map(org.springframework.web.reactive.socket.WebSocketMessage::getPayloadAsText)\n")
-          .add(
-              ".map(text -> io.github.elpis.reactive.websockets.mapper.JsonMapper.deserialize(text, $T.class));\n",
-              genericTypeName)
-          .unindent()
-          .build();
-    }
+    return CodeBlock.builder()
+        .add("final $T $L = $L\n", parameter.asType(), paramName, sourceExpression)
+        .indent()
+        .add(".map(org.springframework.web.reactive.socket.WebSocketMessage::getPayloadAsText)\n")
+        .add(".map(text -> $L);\n", CodeBlock.of(mapperExpression, genericTypeName))
+        .unindent()
+        .build();
   }
 
   @Override
