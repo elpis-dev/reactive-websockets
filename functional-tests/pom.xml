@@ -41,7 +41,7 @@
     </scm>
 
     <properties>
-        <logcaptor.version>2.9.3</logcaptor.version>
+        <logcaptor.version>2.12.1</logcaptor.version>
         <maven.deploy.skip>true</maven.deploy.skip>
     </properties>
 
