@@ -53,7 +53,7 @@
 
         <spring.boot.version>3.5.8</spring.boot.version>
 
-        <log4j2.version>2.25.2</log4j2.version>
+        <log4j2.version>2.25.3</log4j2.version>
 
         <reactive-websockets.version>1.0.0-alpha</reactive-websockets.version>
 
