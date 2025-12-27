@@ -8,8 +8,9 @@ on:
 
 permissions:
   contents: read
-  actions: read
+  issues: read
   checks: write
+  pull-requests: write
 
 jobs:
   build-and-test:
@@ -33,17 +34,18 @@ jobs:
           MAVEN_OPTS: "-Xmx2048m -XX:+UseG1GC"
 
       - name: Test Report
-        uses: dorny/test-reporter@v2
-        if: ${{ !cancelled() }}
+        uses: mikepenz/action-junit-report@v5
+        if: always()
         with:
-          name: Maven Test Results
-          path: '**/target/surefire-reports/TEST-*.xml'
-          reporter: java-junit
-          fail-on-error: false
-          fail-on-empty: false
+          report_paths: '**/target/surefire-reports/TEST-*.xml'
+          detailed_summary: true
+          include_passed: true
+          check_name: 'Maven Test Results'
+          fail_on_failure: false
+          annotate_only: false
 
       - name: Upload Test Results
-        if: success()
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: test-results
@@ -53,7 +55,7 @@ jobs:
           retention-days: 7
 
       - name: Upload Coverage Report
-        if: success()
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report
