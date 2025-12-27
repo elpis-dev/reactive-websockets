@@ -72,16 +72,19 @@ public class ReactiveWebSocketTemplate {
     return Mono.fromRunnable(
         () -> {
           Collection<SessionStreams> sessions = registry.getAllSessions(path);
-          long sent = 0;
 
           for (SessionStreams streams : sessions) {
             Sinks.EmitResult result = streams.outboundSink().tryEmitNext(payload);
-            if (!result.isFailure()) {
-              sent++;
+            if (result.isFailure()) {
+              log.warn(
+                  "Failed to broadcast to session {} on path {}: {}",
+                  streams.metadata().getSessionId(),
+                  path,
+                  result);
             }
           }
 
-          log.debug("Broadcast message to {}/{} sessions on path {}", sent, sessions.size(), path);
+          log.debug("Broadcast completed to {} sessions on path {}", sessions.size(), path);
         });
   }
 
@@ -178,7 +181,11 @@ public class ReactiveWebSocketTemplate {
                           new SessionNotFoundException(
                               String.format("Session %s not found on path %s", sessionId, path)));
 
-          streams.outboundSink().tryEmitError(new ErrorResponseException(errorPayload));
+          Sinks.EmitResult result =
+              streams.outboundSink().tryEmitError(new ErrorResponseException(errorPayload));
+          if (result.isFailure()) {
+            log.warn("Failed to send error to session {}: {}", sessionId, result);
+          }
         });
   }
 
@@ -194,7 +201,15 @@ public class ReactiveWebSocketTemplate {
         () -> {
           Collection<SessionStreams> sessions = registry.getAllSessions(path);
           for (SessionStreams streams : sessions) {
-            streams.outboundSink().tryEmitError(new ErrorResponseException(errorPayload));
+            Sinks.EmitResult result =
+                streams.outboundSink().tryEmitError(new ErrorResponseException(errorPayload));
+            if (result.isFailure()) {
+              log.warn(
+                  "Failed to broadcast error to session {} on path {}: {}",
+                  streams.metadata().getSessionId(),
+                  path,
+                  result);
+            }
           }
         });
   }

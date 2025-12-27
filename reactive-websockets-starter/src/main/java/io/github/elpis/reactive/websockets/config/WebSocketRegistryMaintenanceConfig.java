@@ -18,13 +18,24 @@ import org.springframework.scheduling.annotation.Scheduled;
  * <p><strong>IMPORTANT</strong>: If this task frequently finds orphaned sessions, it indicates a
  * bug in session lifecycle management that must be investigated.
  *
+ * <p>Configuration can be customized via application properties:
+ * <ul>
+ *   <li>{@code reactive.websockets.registry.maintenance.cleanup.enabled} - Enable/disable cleanup
+ *       (default: true)
+ *   <li>{@code reactive.websockets.registry.maintenance.cleanup.interval} - Interval in milliseconds
+ *       (default: 60000)
+ *   <li>{@code reactive.websockets.registry.maintenance.cleanup.initial-delay} - Initial delay in
+ *       milliseconds (default: 60000)
+ * </ul>
+ *
+ * @author Phillip J. Fry
  * @since 1.1.0
  */
 @Configuration
 @EnableScheduling
 @ConditionalOnProperty(
-    prefix = "reactive.websockets.registry",
-    name = "cleanup.enabled",
+    prefix = "reactive.websockets.registry.maintenance.cleanup",
+    name = "enabled",
     havingValue = "true",
     matchIfMissing = true)
 public class WebSocketRegistryMaintenanceConfig {
@@ -39,37 +50,28 @@ public class WebSocketRegistryMaintenanceConfig {
   }
 
   /**
-   * Cleanup orphaned sessions every minute (failsafe).
+   * Cleanup orphaned sessions at configurable intervals (failsafe).
    *
    * <p>This is a SAFETY NET - proper cleanup should happen in doFinally() handlers. If this finds
    * sessions to clean up, there's likely a bug in lifecycle management.
+   *
+   * <p>The interval and initial delay can be configured via application properties:
+   *
+   * <pre>
+   * reactive.websockets.registry.maintenance.cleanup.interval=60000
+   * reactive.websockets.registry.maintenance.cleanup.initial-delay=60000
+   * </pre>
    */
-  @Scheduled(fixedDelay = 60_000) // Every 60 seconds
+  @Scheduled(
+      fixedDelayString =
+          "${reactive.websockets.registry.maintenance.cleanup.interval:60000}",
+      initialDelayString =
+          "${reactive.websockets.registry.maintenance.cleanup.initial-delay:60000}")
   public void cleanupOrphanedSessions() {
     try {
       registry.cleanupOrphanedSessions();
     } catch (Exception e) {
       log.error("Error during orphaned session cleanup", e);
-    }
-  }
-
-  /** Log registry metrics every 5 minutes (optional monitoring). */
-  @Scheduled(fixedDelay = 300_000)
-  public void logRegistryMetrics() {
-    long totalSessions = registry.getTotalSessionCount();
-
-    if (totalSessions > 0) {
-      log.info(
-          "WebSocket Registry Metrics: {} total sessions across {} paths",
-          totalSessions,
-          registry.getAllPaths().size());
-
-      if (log.isDebugEnabled()) {
-        registry
-            .getAllPaths()
-            .forEach(
-                path -> log.debug("  Path {}: {} sessions", path, registry.getSessionCount(path)));
-      }
     }
   }
 }
