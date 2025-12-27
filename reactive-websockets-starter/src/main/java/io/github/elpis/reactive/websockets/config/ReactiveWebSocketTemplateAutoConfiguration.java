@@ -12,7 +12,7 @@ import org.springframework.context.annotation.Configuration;
  * <p>Automatically registers a ReactiveWebSocketTemplate bean in the Spring context if one is not
  * already defined.
  *
- * @since 1.1.0
+ * @since 1.0.0
  */
 @Configuration
 public class ReactiveWebSocketTemplateAutoConfiguration {

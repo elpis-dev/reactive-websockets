@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory;
  *
  * <p>Thread-safe and designed for high concurrency.
  *
- * @since 1.1.0
+ * @since 1.0.0
  */
 public final class WebSocketSessionRegistry {
 

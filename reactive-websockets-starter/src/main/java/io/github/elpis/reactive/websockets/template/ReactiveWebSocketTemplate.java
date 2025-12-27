@@ -49,7 +49,7 @@ import reactor.core.publisher.Sinks;
  * <p>The template accepts any Object type. Type conversion to WebSocketMessage is handled
  * automatically by the handler infrastructure.
  *
- * @since 1.1.0
+ * @since 1.0.0
  */
 public class ReactiveWebSocketTemplate {
 

@@ -46,7 +46,7 @@ import reactor.core.publisher.Mono;
  * <p>Generated handlers from @MessageEndpoint extend this class to get flow control based on their
  * annotation configuration.
  *
- * @since 1.1.0
+ * @since 1.0.0
  */
 public abstract class AdaptiveWebSocketHandler extends BaseWebSocketHandler {
 

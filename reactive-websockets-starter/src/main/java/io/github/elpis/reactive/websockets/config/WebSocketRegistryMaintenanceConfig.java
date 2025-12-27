@@ -19,17 +19,18 @@ import org.springframework.scheduling.annotation.Scheduled;
  * bug in session lifecycle management that must be investigated.
  *
  * <p>Configuration can be customized via application properties:
+ *
  * <ul>
  *   <li>{@code reactive.websockets.registry.maintenance.cleanup.enabled} - Enable/disable cleanup
  *       (default: true)
- *   <li>{@code reactive.websockets.registry.maintenance.cleanup.interval} - Interval in milliseconds
- *       (default: 60000)
+ *   <li>{@code reactive.websockets.registry.maintenance.cleanup.interval} - Interval in
+ *       milliseconds (default: 60000)
  *   <li>{@code reactive.websockets.registry.maintenance.cleanup.initial-delay} - Initial delay in
  *       milliseconds (default: 60000)
  * </ul>
  *
  * @author Phillip J. Fry
- * @since 1.1.0
+ * @since 1.0.0
  */
 @Configuration
 @EnableScheduling
@@ -63,8 +64,7 @@ public class WebSocketRegistryMaintenanceConfig {
    * </pre>
    */
   @Scheduled(
-      fixedDelayString =
-          "${reactive.websockets.registry.maintenance.cleanup.interval:60000}",
+      fixedDelayString = "${reactive.websockets.registry.maintenance.cleanup.interval:60000}",
       initialDelayString =
           "${reactive.websockets.registry.maintenance.cleanup.initial-delay:60000}")
   public void cleanupOrphanedSessions() {

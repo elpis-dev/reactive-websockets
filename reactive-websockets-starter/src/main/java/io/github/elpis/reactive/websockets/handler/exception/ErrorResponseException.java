@@ -16,7 +16,7 @@ package io.github.elpis.reactive.websockets.handler.exception;
  *   <li>BaseWebSocketHandler catches, extracts payload, converts and sends
  * </ol>
  *
- * @since 1.1.0
+ * @since 1.0.0
  */
 public class ErrorResponseException extends RuntimeException {
 

@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Manages all sessions for a specific WebSocket path.
  *
- * @since 1.1.0
+ * @since 1.0.0
  */
 class PathSessions {
 

@@ -22,7 +22,7 @@ import reactor.core.publisher.Sinks;
  * <p>Flux views are created on-demand via {@link #inboundFlux()} and {@link #outboundFlux()}
  * methods rather than stored, reducing memory overhead and simplifying lifecycle management.
  *
- * @since 1.1.0
+ * @since 1.0.0
  */
 public record SessionStreams(
     Sinks.Many<WebSocketMessage> inboundSink,
