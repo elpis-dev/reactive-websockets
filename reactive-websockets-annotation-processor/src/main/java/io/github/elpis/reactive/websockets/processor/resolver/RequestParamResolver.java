@@ -29,13 +29,13 @@ public final class RequestParamResolver extends SocketApiAnnotationResolver<Requ
   private static final String CODE_FOR_GET_SINGLE_QUERY_REQUIRED =
       """
             final $T $L = context.getQueryParam($S, $S, $T.class)
-            .orElseThrow(() -> new io.github.elpis.reactive.websockets.exception.WebSocketProcessingException($S));
+                .orElseThrow(() -> new io.github.elpis.reactive.websockets.exception.WebSocketProcessingException($S));
             """;
 
   private static final String CODE_FOR_GET_SINGLE_QUERY =
       """
             final $T $L = context.getQueryParam($S, $S, $T.class)
-            .orElseGet(() -> io.github.elpis.reactive.websockets.util.TypeUtils.getDefaultValueForType($T.class));
+                .orElseGet(() -> io.github.elpis.reactive.websockets.util.TypeUtils.getDefaultValueForType($T.class));
             """;
 
   RequestParamResolver(Elements elements, Types types) {
@@ -46,7 +46,7 @@ public final class RequestParamResolver extends SocketApiAnnotationResolver<Requ
   public CodeBlock resolve(final VariableElement parameter) {
     final TypeMirror parameterType = parameter.asType();
     final RequestParam annotation = parameter.getAnnotation(this.getAnnotationType());
-    final String varName = parameter.getSimpleName().toString() + VARIABLE_SUFFIX;
+    final String varName = parameter.getSimpleName() + VARIABLE_SUFFIX;
 
     final Element listType = this.getElements().getTypeElement(List.class.getCanonicalName());
 
@@ -74,7 +74,7 @@ public final class RequestParamResolver extends SocketApiAnnotationResolver<Requ
               String.format(
                   "@RequestParam List<%s> %s is marked as required but was not present on request. "
                       + "Default value was not set.",
-                  listDeclaredType.toString(), parameter.getSimpleName().toString()));
+                  listDeclaredType.toString(), parameter.getSimpleName()));
         } else {
           return CodeBlock.of(
               CODE_FOR_GET_LIST_QUERY,
@@ -104,7 +104,7 @@ public final class RequestParamResolver extends SocketApiAnnotationResolver<Requ
             String.format(
                 "@RequestParam %s %s is marked as required but was not present on request. "
                     + "Default value was not set.",
-                parameter.asType().toString(), parameter.getSimpleName().toString()));
+                parameter.asType().toString(), parameter.getSimpleName()));
       } else {
         return CodeBlock.of(
             CODE_FOR_GET_SINGLE_QUERY,

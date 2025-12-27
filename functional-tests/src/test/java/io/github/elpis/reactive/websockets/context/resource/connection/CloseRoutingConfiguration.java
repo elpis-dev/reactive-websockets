@@ -2,9 +2,7 @@ package io.github.elpis.reactive.websockets.context.resource.connection;
 
 import static io.github.elpis.reactive.websockets.handler.route.WebSocketHandlerFunctions.handle;
 
-import io.github.elpis.reactive.websockets.config.Mode;
 import io.github.elpis.reactive.websockets.handler.route.WebSocketHandlerFunction;
-import io.github.elpis.reactive.websockets.session.WebSocketSessionRegistry;
 import java.time.Duration;
 import java.util.List;
 import org.springframework.context.annotation.Bean;
@@ -15,15 +13,12 @@ import reactor.core.publisher.Flux;
 public class CloseRoutingConfiguration {
 
   @Bean
-  public WebSocketHandlerFunction closeRouting(final WebSocketSessionRegistry sessionRegistry) {
+  public WebSocketHandlerFunction closeRouting() {
     return handle(
         "/close",
-        Mode.BROADCAST,
         (context, messages) -> {
           return Flux.fromIterable(List.of("One, Two", "Three"))
               .delayElements(Duration.ofSeconds(1));
-          //                    .then(Mono.fromRunnable(() ->
-          // sessionRegistry.close(context.getSessionId(), CloseStatus.NORMAL)));
         });
   }
 }

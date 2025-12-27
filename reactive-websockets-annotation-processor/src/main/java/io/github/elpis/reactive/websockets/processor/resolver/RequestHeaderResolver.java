@@ -37,13 +37,13 @@ public final class RequestHeaderResolver extends SocketApiAnnotationResolver<Req
   private static final String CODE_FOR_GET_SINGLE_HEADER_REQUIRED =
       """
             final $T $L = context.getHeader($S, $S, $T.class)
-            .orElseThrow(() -> new io.github.elpis.reactive.websockets.exception.WebSocketProcessingException($S));
+                .orElseThrow(() -> new io.github.elpis.reactive.websockets.exception.WebSocketProcessingException($S));
             """;
 
   private static final String CODE_FOR_GET_SINGLE_HEADER =
       """
             final $T $L = context.getHeader($S, $S, $T.class)
-            .orElseGet(() -> io.github.elpis.reactive.websockets.util.TypeUtils.getDefaultValueForType($T.class));
+                .orElseGet(() -> io.github.elpis.reactive.websockets.util.TypeUtils.getDefaultValueForType($T.class));
             """;
 
   RequestHeaderResolver(Elements elements, Types types) {
@@ -54,7 +54,7 @@ public final class RequestHeaderResolver extends SocketApiAnnotationResolver<Req
   public CodeBlock resolve(final VariableElement parameter) {
     final TypeMirror parameterType = parameter.asType();
     final RequestHeader annotation = parameter.getAnnotation(this.getAnnotationType());
-    final String varName = parameter.getSimpleName().toString() + VARIABLE_SUFFIX;
+    final String varName = parameter.getSimpleName() + VARIABLE_SUFFIX;
 
     final Element httpHeadersType =
         this.getElements().getTypeElement(HttpHeaders.class.getCanonicalName());
@@ -108,7 +108,7 @@ public final class RequestHeaderResolver extends SocketApiAnnotationResolver<Req
               String.format(
                   "@RequestHeader %s %s is marked as required but was not present on request. "
                       + "Default value was not set.",
-                  parameter.asType().toString(), parameter.getSimpleName().toString()));
+                  parameter.asType().toString(), parameter.getSimpleName()));
         } else {
           return CodeBlock.of(
               CODE_FOR_GET_LIST_HEADER,
@@ -141,7 +141,7 @@ public final class RequestHeaderResolver extends SocketApiAnnotationResolver<Req
             String.format(
                 "@RequestHeader %s %s is marked as required but was not present on request. "
                     + "Default value was not set.",
-                parameter.asType().toString(), parameter.getSimpleName().toString()));
+                parameter.asType().toString(), parameter.getSimpleName()));
       } else {
         return CodeBlock.of(
             CODE_FOR_GET_SINGLE_HEADER,

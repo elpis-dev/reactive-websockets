@@ -37,18 +37,11 @@ public class RequestBodyResolver extends SocketApiAnnotationResolver<RequestBody
   @Override
   public CodeBlock resolve(final VariableElement parameter) {
     final TypeMirror parameterType = parameter.asType();
-
-    // Extract publisher type (Flux or Mono)
     final PublisherType publisherType = extractPublisherType(parameterType);
-
-    // Extract generic type T from Flux<T> or Mono<T>
     final TypeMirror genericType = extractGenericType(parameterType);
-
-    // Categorize the type
     final TypeCategory category =
         TypeCategoryResolver.categorize(genericType, getElements(), getTypes());
 
-    // Generate appropriate code based on category
     return switch (category) {
       case WEBSOCKET_MESSAGE -> generateWebSocketMessageCode(parameter, publisherType);
       case SIMPLE_TYPE -> generateSimpleTypeCode(parameter, publisherType, genericType);
@@ -115,12 +108,10 @@ public class RequestBodyResolver extends SocketApiAnnotationResolver<RequestBody
    */
   private CodeBlock generateWebSocketMessageCode(
       final VariableElement parameter, final PublisherType publisherType) {
-    // For backward compatibility with Flux<WebSocketMessage>, just pass through
-    // For Mono<WebSocketMessage>, we need to convert from Flux to Mono
-    final String varName = parameter.getSimpleName().toString() + VARIABLE_SUFFIX;
     if (publisherType == PublisherType.FLUX) {
-      return CodeBlock.of("final $T $L = messages;\n", parameter.asType(), varName);
+      return CodeBlock.builder().build();
     } else {
+      final String varName = parameter.getSimpleName() + VARIABLE_SUFFIX;
       return CodeBlock.builder()
           .add("final $T $L = messages.next();\n", parameter.asType(), varName)
           .build();
@@ -184,7 +175,7 @@ public class RequestBodyResolver extends SocketApiAnnotationResolver<RequestBody
       final TypeMirror genericType,
       final String mapperExpression) {
     final TypeName genericTypeName = TypeName.get(genericType);
-    final String paramName = parameter.getSimpleName().toString() + VARIABLE_SUFFIX;
+    final String paramName = parameter.getSimpleName() + VARIABLE_SUFFIX;
     final String sourceExpression =
         publisherType == PublisherType.FLUX ? "messages" : "messages.next()";
 

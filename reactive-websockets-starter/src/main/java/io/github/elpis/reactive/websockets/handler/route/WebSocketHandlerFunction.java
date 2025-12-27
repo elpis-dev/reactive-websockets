@@ -1,6 +1,5 @@
 package io.github.elpis.reactive.websockets.handler.route;
 
-import io.github.elpis.reactive.websockets.config.Mode;
 import io.github.elpis.reactive.websockets.event.manager.WebSocketEventManagerFactory;
 import io.github.elpis.reactive.websockets.handler.BaseWebSocketHandler;
 import io.github.elpis.reactive.websockets.handler.ratelimit.RateLimiterService;
@@ -15,7 +14,6 @@ public interface WebSocketHandlerFunction {
 
   default <T> WebSocketHandlerFunction handle(
       final String path,
-      final Mode mode,
       final boolean heartbeatEnabled,
       final long heartbeatInterval,
       final long heartbeatTimeout,
@@ -24,14 +22,13 @@ public interface WebSocketHandlerFunction {
     final WebSocketHandlerFunctions.DefaultRouterFunction webSocketHandlerFunction =
         (WebSocketHandlerFunctions.DefaultRouterFunction)
             WebSocketHandlerFunctions.handle(
-                path, mode, heartbeatEnabled, heartbeatInterval, heartbeatTimeout, function);
+                path, heartbeatEnabled, heartbeatInterval, heartbeatTimeout, function);
 
     return webSocketHandlerFunction.setNext(this);
   }
 
   default WebSocketHandlerFunction handle(
       final String path,
-      final Mode mode,
       final boolean heartbeatEnabled,
       final long heartbeatInterval,
       final long heartbeatTimeout,
@@ -40,31 +37,28 @@ public interface WebSocketHandlerFunction {
     final WebSocketHandlerFunctions.DefaultRouterFunction webSocketHandlerFunction =
         (WebSocketHandlerFunctions.DefaultRouterFunction)
             WebSocketHandlerFunctions.handle(
-                path, mode, heartbeatEnabled, heartbeatInterval, heartbeatTimeout, function);
+                path, heartbeatEnabled, heartbeatInterval, heartbeatTimeout, function);
 
     return webSocketHandlerFunction.setNext(this);
   }
 
   default <T> WebSocketHandlerFunction handle(
       final String path,
-      final Mode mode,
       final WebSocketHandlerFunctions.WebSocketMessageHandlerFunction<T> function) {
 
     final WebSocketHandlerFunctions.DefaultRouterFunction webSocketHandlerFunction =
         (WebSocketHandlerFunctions.DefaultRouterFunction)
-            WebSocketHandlerFunctions.handle(path, mode, function);
+            WebSocketHandlerFunctions.handle(path, function);
 
     return webSocketHandlerFunction.setNext(this);
   }
 
   default WebSocketHandlerFunction handle(
-      final String path,
-      final Mode mode,
-      final WebSocketHandlerFunctions.WebSocketVoidHandlerFunction function) {
+      final String path, final WebSocketHandlerFunctions.WebSocketVoidHandlerFunction function) {
 
     final WebSocketHandlerFunctions.DefaultRouterFunction webSocketHandlerFunction =
         (WebSocketHandlerFunctions.DefaultRouterFunction)
-            WebSocketHandlerFunctions.handle(path, mode, function);
+            WebSocketHandlerFunctions.handle(path, function);
 
     return webSocketHandlerFunction.setNext(this);
   }

@@ -4,13 +4,23 @@ import io.github.elpis.reactive.websockets.event.model.WebSocketEvent;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Factory for creating and retrieving {@link WebSocketEventManager} instances.
+ *
+ * <p>Use the builder to register event managers for specific event types:
+ *
+ * <pre>{@code
+ * WebSocketEventManagerFactory factory = WebSocketEventManagerFactory.builder()
+ *     .register(SessionConnectedEvent.class, connectedEventManager)
+ *     .register(SessionDisconnectedEvent.class, disconnectedEventManager)
+ *     .build();
+ * }</pre>
+ */
 public class WebSocketEventManagerFactory {
   private final Map<Class<? extends WebSocketEvent<?>>, WebSocketEventManager<?>>
       socketEventManagers = new ConcurrentHashMap<>();
 
-  private WebSocketEventManagerFactory() {
-    //
-  }
+  private WebSocketEventManagerFactory() {}
 
   public <T extends WebSocketEvent<?>> WebSocketEventManager<T> getEventManager(
       final Class<T> eventType) {

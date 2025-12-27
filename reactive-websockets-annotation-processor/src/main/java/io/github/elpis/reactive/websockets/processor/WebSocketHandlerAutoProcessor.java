@@ -2,31 +2,28 @@ package io.github.elpis.reactive.websockets.processor;
 
 import static io.github.elpis.reactive.websockets.processor.util.Constants.VARIABLE_SUFFIX;
 
-import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
-import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.WildcardTypeName;
-import io.github.elpis.reactive.websockets.config.Mode;
+import io.github.elpis.reactive.websockets.processor.codegen.ExceptionHandlerCodeGenerator;
+import io.github.elpis.reactive.websockets.processor.exception.ExceptionHandlerInfo;
 import io.github.elpis.reactive.websockets.processor.exception.WebSocketProcessorException;
 import io.github.elpis.reactive.websockets.processor.flowcontrol.BackpressureFlowController;
 import io.github.elpis.reactive.websockets.processor.flowcontrol.HeartbeatFlowController;
 import io.github.elpis.reactive.websockets.processor.flowcontrol.RateLimitFlowController;
+import io.github.elpis.reactive.websockets.processor.resolver.ExceptionHandlerResolver;
 import io.github.elpis.reactive.websockets.processor.resolver.SocketAnnotationResolverFactory;
-import io.github.elpis.reactive.websockets.session.WebSocketSessionContext;
+import io.github.elpis.reactive.websockets.processor.util.HashUtils;
 import io.github.elpis.reactive.websockets.util.TypeUtils;
 import io.github.elpis.reactive.websockets.web.annotation.MessageEndpoint;
 import io.github.elpis.reactive.websockets.web.annotation.OnMessage;
 import java.io.IOException;
-import java.math.BigInteger;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -48,15 +45,56 @@ import javax.lang.model.type.TypeMirror;
 import org.reactivestreams.Publisher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.web.reactive.socket.WebSocketMessage;
-import reactor.core.publisher.Flux;
 
-@SupportedAnnotationTypes({"io.github.elpis.reactive.websockets.web.annotation.MessageEndpoint"})
+/**
+ * Annotation processor that generates WebSocket handler classes from {@code @MessageEndpoint}
+ * annotated classes.
+ *
+ * <p>This processor scans for classes annotated with {@code @MessageEndpoint} and generates
+ * corresponding handler implementations that extend {@code AdaptiveWebSocketHandler}.
+ *
+ * <h2>Usage Example</h2>
+ *
+ * <pre>{@code
+ * @MessageEndpoint("/ws/chat")
+ * public class ChatEndpoint {
+ *
+ *     @OnMessage("/room/{roomId}")
+ *     public Flux<String> handleMessage(@PathVariable String roomId,
+ *                                        Flux<WebSocketMessage> messages) {
+ *         return messages.map(msg -> "Echo: " + msg.getPayloadAsText());
+ *     }
+ * }
+ * }</pre>
+ *
+ * <p>The processor generates a handler class that:
+ *
+ * <ul>
+ *   <li>Extends {@code AdaptiveWebSocketHandler} for flow control support
+ *   <li>Injects the original endpoint as a Spring bean
+ *   <li>Implements {@code processMessages()} to delegate to the user's handler method
+ *   <li>Supports heartbeat, rate limiting, and backpressure configurations
+ * </ul>
+ *
+ * @see io.github.elpis.reactive.websockets.web.annotation.MessageEndpoint
+ * @see io.github.elpis.reactive.websockets.web.annotation.OnMessage
+ */
+@SupportedAnnotationTypes({
+  "io.github.elpis.reactive.websockets.web.annotation.MessageEndpoint",
+  "io.github.elpis.reactive.websockets.web.annotation.WebSocketAdvice"
+})
 @SupportedSourceVersion(SourceVersion.RELEASE_17)
 public class WebSocketHandlerAutoProcessor extends AbstractProcessor {
+  private Map<TypeElement, List<ExceptionHandlerInfo>> globalHandlers;
 
   @Override
   public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
+    if (globalHandlers == null) {
+      globalHandlers =
+          ExceptionHandlerResolver.discoverGlobalHandlers(
+              roundEnv, processingEnv.getElementUtils(), processingEnv.getTypeUtils());
+    }
+
     for (Element element : roundEnv.getElementsAnnotatedWith(MessageEndpoint.class)) {
       final MessageEndpoint messageEndpoint = element.getAnnotation(MessageEndpoint.class);
       this.createMapping(element, messageEndpoint).stream()
@@ -96,7 +134,7 @@ public class WebSocketHandlerAutoProcessor extends AbstractProcessor {
             .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
             .build();
 
-    final MethodSpec constructor =
+    MethodSpec.Builder constructorBuilder =
         MethodSpec.constructorBuilder()
             .addModifiers(Modifier.PUBLIC)
             .addAnnotation(Autowired.class)
@@ -109,38 +147,78 @@ public class WebSocketHandlerAutoProcessor extends AbstractProcessor {
                     "io.github.elpis.reactive.websockets.session.WebSocketSessionRegistry"),
                 "sessionRegistry")
             .addParameter(
-                ParameterSpec.builder(
-                        ClassName.bestGuess(
-                            "io.github.elpis.reactive.websockets.handler.ratelimit.RateLimiterService"),
-                        "rateLimiterService")
-                    .addAnnotation(
-                        AnnotationSpec.builder(Autowired.class)
-                            .addMember("required", "false")
-                            .build())
-                    .build())
-            .addParameter(TypeName.get(descriptor.clazz().asType()), "socketResource")
-            .addStatement(
-                "super(eventFactory, sessionRegistry, rateLimiterService, $S, $L, $L, $L)",
-                descriptor.pathTemplate(),
-                generateHeartbeatConfig(descriptor),
-                generateRateLimitConfig(descriptor),
-                generateBackpressureConfig(descriptor))
-            .addStatement("this.socketResource = socketResource")
-            .build();
+                ClassName.bestGuess(
+                    "io.github.elpis.reactive.websockets.handler.ratelimit.RateLimiterService"),
+                "rateLimiterService")
+            .addParameter(TypeName.get(descriptor.clazz().asType()), "socketResource");
 
+    List<FieldSpec> globalHandlerFields = new ArrayList<>();
+    for (TypeElement adviceClass : globalHandlers.keySet()) {
+      String fieldName = getGlobalHandlerFieldName(adviceClass);
+      TypeName typeName = TypeName.get(adviceClass.asType());
+
+      constructorBuilder.addParameter(typeName, fieldName);
+
+      FieldSpec field =
+          FieldSpec.builder(typeName, fieldName)
+              .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
+              .build();
+      globalHandlerFields.add(field);
+    }
+
+    constructorBuilder
+        .addStatement(
+            "super(eventFactory, sessionRegistry, $S, $L, $L, $L, rateLimiterService)",
+            descriptor.pathTemplate(),
+            generateHeartbeatConfig(descriptor),
+            generateRateLimitConfig(descriptor),
+            generateBackpressureConfig(descriptor))
+        .addStatement("this.socketResource = socketResource");
+
+    for (TypeElement adviceClass : globalHandlers.keySet()) {
+      String fieldName = getGlobalHandlerFieldName(adviceClass);
+      constructorBuilder.addStatement("this.$L = $L", fieldName, fieldName);
+    }
+
+    final MethodSpec constructor = constructorBuilder.build();
     final MethodSpec suitableMethod = this.getSuitableMethod(descriptor);
 
-    return TypeSpec.classBuilder("WebSocketHandler$Generated_" + descriptor.getPostfix())
-        .superclass(ClassName.bestGuess(this.getHandlerType(descriptor.mode())))
-        .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-        .addAnnotation(Component.class)
-        .addField(injectedField)
-        .addMethod(constructor)
-        .addMethod(suitableMethod);
+    TypeSpec.Builder classBuilder =
+        TypeSpec.classBuilder("WebSocketHandler$Generated_" + descriptor.getPostfix())
+            .superclass(
+                ClassName.bestGuess(
+                    "io.github.elpis.reactive.websockets.handler.AdaptiveWebSocketHandler"))
+            .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
+            .addAnnotation(Component.class)
+            .addField(injectedField)
+            .addMethod(constructor)
+            .addMethod(suitableMethod);
+
+    globalHandlerFields.forEach(classBuilder::addField);
+
+    return classBuilder;
+  }
+
+  private String getGlobalHandlerFieldName(TypeElement typeElement) {
+    String className = typeElement.getSimpleName().toString();
+    return Character.toLowerCase(className.charAt(0)) + className.substring(1);
   }
 
   private MethodSpec getSuitableMethod(WebHandlerResourceDescriptor descriptor) {
     final MethodSpec.Builder methodBuilder = this.getMethodSpec(descriptor);
+
+    // Apply rate limiting if enabled, otherwise just get messages from inbound flux
+    if (descriptor.rateLimitConfig() != null) {
+      methodBuilder.addStatement(
+          "final $T<$T> messages = this.applyRateLimit(streams.inboundFlux(), context)",
+          ClassName.get("reactor.core.publisher", "Flux"),
+          ClassName.get("org.springframework.web.reactive.socket", "WebSocketMessage"));
+    } else {
+      methodBuilder.addStatement(
+          "final $T<$T> messages = streams.inboundFlux()",
+          ClassName.get("reactor.core.publisher", "Flux"),
+          ClassName.get("org.springframework.web.reactive.socket", "WebSocketMessage"));
+    }
 
     final Map<String, Optional<CodeBlock>> codeBlocks =
         descriptor.method().getParameters().stream()
@@ -156,6 +234,8 @@ public class WebSocketHandlerAutoProcessor extends AbstractProcessor {
                                         processingEnv.getTypeUtils()))
                             .map(resolver -> resolver.resolve(parameter))));
 
+    codeBlocks.values().forEach(codeBlock -> codeBlock.ifPresent(methodBuilder::addCode));
+
     final List<Object> parameters = new ArrayList<>();
     parameters.add(descriptor.method().getSimpleName().toString());
 
@@ -168,53 +248,68 @@ public class WebSocketHandlerAutoProcessor extends AbstractProcessor {
             parameter -> {
               parameterPlaces.add("$L");
 
-              if (codeBlocks.get(parameter.getSimpleName().toString()).isPresent()) {
-                parameters.add(parameter.getSimpleName().toString() + VARIABLE_SUFFIX);
+              final Optional<CodeBlock> codeBlock =
+                  codeBlocks.get(parameter.getSimpleName().toString());
+              if (codeBlock.isPresent()) {
+                if (codeBlock.get().isEmpty()) {
+                  parameters.add("messages");
+                } else {
+                  parameters.add(parameter.getSimpleName() + VARIABLE_SUFFIX);
+                }
               } else {
                 parameters.add(TypeUtils.getDefaultValueForType(parameter.asType().getKind()));
               }
             });
 
-    codeBlocks.values().forEach(codeBlock -> codeBlock.ifPresent(methodBuilder::addCode));
-
     final String methodSignature =
-        "this.socketResource.$L(" + String.join(",", parameterPlaces) + ");";
+        "this.socketResource.$L(" + String.join(",", parameterPlaces) + ")";
 
-    final String code = (descriptor.useReturn ? "return " : "") + methodSignature;
-    return methodBuilder.addCode(code, parameters.toArray()).build();
+    if (descriptor.useReturn()) {
+      CodeBlock errorHandlerChain =
+          ExceptionHandlerCodeGenerator.generateErrorHandlerChain(
+              descriptor.localHandlers(), globalHandlers);
+
+      List<Object> fluxFromArgs = new ArrayList<>();
+      fluxFromArgs.add(ClassName.get("reactor.core.publisher", "Flux"));
+      fluxFromArgs.add(ClassName.get("reactor.core.publisher", "Flux"));
+      fluxFromArgs.addAll(parameters);
+
+      methodBuilder
+          .addCode(
+              "final $T<?> results = $T.from(" + methodSignature + ");\n", fluxFromArgs.toArray())
+          .addCode(
+              "return results.doOnNext(result -> streams.outboundSink().tryEmitNext(result))\n");
+
+      // Add error handling chain AFTER .doOnNext() to ensure proper type inference
+      if (!errorHandlerChain.isEmpty()) {
+        methodBuilder.addCode(errorHandlerChain);
+      }
+
+      methodBuilder.addCode(";\n");
+
+    } else {
+      methodBuilder.addStatement(methodSignature, parameters.toArray());
+      methodBuilder.addStatement(
+          "return $T.empty()", ClassName.get("reactor.core.publisher", "Mono"));
+    }
+
+    return methodBuilder.build();
   }
 
   private MethodSpec.Builder getMethodSpec(WebHandlerResourceDescriptor descriptor) {
-    final TypeName fluxMessages =
-        ParameterizedTypeName.get(ClassName.get(Flux.class), TypeName.get(WebSocketMessage.class));
-
-    if (descriptor.useReturn()) {
-      final TypeName publisherWildcard =
-          ParameterizedTypeName.get(
-              ClassName.get(Publisher.class), WildcardTypeName.subtypeOf(Object.class));
-
-      return MethodSpec.methodBuilder("apply")
-          .addAnnotation(Override.class)
-          .addModifiers(Modifier.PUBLIC)
-          .addParameter(WebSocketSessionContext.class, "context")
-          .addParameter(fluxMessages, "messages")
-          .returns(publisherWildcard);
-    } else {
-      return MethodSpec.methodBuilder("run")
-          .addAnnotation(Override.class)
-          .addModifiers(Modifier.PUBLIC)
-          .addParameter(WebSocketSessionContext.class, "context")
-          .addParameter(fluxMessages, "messages")
-          .returns(void.class);
-    }
-  }
-
-  private String getHandlerType(final Mode mode) {
-    return switch (mode) {
-      case BROADCAST ->
-          "io.github.elpis.reactive.websockets.handler.BroadcastWebSocketResourceHandler";
-      case SESSION -> "io.github.elpis.reactive.websockets.handler.SessionWebSocketResourceHandler";
-    };
+    return MethodSpec.methodBuilder("processMessages")
+        .addAnnotation(Override.class)
+        .addModifiers(Modifier.PROTECTED)
+        .addParameter(
+            ClassName.get("io.github.elpis.reactive.websockets.session", "WebSocketSessionContext"),
+            "context")
+        .addParameter(
+            ClassName.get("io.github.elpis.reactive.websockets.session", "SessionStreams"),
+            "streams")
+        .returns(
+            ParameterizedTypeName.get(
+                ClassName.get("org.reactivestreams", "Publisher"),
+                WildcardTypeName.subtypeOf(Object.class)));
   }
 
   private WebHandlerResourceDescriptor configure(
@@ -232,16 +327,20 @@ public class WebSocketHandlerAutoProcessor extends AbstractProcessor {
     final BackpressureConfigData backpressureConfig =
         BackpressureFlowController.resolveBackpressureConfig(method, clazz);
 
+    final List<ExceptionHandlerInfo> localHandlers =
+        ExceptionHandlerResolver.resolveLocalHandlers(
+            clazz, processingEnv.getElementUtils(), processingEnv.getTypeUtils());
+
     final WebHandlerResourceDescriptor descriptor =
         new WebHandlerResourceDescriptor(
             method,
             clazz,
             method.getReturnType().getKind() != TypeKind.VOID,
             pathTemplate,
-            onMessage.mode(),
             heartbeatConfig,
             rateLimitConfig,
-            backpressureConfig);
+            backpressureConfig,
+            localHandlers);
 
     final TypeMirror returnType = method.getReturnType();
 
@@ -297,41 +396,21 @@ public class WebSocketHandlerAutoProcessor extends AbstractProcessor {
       Element clazz,
       boolean useReturn,
       String pathTemplate,
-      Mode mode,
       HeartbeatConfigData heartbeatConfig,
       RateLimitConfigData rateLimitConfig,
-      BackpressureConfigData backpressureConfig) {
+      BackpressureConfigData backpressureConfig,
+      List<ExceptionHandlerInfo> localHandlers) {
 
     private String getPostfix() {
-      final String uniqueKey =
-          pathTemplate
-              + "."
-              + clazz.getSimpleName().toString()
-              + "."
-              + method.getSimpleName().toString()
-              + "."
-              + method.getParameters().stream()
-                  .map(parameter -> parameter.asType().toString())
-                  .collect(Collectors.joining(","));
-      try {
-        MessageDigest digest = MessageDigest.getInstance("SHA-256");
-        byte[] hash = digest.digest(uniqueKey.getBytes());
-        return this.toHexString(hash);
-      } catch (NoSuchAlgorithmException e) {
-        throw new WebSocketProcessorException(e.getMessage());
-      }
-    }
-
-    private String toHexString(byte[] hash) {
-      BigInteger number = new BigInteger(1, hash);
-
-      StringBuilder hexString = new StringBuilder(number.toString(16));
-
-      while (hexString.length() < 64) {
-        hexString.insert(0, '0');
-      }
-
-      return hexString.toString();
+      final String parameters =
+          method.getParameters().stream()
+              .map(parameter -> parameter.asType().toString())
+              .collect(Collectors.joining(","));
+      return HashUtils.INSTANCE.generateHash(
+          pathTemplate,
+          clazz.getSimpleName().toString(),
+          method.getSimpleName().toString(),
+          parameters);
     }
   }
 }

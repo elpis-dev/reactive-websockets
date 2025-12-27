@@ -29,6 +29,8 @@ public class WebSocketSessionContext {
 
   private String sessionId;
 
+  private String remoteAddress;
+
   public Map<String, String> getPathParameters() {
     return pathParameters;
   }
@@ -67,6 +69,14 @@ public class WebSocketSessionContext {
 
   public void setSessionId(String sessionId) {
     this.sessionId = sessionId;
+  }
+
+  public String getRemoteAddress() {
+    return remoteAddress;
+  }
+
+  public void setRemoteAddress(String remoteAddress) {
+    this.remoteAddress = remoteAddress;
   }
 
   public <T> Optional<T> getPathVariable(final String header, final Class<T> type) {
@@ -169,6 +179,11 @@ public class WebSocketSessionContext {
 
     public Builder sessionId(String sessionId) {
       this.context.setSessionId(sessionId);
+      return this;
+    }
+
+    public Builder remoteAddress(String remoteAddress) {
+      this.context.setRemoteAddress(remoteAddress);
       return this;
     }
 

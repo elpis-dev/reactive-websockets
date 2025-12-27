@@ -127,6 +127,10 @@
 
                         <!-- Wildcard Imports are not allowed -->
                         <forbidWildcardImports />
+
+                        <trimTrailingWhitespace/>
+
+                        <endWithNewline/>
                     </java>
                 </configuration>
             </plugin>

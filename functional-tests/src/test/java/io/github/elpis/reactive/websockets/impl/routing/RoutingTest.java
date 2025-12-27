@@ -19,7 +19,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.reactive.socket.WebSocketMessage;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 import reactor.test.StepVerifier;
 
@@ -107,18 +106,27 @@ class RoutingTest extends BaseWebSocketTest {
     headers.add("id", TestConstants.TEST_VALUE);
 
     final String path = "/routing/connect";
+    final Sinks.One<String> sink = Sinks.one();
 
     final LogCaptor logCaptor = LogCaptor.forClass(RoutingConfiguration.class);
 
     // test
-    final Mono<Void> result =
-        this.withClient(path, headers, (session) -> session.receive().then())
-            .timeout(DEFAULT_FAST_TEST_FALLBACK);
+    this.withClient(
+            path,
+            headers,
+            (session) ->
+                session
+                    .receive()
+                    .map(WebSocketMessage::getPayloadAsText)
+                    .doOnNext(sink::tryEmitValue)
+                    .then())
+        .subscribe();
 
     // verify
-    StepVerifier.create(result).verifyError(TimeoutException.class);
+    StepVerifier.create(sink.asMono().timeout(DEFAULT_FAST_TEST_FALLBACK))
+        .verifyError(TimeoutException.class);
 
     assertThat(logCaptor.getInfoLogs())
-        .contains("Connected with header " + TestConstants.TEST_VALUE);
+        .containsSequence("Connected with header " + TestConstants.TEST_VALUE);
   }
 }

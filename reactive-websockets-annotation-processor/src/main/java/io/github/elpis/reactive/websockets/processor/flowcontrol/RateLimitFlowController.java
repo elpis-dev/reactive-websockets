@@ -33,29 +33,24 @@ public final class RateLimitFlowController {
    */
   public static RateLimitConfigData resolveRateLimitConfig(
       final Element method, final Element classElement) {
-    // Priority 1: @RateLimit directly on method
     final RateLimit methodRateLimit = method.getAnnotation(RateLimit.class);
     if (methodRateLimit != null) {
       if (methodRateLimit.enabled()) {
         return createRateLimitConfigData(methodRateLimit);
       } else {
-        // Explicitly disabled at method level
         return null;
       }
     }
 
-    // Priority 2: @RateLimit directly on class
     final RateLimit classRateLimit = classElement.getAnnotation(RateLimit.class);
     if (classRateLimit != null) {
       if (classRateLimit.enabled()) {
         return createRateLimitConfigData(classRateLimit);
       } else {
-        // Explicitly disabled at class level
         return null;
       }
     }
 
-    // Return null to indicate disabled
     return null;
   }
 

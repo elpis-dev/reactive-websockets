@@ -13,13 +13,13 @@ public final class PathVariableResolver extends SocketApiAnnotationResolver<Path
   private static final String CODE_FOR_GET_PATH_REQUIRED =
       """
             final $T $L = context.getPathVariable($S, $T.class)
-            .orElseThrow(() -> new io.github.elpis.reactive.websockets.exception.WebSocketProcessingException($S));
+                .orElseThrow(() -> new io.github.elpis.reactive.websockets.exception.WebSocketProcessingException($S));
             """;
 
   private static final String CODE_FOR_GET_SINGLE_PATH =
       """
             final $T $L = context.getPathVariable($S, $T.class)
-            .orElseGet(() -> io.github.elpis.reactive.websockets.util.TypeUtils.getDefaultValueForType($T.class));
+                .orElseGet(() -> io.github.elpis.reactive.websockets.util.TypeUtils.getDefaultValueForType($T.class));
             """;
 
   PathVariableResolver(Elements elements, Types types) {
@@ -30,7 +30,7 @@ public final class PathVariableResolver extends SocketApiAnnotationResolver<Path
   public CodeBlock resolve(final VariableElement parameter) {
     final TypeMirror parameterType = parameter.asType();
     final PathVariable annotation = parameter.getAnnotation(this.getAnnotationType());
-    final String varName = parameter.getSimpleName().toString() + VARIABLE_SUFFIX;
+    final String varName = parameter.getSimpleName() + VARIABLE_SUFFIX;
 
     if (annotation.required()) {
       return CodeBlock.of(
@@ -41,7 +41,7 @@ public final class PathVariableResolver extends SocketApiAnnotationResolver<Path
           parameterType,
           String.format(
               "@PathVariable %s %s is marked as required but was not present on request. Default value was not set.",
-              parameter.asType().toString(), parameter.getSimpleName().toString()));
+              parameter.asType().toString(), parameter.getSimpleName()));
     } else {
       return CodeBlock.of(
           CODE_FOR_GET_SINGLE_PATH,

@@ -2,7 +2,6 @@ package io.github.elpis.reactive.sample.socket.config;
 
 import static io.github.elpis.reactive.websockets.handler.route.WebSocketHandlerFunctions.handle;
 
-import io.github.elpis.reactive.websockets.config.Mode;
 import io.github.elpis.reactive.websockets.handler.route.WebSocketHandlerFunction;
 import java.time.Duration;
 import java.util.Map;
@@ -21,7 +20,6 @@ public class SampleConfiguration {
   public WebSocketHandlerFunction webSocketHandlerFunction() {
     return handle(
             "/ws/chat/listen",
-            Mode.BROADCAST,
             (context, messageFlux) -> {
               final String userName =
                   context.getHeader("userName", "", String.class).orElse("Not Found");
@@ -38,7 +36,6 @@ public class SampleConfiguration {
             })
         .handle(
             "/ws/chat/listen/me",
-            Mode.BROADCAST,
             (context, messageFlux) -> {
               messageFlux.map(WebSocketMessage::getPayloadAsText).subscribe(log::info);
             });

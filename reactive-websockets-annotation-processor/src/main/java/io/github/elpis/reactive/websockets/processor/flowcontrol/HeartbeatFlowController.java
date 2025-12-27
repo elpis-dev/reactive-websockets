@@ -33,19 +33,16 @@ public final class HeartbeatFlowController {
    */
   public static HeartbeatConfigData resolveHeartbeatConfig(
       final Element method, final Element classElement) {
-    // Priority 1: @Heartbeat directly on method
     final Heartbeat methodHeartbeat = method.getAnnotation(Heartbeat.class);
     if (methodHeartbeat != null && methodHeartbeat.enabled()) {
       return new HeartbeatConfigData(methodHeartbeat.interval(), methodHeartbeat.timeout());
     }
 
-    // Priority 2: @Heartbeat directly on class
     final Heartbeat classHeartbeat = classElement.getAnnotation(Heartbeat.class);
     if (classHeartbeat != null && classHeartbeat.enabled()) {
       return new HeartbeatConfigData(classHeartbeat.interval(), classHeartbeat.timeout());
     }
 
-    // Return null to indicate disabled
     return null;
   }
 

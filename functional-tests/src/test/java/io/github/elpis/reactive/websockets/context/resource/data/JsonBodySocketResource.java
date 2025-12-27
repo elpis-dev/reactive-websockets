@@ -1,6 +1,5 @@
 package io.github.elpis.reactive.websockets.context.resource.data;
 
-import io.github.elpis.reactive.websockets.config.Mode;
 import io.github.elpis.reactive.websockets.context.model.TestChatMessage;
 import io.github.elpis.reactive.websockets.context.model.TestMessage;
 import io.github.elpis.reactive.websockets.context.model.TestUserMessage;
@@ -18,13 +17,13 @@ public class JsonBodySocketResource {
   private static final Logger log = LoggerFactory.getLogger(JsonBodySocketResource.class);
 
   // Simple type - String with Flux
-  @OnMessage(value = "/string", mode = Mode.BROADCAST)
+  @OnMessage(value = "/string")
   public Flux<String> receiveString(@RequestBody final Flux<String> messages) {
     return messages.doOnNext(msg -> log.info("String: {}", msg)).map(msg -> "String: " + msg);
   }
 
   // Simple type - String with Mono
-  @OnMessage(value = "/string/mono", mode = Mode.BROADCAST)
+  @OnMessage(value = "/string/mono")
   public Mono<String> receiveStringSingle(@RequestBody final Mono<String> message) {
     return message
         .doOnNext(msg -> log.info("String (Mono): {}", msg))
@@ -32,13 +31,13 @@ public class JsonBodySocketResource {
   }
 
   // Simple type - Integer with Flux
-  @OnMessage(value = "/integer", mode = Mode.BROADCAST)
+  @OnMessage(value = "/integer")
   public Flux<String> receiveInteger(@RequestBody final Flux<Integer> messages) {
     return messages.doOnNext(num -> log.info("Integer: {}", num)).map(num -> "Integer: " + num);
   }
 
   // Simple type - Integer with Mono
-  @OnMessage(value = "/integer/mono", mode = Mode.BROADCAST)
+  @OnMessage(value = "/integer/mono")
   public Mono<String> receiveIntegerSingle(@RequestBody final Mono<Integer> message) {
     return message
         .doOnNext(num -> log.info("Integer (Mono): {}", num))
@@ -46,25 +45,25 @@ public class JsonBodySocketResource {
   }
 
   // Simple type - Long with Flux
-  @OnMessage(value = "/long", mode = Mode.BROADCAST)
+  @OnMessage(value = "/long")
   public Flux<String> receiveLong(@RequestBody final Flux<Long> messages) {
     return messages.doOnNext(num -> log.info("Long: {}", num)).map(num -> "Long: " + num);
   }
 
   // Simple type - Boolean with Flux
-  @OnMessage(value = "/boolean", mode = Mode.BROADCAST)
+  @OnMessage(value = "/boolean")
   public Flux<String> receiveBoolean(@RequestBody final Flux<Boolean> messages) {
     return messages.doOnNext(bool -> log.info("Boolean: {}", bool)).map(bool -> "Boolean: " + bool);
   }
 
   // Simple POJO - MessageDto with Flux
-  @OnMessage(value = "/message/flux", mode = Mode.BROADCAST)
+  @OnMessage(value = "/message/flux")
   public Flux<String> receiveMessageFlux(@RequestBody final Flux<TestMessage> messages) {
     return messages.doOnNext(msg -> log.info("Message: {}", msg)).map(msg -> "Message: " + msg);
   }
 
   // Simple POJO - MessageDto with Mono
-  @OnMessage(value = "/message/mono", mode = Mode.BROADCAST)
+  @OnMessage(value = "/message/mono")
   public Mono<String> receiveMessageMono(@RequestBody final Mono<TestMessage> message) {
     return message
         .doOnNext(msg -> log.info("Single Message: {}", msg))
@@ -72,7 +71,7 @@ public class JsonBodySocketResource {
   }
 
   // Nested POJO - UserMessageDto with Flux
-  @OnMessage(value = "/user-message", mode = Mode.BROADCAST)
+  @OnMessage(value = "/user-message")
   public Flux<String> receiveUserMessage(@RequestBody final Flux<TestUserMessage> messages) {
     return messages
         .doOnNext(msg -> log.info("User Message: {}", msg))
@@ -80,7 +79,7 @@ public class JsonBodySocketResource {
   }
 
   // Nested POJO - UserMessageDto with Mono
-  @OnMessage(value = "/user-message/mono", mode = Mode.BROADCAST)
+  @OnMessage(value = "/user-message/mono")
   public Mono<String> receiveUserMessageSingle(@RequestBody final Mono<TestUserMessage> message) {
     return message
         .doOnNext(msg -> log.info("User Message (Mono): {}", msg))
@@ -88,7 +87,7 @@ public class JsonBodySocketResource {
   }
 
   // POJO with Collections - ChatMessageDto
-  @OnMessage(value = "/chat-message", mode = Mode.BROADCAST)
+  @OnMessage(value = "/chat-message")
   public Flux<String> receiveChatMessage(@RequestBody final Flux<TestChatMessage> messages) {
     return messages
         .doOnNext(msg -> log.info("Chat Message: {}", msg))
@@ -96,7 +95,7 @@ public class JsonBodySocketResource {
   }
 
   // Backward compatibility - WebSocketMessage with Flux
-  @OnMessage(value = "/raw", mode = Mode.BROADCAST)
+  @OnMessage(value = "/raw")
   public Flux<String> receiveRaw(@RequestBody final Flux<WebSocketMessage> messages) {
     return messages
         .doOnNext(msg -> log.info("Raw: {}", msg.getPayloadAsText()))
@@ -104,7 +103,7 @@ public class JsonBodySocketResource {
   }
 
   // Backward compatibility - WebSocketMessage with Mono
-  @OnMessage(value = "/raw/mono", mode = Mode.BROADCAST)
+  @OnMessage(value = "/raw/mono")
   public Mono<String> receiveRawSingle(@RequestBody final Mono<WebSocketMessage> message) {
     return message
         .doOnNext(msg -> log.info("Raw (Mono): {}", msg.getPayloadAsText()))

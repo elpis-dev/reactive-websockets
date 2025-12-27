@@ -29,17 +29,18 @@ public class CloseTest extends BaseWebSocketTest {
     final String path = "/close/normal";
     final Sinks.One<Integer> sink = Sinks.one();
 
-    // test
+    // test - server will close after 5 seconds
+    // We need to subscribe to closeStatus first, then receive to keep connection alive
     this.withClient(
             path,
             session ->
                 session
                     .closeStatus()
                     .doOnNext(closeStatus -> sink.tryEmitValue(closeStatus.getCode()))
-                    .then())
+                    .then(session.receive().then()))
         .subscribe();
 
-    // verify
+    // verify - wait for server to close (5 seconds + buffer)
     StepVerifier.create(sink.asMono())
         .expectNext(CloseStatus.NORMAL.getCode())
         .expectComplete()
@@ -53,17 +54,18 @@ public class CloseTest extends BaseWebSocketTest {
     final String path = "/close/goingAway";
     final Sinks.One<Integer> sink = Sinks.one();
 
-    // test
+    // test - server will close after 5 seconds
+    // We need to subscribe to closeStatus first, then receive to keep connection alive
     this.withClient(
             path,
             session ->
                 session
                     .closeStatus()
                     .doOnNext(closeStatus -> sink.tryEmitValue(closeStatus.getCode()))
-                    .then())
+                    .then(session.receive().then()))
         .subscribe();
 
-    // verify
+    // verify - wait for server to close (5 seconds + buffer)
     StepVerifier.create(sink.asMono())
         .expectNext(CloseStatus.GOING_AWAY.getCode())
         .expectComplete()

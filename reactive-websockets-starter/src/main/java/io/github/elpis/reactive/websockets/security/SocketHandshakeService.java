@@ -184,9 +184,7 @@ public abstract class SocketHandshakeService extends HandshakeWebSocketService {
 
     private boolean fallbackToAnonymous = false;
 
-    private Builder() {
-      // Hiding builder
-    }
+    private Builder() {}
 
     /**
      * Base for {@link SocketHandshakeService#errorHandler()}.

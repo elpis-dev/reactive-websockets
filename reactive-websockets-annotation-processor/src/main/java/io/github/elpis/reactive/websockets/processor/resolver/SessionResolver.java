@@ -17,19 +17,21 @@ import org.springframework.web.bind.annotation.SessionAttribute;
 public class SessionResolver extends SocketApiAnnotationResolver<SessionAttribute> {
   private static final String GET_SESSION_OPTIONAL =
       """
-        final java.util.Optional<io.github.elpis.reactive.websockets.session.ReactiveWebSocketSession> $L = this.getSessionRegistry().get(context.getSessionId());
+        final java.util.Optional<io.github.elpis.reactive.websockets.session.ReactiveWebSocketSession> $L = this.getSessionRegistry().getSession(this.getPathTemplate(), context.getSessionId()).map(io.github.elpis.reactive.websockets.session.SessionStreams::metadata);
         """;
 
   private static final String GET_SESSION_REQUIRED =
       """
-        final io.github.elpis.reactive.websockets.session.ReactiveWebSocketSession $L = this.getSessionRegistry().get(context.getSessionId())
-        .orElseThrow(() -> new io.github.elpis.reactive.websockets.exception.WebSocketProcessingException("Cannot find session with id %s", context.getSessionId()));
+        final io.github.elpis.reactive.websockets.session.ReactiveWebSocketSession $L = this.getSessionRegistry().getSession(this.getPathTemplate(), context.getSessionId())
+            .map(io.github.elpis.reactive.websockets.session.SessionStreams::metadata)
+            .orElseThrow(() -> new io.github.elpis.reactive.websockets.exception.WebSocketProcessingException("Cannot find session with id %s", context.getSessionId()));
         """;
 
   private static final String GET_SESSION_NOT_REQUIRED =
       """
-        final io.github.elpis.reactive.websockets.session.ReactiveWebSocketSession $L = this.getSessionRegistry().get(context.getSessionId())
-        .orElse(null);
+        final io.github.elpis.reactive.websockets.session.ReactiveWebSocketSession $L = this.getSessionRegistry().getSession(this.getPathTemplate(), context.getSessionId())
+            .map(io.github.elpis.reactive.websockets.session.SessionStreams::metadata)
+            .orElse(null);
         """;
 
   SessionResolver(Elements elements, Types types) {
@@ -40,7 +42,7 @@ public class SessionResolver extends SocketApiAnnotationResolver<SessionAttribut
   public CodeBlock resolve(final VariableElement parameter) {
     final TypeMirror parameterType = parameter.asType();
     final SessionAttribute sessionAttribute = parameter.getAnnotation(SessionAttribute.class);
-    final String varName = parameter.getSimpleName().toString() + VARIABLE_SUFFIX;
+    final String varName = parameter.getSimpleName() + VARIABLE_SUFFIX;
 
     final Element optionalType =
         this.getElements().getTypeElement(Optional.class.getCanonicalName());

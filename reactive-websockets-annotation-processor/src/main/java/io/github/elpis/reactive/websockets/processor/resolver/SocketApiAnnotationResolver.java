@@ -9,8 +9,6 @@ import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 
 public abstract class SocketApiAnnotationResolver<A extends Annotation> {
-  private Class<A> annotationType;
-
   private final Elements elements;
   private final Types types;
 
@@ -21,13 +19,7 @@ public abstract class SocketApiAnnotationResolver<A extends Annotation> {
 
   public abstract CodeBlock resolve(VariableElement parameter);
 
-  Class<A> getAnnotationType() {
-    return annotationType;
-  }
-
-  void setAnnotationType(Class<A> annotationType) {
-    this.annotationType = annotationType;
-  }
+  abstract Class<A> getAnnotationType();
 
   public Elements getElements() {
     return elements;

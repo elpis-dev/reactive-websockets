@@ -11,16 +11,35 @@ import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Controller;
 
 /**
- * Indicates that an annotated class is a "Websocket Controller/Resource".
+ * Marks a class as a WebSocket message endpoint controller.
  *
- * <p>Annotation works in a similar way as {@link
- * org.springframework.stereotype.Controller @Controller} but generally will be combined with {@link
- * OnMessage @SocketMapping} annotation. Includes {@link Component @Component} to create a bean from
- * annotated class
+ * <p>This annotation works similarly to {@link Controller @Controller} but is designed for
+ * WebSocket communication. Combine with {@link OnMessage @OnMessage} to define message handlers.
+ *
+ * <h2>Usage Example</h2>
+ *
+ * <pre>{@code
+ * @MessageEndpoint("/chat")
+ * public class ChatEndpoint {
+ *
+ *     @OnMessage("/room/{roomId}")
+ *     public Flux<String> handleMessage(@PathVariable String roomId,
+ *                                        Flux<WebSocketMessage> messages) {
+ *         return messages.map(msg -> "Echo: " + msg.getPayloadAsText());
+ *     }
+ *
+ *     @ExceptionHandler(ValidationException.class)
+ *     public Mono<ErrorResponse> handleValidation(ValidationException ex) {
+ *         return Mono.just(new ErrorResponse(400, ex.getMessage()));
+ *     }
+ * }
+ * }</pre>
  *
  * @author Phillip J. Fry
- * @see Component
  * @see OnMessage
+ * @see Heartbeat
+ * @see RateLimit
+ * @see Backpressure
  * @since 1.0.0
  */
 @Target(ElementType.TYPE)

@@ -173,8 +173,7 @@ public class ClosedConnectionHandlerConfiguration {
     return new int[] {WebSocketCloseStatus.ALL.getStatusCode()};
   }
 
+  /** Container for close event handlers mapped by status code. */
   public static class ClosedEventHandlers
-      extends LinkedMultiValueMap<Integer, Consumer<ClientSessionClosedEvent>> {
-    // Shortener
-  }
+      extends LinkedMultiValueMap<Integer, Consumer<ClientSessionClosedEvent>> {}
 }

@@ -2,7 +2,6 @@ package io.github.elpis.reactive.websockets.context.routing;
 
 import static io.github.elpis.reactive.websockets.handler.route.WebSocketHandlerFunctions.handle;
 
-import io.github.elpis.reactive.websockets.config.Mode;
 import io.github.elpis.reactive.websockets.handler.route.WebSocketHandlerFunction;
 import io.github.elpis.reactive.websockets.util.MessageUtils;
 import org.slf4j.Logger;
@@ -21,23 +20,20 @@ public class RoutingConfiguration {
     final WebSocketHandlerFunction publish =
         handle(
                 "/routing/publish",
-                Mode.BROADCAST,
                 (context, messages) -> {
                   final String headerValue = context.getHeader("id", "", String.class).orElse("");
                   return Mono.just(MessageUtils.textMessage(headerValue));
                 })
             .handle(
                 "/routing/connect",
-                Mode.BROADCAST,
                 (context, messages) -> {
-                  final String headerValue = context.getHeader("id", "", String.class).orElse("");
-                  log.info("Connected with header {}", headerValue);
+                  final String header = context.getHeader("id", null, String.class).orElse("");
+                  log.info("Connected with header {}", header);
                 });
 
     final WebSocketHandlerFunction listen =
         handle(
                 "/routing/listen",
-                Mode.BROADCAST,
                 (context, messages) -> {
                   messages
                       .map(WebSocketMessage::getPayloadAsText)
@@ -45,7 +41,6 @@ public class RoutingConfiguration {
                 })
             .handle(
                 "/routing/publish/test",
-                Mode.BROADCAST,
                 (context, messages) -> {
                   final String headerValue = context.getHeader("id", "", String.class).orElse("");
                   return Mono.just(MessageUtils.textMessage(headerValue));
