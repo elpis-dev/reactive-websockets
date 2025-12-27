@@ -1,5 +1,7 @@
 package io.github.elpis.reactive.websockets.session;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.reactive.socket.WebSocketMessage;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
@@ -26,6 +28,8 @@ public record SessionStreams(
     Sinks.Many<WebSocketMessage> inboundSink,
     Sinks.Many<Object> outboundSink,
     ReactiveWebSocketSession metadata) {
+
+  private static final Logger log = LoggerFactory.getLogger(SessionStreams.class);
 
   /**
    * Factory method to create SessionStreams with proper Sink configuration.
@@ -69,9 +73,27 @@ public record SessionStreams(
     return outboundSink.asFlux();
   }
 
-  /** Closes the session streams gracefully. */
+  /**
+   * Closes the session streams gracefully.
+   *
+   * <p>Attempts to complete both inbound and outbound sinks and logs the results. Failures are
+   * logged at WARN level, while successful closures are logged at DEBUG level.
+   */
   public void close() {
-    inboundSink.tryEmitComplete();
-    outboundSink.tryEmitComplete();
+    final String sessionId = metadata.getSessionId();
+
+    final Sinks.EmitResult inboundResult = inboundSink.tryEmitComplete();
+    if (inboundResult.isFailure()) {
+      log.warn("Failed to close inbound sink for session {}: {}", sessionId, inboundResult);
+    } else {
+      log.debug("Successfully closed inbound sink for session {}", sessionId);
+    }
+
+    final Sinks.EmitResult outboundResult = outboundSink.tryEmitComplete();
+    if (outboundResult.isFailure()) {
+      log.warn("Failed to close outbound sink for session {}: {}", sessionId, outboundResult);
+    } else {
+      log.debug("Successfully closed outbound sink for session {}", sessionId);
+    }
   }
 }
