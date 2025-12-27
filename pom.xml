@@ -45,6 +45,13 @@
         <maven.surefire.version>3.5.4</maven.surefire.version>
         <maven.compiler.version>3.14.1</maven.compiler.version>
         <maven.install.version>3.1.4</maven.install.version>
+        <maven.source.version>3.4.0</maven.source.version>
+        <maven.javadoc.version>3.12.0</maven.javadoc.version>
+        <maven.gpg.version>3.2.8</maven.gpg.version>
+        <maven.flatten.version>1.6.0</maven.flatten.version>
+        <maven.spotless.version>3.1.0</maven.spotless.version>
+
+        <central.publishing.plugin.version>0.9.0</central.publishing.plugin.version>
 
         <jacoco-maven-plugin.version>0.8.14</jacoco-maven-plugin.version>
 
@@ -93,7 +100,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-source-plugin</artifactId>
-                    <version>3.3.0</version>
+                    <version>${maven.source.version}</version>
                     <executions>
                         <execution>
                             <id>attach-sources</id>
@@ -110,7 +117,7 @@
             <plugin>
                 <groupId>com.diffplug.spotless</groupId>
                 <artifactId>spotless-maven-plugin</artifactId>
-                <version>3.1.0</version>
+                <version>${maven.spotless.version}</version>
                 <configuration>
                     <java>
                         <!-- Apply Google Java Format -->
@@ -137,7 +144,7 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>flatten-maven-plugin</artifactId>
-                <version>1.6.0</version>
+                <version>${maven.flatten.version}</version>
                 <configuration>
                     <flattenMode>ossrh</flattenMode>
                     <pomElements>
@@ -173,7 +180,7 @@
                     <plugin>
                         <groupId>org.sonatype.central</groupId>
                         <artifactId>central-publishing-maven-plugin</artifactId>
-                        <version>0.9.0</version>
+                        <version>${central.publishing.plugin.version}</version>
                         <extensions>true</extensions>
                         <configuration>
                             <publishingServerId>central</publishingServerId>
@@ -184,7 +191,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-source-plugin</artifactId>
-                        <version>3.4.0</version>
+                        <version>${maven.source.version}</version>
                         <executions>
                             <execution>
                                 <id>attach-sources</id>
@@ -198,7 +205,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-javadoc-plugin</artifactId>
-                        <version>3.12.0</version>
+                        <version>${maven.javadoc.version}</version>
                         <configuration>
                             <failOnError>false</failOnError>
                             <failOnWarnings>false</failOnWarnings>
@@ -217,7 +224,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-gpg-plugin</artifactId>
-                        <version>3.2.8</version>
+                        <version>${maven.gpg.version}</version>
                         <executions>
                             <execution>
                                 <id>sign-artifacts</id>

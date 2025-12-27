@@ -40,10 +40,6 @@
         <url>https://github.com/elpis-dev/reactive-websockets</url>
     </scm>
 
-    <properties>
-        <javapoet.version>1.13.0</javapoet.version>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>io.github.elpis-dev</groupId>

@@ -27,7 +27,7 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Build and Test with Maven
+      - name: Build and Test
         run: mvn clean install
         env:
           MAVEN_OPTS: "-Xmx2048m -XX:+UseG1GC"
@@ -42,7 +42,7 @@ jobs:
           fail-on-error: false
           fail-on-empty: false
 
-      - name: Upload Test Results
+      - name: Upload Surefire Results
         if: success()
         uses: actions/upload-artifact@v4
         with:
@@ -52,7 +52,7 @@ jobs:
             **/target/surefire-reports/*.txt
           retention-days: 7
 
-      - name: Upload Coverage Report
+      - name: Upload Jacoco Report
         if: success()
         uses: actions/upload-artifact@v4
         with:
@@ -60,7 +60,7 @@ jobs:
           path: report-aggregate/target/site/jacoco-aggregate/
           retention-days: 30
 
-      - name: Coverage
+      - name: Upload Codacy Coverage
         if: success()
         uses: codacy/codacy-coverage-reporter-action@v1.3.0
         with:
