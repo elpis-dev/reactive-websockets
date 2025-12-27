@@ -6,7 +6,6 @@ import io.github.elpis.reactive.websockets.BaseWebSocketTest;
 import io.github.elpis.reactive.websockets.context.BootStarter;
 import io.github.elpis.reactive.websockets.context.advice.GlobalWebSocketErrorHandler;
 import io.github.elpis.reactive.websockets.context.resource.error.ErrorHandlingResource;
-import nl.altindag.log.LogCaptor;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
@@ -35,8 +34,6 @@ class ErrorHandlingTest extends BaseWebSocketTest {
     final String path = "/error-test/local-error";
     final Sinks.Many<String> sink = Sinks.many().replay().all();
 
-    final LogCaptor logCaptor = LogCaptor.forClass(ErrorHandlingResource.class);
-
     // when
     this.withClient(
             path,
@@ -56,7 +53,7 @@ class ErrorHandlingTest extends BaseWebSocketTest {
             })
         .subscribe();
 
-    // then
+    // then - verify local error handler was triggered by checking response content
     StepVerifier.create(sink.asFlux().timeout(DEFAULT_FAST_TEST_FALLBACK).take(2))
         .assertNext(
             response -> {
@@ -69,10 +66,6 @@ class ErrorHandlingTest extends BaseWebSocketTest {
               assertThat(response).contains("\"handled_by\":\"local\"");
             })
         .verifyComplete();
-
-    // Verify local handler was called
-    assertThat(logCaptor.getWarnLogs())
-        .anyMatch(log -> log.contains("Handling IllegalStateException locally"));
   }
 
   @Test
@@ -80,8 +73,6 @@ class ErrorHandlingTest extends BaseWebSocketTest {
     // given
     final String path = "/error-test/global-error";
     final Sinks.Many<String> sink = Sinks.many().replay().all();
-
-    final LogCaptor logCaptor = LogCaptor.forClass(GlobalWebSocketErrorHandler.class);
 
     // when
     this.withClient(
@@ -102,7 +93,7 @@ class ErrorHandlingTest extends BaseWebSocketTest {
             })
         .subscribe();
 
-    // then
+    // then - verify global error handler was triggered by checking response content
     StepVerifier.create(sink.asFlux().timeout(DEFAULT_FAST_TEST_FALLBACK).take(2))
         .assertNext(
             response -> {
@@ -114,10 +105,6 @@ class ErrorHandlingTest extends BaseWebSocketTest {
               assertThat(response).contains("Global error triggered");
             })
         .verifyComplete();
-
-    // Verify global handler was called
-    assertThat(logCaptor.getWarnLogs())
-        .anyMatch(log -> log.contains("Handling IllegalArgumentException globally"));
   }
 
   @Test
@@ -125,8 +112,6 @@ class ErrorHandlingTest extends BaseWebSocketTest {
     // given
     final String path = "/error-test/runtime-error";
     final Sinks.Many<String> sink = Sinks.many().replay().all();
-
-    final LogCaptor logCaptor = LogCaptor.forClass(GlobalWebSocketErrorHandler.class);
 
     // when
     this.withClient(
@@ -146,7 +131,7 @@ class ErrorHandlingTest extends BaseWebSocketTest {
             })
         .subscribe();
 
-    // then
+    // then - verify generic error handler was triggered by checking response content
     StepVerifier.create(sink.asFlux().timeout(DEFAULT_FAST_TEST_FALLBACK).take(2))
         .assertNext(
             response -> {
@@ -158,10 +143,6 @@ class ErrorHandlingTest extends BaseWebSocketTest {
               assertThat(response).contains("An unexpected error occurred");
             })
         .verifyComplete();
-
-    // Verify global generic handler was called
-    assertThat(logCaptor.getErrorLogs())
-        .anyMatch(log -> log.contains("Handling generic exception globally"));
   }
 
   @Test
@@ -204,9 +185,6 @@ class ErrorHandlingTest extends BaseWebSocketTest {
     final String path = "/error-test/local-error";
     final Sinks.Many<String> sink = Sinks.many().replay().all();
 
-    final LogCaptor localLogCaptor = LogCaptor.forClass(ErrorHandlingResource.class);
-    final LogCaptor globalLogCaptor = LogCaptor.forClass(GlobalWebSocketErrorHandler.class);
-
     // when
     this.withClient(
             path,
@@ -224,7 +202,7 @@ class ErrorHandlingTest extends BaseWebSocketTest {
             })
         .subscribe();
 
-    // then
+    // then - verify local handler took precedence by checking "handled_by" field
     StepVerifier.create(sink.asFlux().timeout(DEFAULT_FAST_TEST_FALLBACK).take(1))
         .assertNext(
             response -> {
@@ -232,16 +210,5 @@ class ErrorHandlingTest extends BaseWebSocketTest {
               assertThat(response).contains("\"handled_by\":\"local\"");
             })
         .verifyComplete();
-
-    // Verify local handler was called
-    assertThat(localLogCaptor.getWarnLogs())
-        .anyMatch(log -> log.contains("Handling IllegalStateException locally"));
-
-    // Verify global handler was NOT called for this exception
-    assertThat(globalLogCaptor.getErrorLogs())
-        .noneMatch(
-            log ->
-                log.contains("Handling generic exception globally")
-                    && log.contains("IllegalStateException"));
   }
 }

@@ -7,6 +7,7 @@ import io.github.elpis.reactive.websockets.event.manager.WebSocketEventManagerFa
 import io.github.elpis.reactive.websockets.event.model.impl.ClientSessionClosedEvent;
 import io.github.elpis.reactive.websockets.event.model.impl.ServerSessionClosedEvent;
 import io.github.elpis.reactive.websockets.event.model.impl.SessionConnectedEvent;
+import io.github.elpis.reactive.websockets.exception.model.ErrorResponse;
 import io.github.elpis.reactive.websockets.handler.exception.ErrorResponseException;
 import io.github.elpis.reactive.websockets.mapper.JsonMapper;
 import io.github.elpis.reactive.websockets.security.principal.Anonymous;
@@ -290,9 +291,7 @@ public abstract class BaseWebSocketHandler implements WebSocketHandler {
                 e -> log.error("Outbound error for session {}: {}", sessionId, e.getMessage()));
 
     final Publisher<?> processing =
-        Flux.from(processMessages(webSocketSessionContext, streams))
-            .doOnError(
-                e -> log.error("Processing error for session {}: {}", sessionId, e.getMessage()));
+        getProcessingPublisher(webSocketSessionContext, streams, session);
 
     return Mono.when(input, output, processing)
         .doFinally(
@@ -301,6 +300,28 @@ public abstract class BaseWebSocketHandler implements WebSocketHandler {
               sessionRegistry.unregisterSession(path, sessionId);
               streams.close();
             });
+  }
+
+  protected Flux<?> getProcessingPublisher(
+      WebSocketSessionContext webSocketSessionContext,
+      SessionStreams streams,
+      WebSocketSession session) {
+    try {
+      final Publisher<?> processing = processMessages(webSocketSessionContext, streams);
+      return Flux.from(processing)
+          .doOnError(
+              e ->
+                  log.error(
+                      "Processing error for session {}: {}",
+                      webSocketSessionContext.getSessionId(),
+                      e.getMessage()));
+    } catch (Exception e) {
+      return Flux.just(
+              streams
+                  .outboundSink()
+                  .tryEmitError(new ErrorResponseException(new ErrorResponse(e.getMessage()))))
+          .thenMany(session.close(CloseStatus.BAD_DATA));
+    }
   }
 
   /**

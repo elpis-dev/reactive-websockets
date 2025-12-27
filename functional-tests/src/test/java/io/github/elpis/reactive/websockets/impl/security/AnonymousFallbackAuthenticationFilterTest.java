@@ -44,7 +44,6 @@ class AnonymousFallbackAuthenticationFilterTest extends BaseWebSocketTest {
                 session
                     .receive()
                     .map(WebSocketMessage::getPayloadAsText)
-                    .log()
                     .doOnNext(sink::tryEmitValue)
                     .then())
         .subscribe();
@@ -53,7 +52,6 @@ class AnonymousFallbackAuthenticationFilterTest extends BaseWebSocketTest {
     StepVerifier.create(sink.asMono())
         .expectNext(expected)
         .expectComplete()
-        .log()
         .verify(DEFAULT_GENERIC_TEST_FALLBACK);
   }
 

@@ -1,0 +1,8 @@
+logging:
+  level:
+    root: ERROR
+    org:
+      springframework: ERROR
+spring:
+  main:
+    banner-mode: off

@@ -1,7 +1,5 @@
 package io.github.elpis.reactive.websockets.impl.security;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import io.github.elpis.reactive.websockets.BaseWebSocketTest;
 import io.github.elpis.reactive.websockets.context.BootStarter;
 import io.github.elpis.reactive.websockets.context.resource.security.SecurityChainResource;
@@ -10,13 +8,9 @@ import io.github.elpis.reactive.websockets.context.security.model.TestConstants;
 import io.github.elpis.reactive.websockets.security.SocketHandshakeService;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.TimeoutException;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.boot.test.system.CapturedOutput;
-import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
@@ -30,7 +24,6 @@ import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 import reactor.test.StepVerifier;
 
-@ExtendWith(OutputCaptureExtension.class)
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
     classes = BootStarter.class)
@@ -61,7 +54,6 @@ class SecurityChainTest extends BaseWebSocketTest {
                 session
                     .receive()
                     .map(WebSocketMessage::getPayloadAsText)
-                    .log()
                     .doOnNext(sink::tryEmitValue)
                     .then())
         .subscribe();
@@ -70,38 +62,32 @@ class SecurityChainTest extends BaseWebSocketTest {
     StepVerifier.create(sink.asMono())
         .expectNext(expected)
         .expectComplete()
-        .log()
         .verify(DEFAULT_GENERIC_TEST_FALLBACK);
   }
 
   @Test
-  void withExtractedAuthenticationChainValidationUnauthorizedTest(final CapturedOutput output)
-      throws Exception {
+  void withExtractedAuthenticationChainValidationUnauthorizedTest() throws Exception {
     // given
     final HttpHeaders headers = new HttpHeaders();
     headers.add(TestConstants.PRINCIPAL, UUID.randomUUID().toString());
 
     final String path = "/auth/security/withExtractedAuthentication";
-    final Sinks.One<String> sink = Sinks.one();
+    final Sinks.One<Throwable> errorSink = Sinks.one();
 
-    // test
-    this.withClient(
-            path,
-            headers,
-            (session) ->
-                session
-                    .receive()
-                    .map(WebSocketMessage::getPayloadAsText)
-                    .log()
-                    .doOnNext(sink::tryEmitValue)
-                    .then())
+    // test - authentication should fail due to wrong principal value
+    this.withClient(path, headers, (session) -> session.receive().then())
+        .doOnError(errorSink::tryEmitValue)
         .subscribe();
 
-    // verify
-    StepVerifier.create(sink.asMono().timeout(DEFAULT_FAST_TEST_FALLBACK))
-        .verifyError(TimeoutException.class);
-
-    assertThat(output).contains("Invalid handshake response getStatus: 401 Unauthorized");
+    // verify - expect WebSocketProcessingException wrapped in handshake error
+    StepVerifier.create(errorSink.asMono())
+        .expectNextMatches(
+            throwable ->
+                throwable
+                    .getMessage()
+                    .contains("Invalid handshake response getStatus: 401 Unauthorized"))
+        .expectComplete()
+        .verify(DEFAULT_GENERIC_TEST_FALLBACK);
   }
 
   @TestConfiguration

@@ -44,7 +44,6 @@ public class CloseTest extends BaseWebSocketTest {
     StepVerifier.create(sink.asMono())
         .expectNext(CloseStatus.NORMAL.getCode())
         .expectComplete()
-        .log()
         .verify(DEFAULT_GENERIC_TEST_FALLBACK);
   }
 
@@ -69,7 +68,6 @@ public class CloseTest extends BaseWebSocketTest {
     StepVerifier.create(sink.asMono())
         .expectNext(CloseStatus.GOING_AWAY.getCode())
         .expectComplete()
-        .log()
         .verify(DEFAULT_GENERIC_TEST_FALLBACK);
   }
 }

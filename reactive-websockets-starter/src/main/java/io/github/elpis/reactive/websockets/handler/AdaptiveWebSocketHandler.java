@@ -165,9 +165,7 @@ public abstract class AdaptiveWebSocketHandler extends BaseWebSocketHandler {
                 e -> log.error("Outbound error for session {}: {}", sessionId, e.getMessage()));
 
     final Publisher<?> processing =
-        Flux.from(processMessages(webSocketSessionContext, streams))
-            .doOnError(
-                e -> log.error("Processing error for session {}: {}", sessionId, e.getMessage()));
+        getProcessingPublisher(webSocketSessionContext, streams, session);
 
     return Mono.when(input, output, processing)
         .doFinally(

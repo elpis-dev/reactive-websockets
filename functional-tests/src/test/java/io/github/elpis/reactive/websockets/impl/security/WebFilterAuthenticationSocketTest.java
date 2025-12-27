@@ -54,7 +54,6 @@ class WebFilterAuthenticationSocketTest extends BaseWebSocketTest {
                 session
                     .receive()
                     .map(WebSocketMessage::getPayloadAsText)
-                    .log()
                     .doOnNext(sink::tryEmitValue)
                     .then())
         .subscribe();
@@ -63,7 +62,6 @@ class WebFilterAuthenticationSocketTest extends BaseWebSocketTest {
     StepVerifier.create(sink.asMono())
         .expectNext(expected)
         .expectComplete()
-        .log()
         .verify(DEFAULT_GENERIC_TEST_FALLBACK);
   }
 
@@ -83,7 +81,6 @@ class WebFilterAuthenticationSocketTest extends BaseWebSocketTest {
                 session
                     .receive()
                     .map(WebSocketMessage::getPayloadAsText)
-                    .log()
                     .doOnNext(v -> sink.tryEmitValue(v.replaceAll(" ", "")))
                     .then())
         .subscribe();
@@ -92,7 +89,6 @@ class WebFilterAuthenticationSocketTest extends BaseWebSocketTest {
     StepVerifier.create(sink.asMono())
         .expectNext(expected)
         .expectComplete()
-        .log()
         .verify(DEFAULT_GENERIC_TEST_FALLBACK);
   }
 
@@ -112,7 +108,6 @@ class WebFilterAuthenticationSocketTest extends BaseWebSocketTest {
                 session
                     .receive()
                     .map(WebSocketMessage::getPayloadAsText)
-                    .log()
                     .doOnNext(sink::tryEmitValue)
                     .then())
         .subscribe();
@@ -121,7 +116,6 @@ class WebFilterAuthenticationSocketTest extends BaseWebSocketTest {
     StepVerifier.create(sink.asMono())
         .expectNext(expected)
         .expectComplete()
-        .log()
         .verify(DEFAULT_GENERIC_TEST_FALLBACK);
   }
 

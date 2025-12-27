@@ -43,7 +43,6 @@ class JustPrincipalTest extends BaseWebSocketTest {
                 session
                     .receive()
                     .map(WebSocketMessage::getPayloadAsText)
-                    .log()
                     .doOnNext(sink::tryEmitValue)
                     .then())
         .subscribe();
@@ -52,14 +51,12 @@ class JustPrincipalTest extends BaseWebSocketTest {
     StepVerifier.create(sink.asMono())
         .expectNext(expected)
         .expectComplete()
-        .log()
         .verify(DEFAULT_GENERIC_TEST_FALLBACK);
   }
 
   @TestConfiguration
   static class PrincipalWebFilterConfiguration {
 
-    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Bean
     SecurityWebFilterChain securityWebFilterChain(final ServerHttpSecurity http) {
       return http.authorizeExchange(exchange -> exchange.anyExchange().permitAll())

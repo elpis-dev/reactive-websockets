@@ -1,25 +1,19 @@
 package io.github.elpis.reactive.websockets.impl.data;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import io.github.elpis.reactive.websockets.BaseWebSocketTest;
 import io.github.elpis.reactive.websockets.context.BootStarter;
 import io.github.elpis.reactive.websockets.context.resource.data.HeaderSocketResource;
 import java.util.List;
-import java.util.concurrent.TimeoutException;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.system.CapturedOutput;
-import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.web.reactive.socket.CloseStatus;
 import org.springframework.web.reactive.socket.WebSocketMessage;
 import reactor.core.publisher.Sinks;
 import reactor.test.StepVerifier;
 
-@ExtendWith(OutputCaptureExtension.class)
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
     classes = BootStarter.class)
@@ -48,7 +42,6 @@ class HeaderSocketTest extends BaseWebSocketTest {
                 session
                     .receive()
                     .map(WebSocketMessage::getPayloadAsText)
-                    .log()
                     .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
                     .then())
         .subscribe();
@@ -57,12 +50,11 @@ class HeaderSocketTest extends BaseWebSocketTest {
     StepVerifier.create(sink.asMono())
         .expectNext(expected)
         .expectComplete()
-        .log()
         .verify(DEFAULT_GENERIC_TEST_FALLBACK);
   }
 
   @Test
-  void getWithStringHeaderNoValueTest(final CapturedOutput output) throws Exception {
+  void getWithStringHeaderNoValueTest() throws Exception {
     // given
     final String data = this.randomTextString(5);
     final HttpHeaders headers = new HttpHeaders();
@@ -70,8 +62,9 @@ class HeaderSocketTest extends BaseWebSocketTest {
 
     final String path = "/header/single/get/no/string";
     final Sinks.One<String> sink = Sinks.one();
+    final Sinks.One<CloseStatus> closeStatusSink = Sinks.one();
 
-    // test
+    // test - authentication should fail due to wrong principal value
     this.withClient(
             path,
             headers,
@@ -79,18 +72,21 @@ class HeaderSocketTest extends BaseWebSocketTest {
                 session
                     .receive()
                     .map(WebSocketMessage::getPayloadAsText)
-                    .log()
-                    .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
-                    .then())
+                    .doOnNext(sink::tryEmitValue)
+                    .then(session.closeStatus().doOnNext(closeStatusSink::tryEmitValue).then()))
         .subscribe();
 
-    // verify
-    StepVerifier.create(sink.asMono().timeout(DEFAULT_FAST_TEST_FALLBACK))
-        .verifyError(TimeoutException.class);
+    // verify - expect WebSocketProcessingException wrapped in handshake error
+    StepVerifier.create(sink.asMono())
+        .expectNext(
+            "{\"message\":\"@RequestHeader java.lang.String id is marked as required but was not present on request. Default value was not set.\"}")
+        .expectComplete()
+        .verify(DEFAULT_GENERIC_TEST_FALLBACK);
 
-    assertThat(output)
-        .contains(
-            "@RequestHeader java.lang.String id is marked as required but was not present on request. Default value was not set.");
+    StepVerifier.create(closeStatusSink.asMono())
+        .expectNext(CloseStatus.BAD_DATA)
+        .expectComplete()
+        .verify(DEFAULT_GENERIC_TEST_FALLBACK);
   }
 
   @Test
@@ -114,7 +110,6 @@ class HeaderSocketTest extends BaseWebSocketTest {
                 session
                     .receive()
                     .map(WebSocketMessage::getPayloadAsText)
-                    .log()
                     .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
                     .then())
         .subscribe();
@@ -123,7 +118,6 @@ class HeaderSocketTest extends BaseWebSocketTest {
     StepVerifier.create(sink.asMono())
         .expectNext(expected)
         .expectComplete()
-        .log()
         .verify(DEFAULT_GENERIC_TEST_FALLBACK);
   }
 
@@ -148,7 +142,6 @@ class HeaderSocketTest extends BaseWebSocketTest {
                 session
                     .receive()
                     .map(WebSocketMessage::getPayloadAsText)
-                    .log()
                     .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
                     .then())
         .subscribe();
@@ -157,7 +150,6 @@ class HeaderSocketTest extends BaseWebSocketTest {
     StepVerifier.create(sink.asMono())
         .expectNext(expected)
         .expectComplete()
-        .log()
         .verify(DEFAULT_GENERIC_TEST_FALLBACK);
   }
 
@@ -182,7 +174,6 @@ class HeaderSocketTest extends BaseWebSocketTest {
                 session
                     .receive()
                     .map(WebSocketMessage::getPayloadAsText)
-                    .log()
                     .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
                     .then())
         .subscribe();
@@ -191,7 +182,6 @@ class HeaderSocketTest extends BaseWebSocketTest {
     StepVerifier.create(sink.asMono())
         .expectNext(expected)
         .expectComplete()
-        .log()
         .verify(DEFAULT_GENERIC_TEST_FALLBACK);
   }
 
@@ -216,7 +206,6 @@ class HeaderSocketTest extends BaseWebSocketTest {
                 session
                     .receive()
                     .map(WebSocketMessage::getPayloadAsText)
-                    .log()
                     .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
                     .then())
         .subscribe();
@@ -225,7 +214,6 @@ class HeaderSocketTest extends BaseWebSocketTest {
     StepVerifier.create(sink.asMono())
         .expectNext(expected)
         .expectComplete()
-        .log()
         .verify(DEFAULT_GENERIC_TEST_FALLBACK);
   }
 
@@ -250,7 +238,6 @@ class HeaderSocketTest extends BaseWebSocketTest {
                 session
                     .receive()
                     .map(WebSocketMessage::getPayloadAsText)
-                    .log()
                     .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
                     .then())
         .subscribe();
@@ -259,7 +246,6 @@ class HeaderSocketTest extends BaseWebSocketTest {
     StepVerifier.create(sink.asMono())
         .expectNext(expected)
         .expectComplete()
-        .log()
         .verify(DEFAULT_GENERIC_TEST_FALLBACK);
   }
 
@@ -284,7 +270,6 @@ class HeaderSocketTest extends BaseWebSocketTest {
                 session
                     .receive()
                     .map(WebSocketMessage::getPayloadAsText)
-                    .log()
                     .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
                     .then())
         .subscribe();
@@ -293,7 +278,6 @@ class HeaderSocketTest extends BaseWebSocketTest {
     StepVerifier.create(sink.asMono())
         .expectNext(expected)
         .expectComplete()
-        .log()
         .verify(DEFAULT_GENERIC_TEST_FALLBACK);
   }
 
@@ -318,7 +302,6 @@ class HeaderSocketTest extends BaseWebSocketTest {
                 session
                     .receive()
                     .map(WebSocketMessage::getPayloadAsText)
-                    .log()
                     .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
                     .then())
         .subscribe();
@@ -327,7 +310,6 @@ class HeaderSocketTest extends BaseWebSocketTest {
     StepVerifier.create(sink.asMono())
         .expectNext(expected)
         .expectComplete()
-        .log()
         .verify(DEFAULT_GENERIC_TEST_FALLBACK);
   }
 
@@ -352,7 +334,6 @@ class HeaderSocketTest extends BaseWebSocketTest {
                 session
                     .receive()
                     .map(WebSocketMessage::getPayloadAsText)
-                    .log()
                     .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
                     .then())
         .subscribe();
@@ -361,7 +342,6 @@ class HeaderSocketTest extends BaseWebSocketTest {
     StepVerifier.create(sink.asMono())
         .expectNext(expected)
         .expectComplete()
-        .log()
         .verify(DEFAULT_GENERIC_TEST_FALLBACK);
   }
 
@@ -386,7 +366,6 @@ class HeaderSocketTest extends BaseWebSocketTest {
                 session
                     .receive()
                     .map(WebSocketMessage::getPayloadAsText)
-                    .log()
                     .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
                     .then())
         .subscribe();
@@ -395,7 +374,6 @@ class HeaderSocketTest extends BaseWebSocketTest {
     StepVerifier.create(sink.asMono())
         .expectNext(expected)
         .expectComplete()
-        .log()
         .verify(DEFAULT_GENERIC_TEST_FALLBACK);
   }
 
@@ -420,7 +398,6 @@ class HeaderSocketTest extends BaseWebSocketTest {
                 session
                     .receive()
                     .map(WebSocketMessage::getPayloadAsText)
-                    .log()
                     .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
                     .then())
         .subscribe();
@@ -429,7 +406,6 @@ class HeaderSocketTest extends BaseWebSocketTest {
     StepVerifier.create(sink.asMono())
         .expectNext(expected)
         .expectComplete()
-        .log()
         .verify(DEFAULT_GENERIC_TEST_FALLBACK);
   }
 
@@ -454,7 +430,6 @@ class HeaderSocketTest extends BaseWebSocketTest {
                 session
                     .receive()
                     .map(WebSocketMessage::getPayloadAsText)
-                    .log()
                     .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
                     .then())
         .subscribe();
@@ -463,7 +438,6 @@ class HeaderSocketTest extends BaseWebSocketTest {
     StepVerifier.create(sink.asMono())
         .expectNext(expected)
         .expectComplete()
-        .log()
         .verify(DEFAULT_GENERIC_TEST_FALLBACK);
   }
 
@@ -488,7 +462,6 @@ class HeaderSocketTest extends BaseWebSocketTest {
                 session
                     .receive()
                     .map(WebSocketMessage::getPayloadAsText)
-                    .log()
                     .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
                     .then())
         .subscribe();
@@ -497,7 +470,6 @@ class HeaderSocketTest extends BaseWebSocketTest {
     StepVerifier.create(sink.asMono())
         .expectNext(expected)
         .expectComplete()
-        .log()
         .verify(DEFAULT_GENERIC_TEST_FALLBACK);
   }
 
@@ -522,7 +494,6 @@ class HeaderSocketTest extends BaseWebSocketTest {
                 session
                     .receive()
                     .map(WebSocketMessage::getPayloadAsText)
-                    .log()
                     .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
                     .then())
         .subscribe();
@@ -531,7 +502,6 @@ class HeaderSocketTest extends BaseWebSocketTest {
     StepVerifier.create(sink.asMono())
         .expectNext(expected)
         .expectComplete()
-        .log()
         .verify(DEFAULT_GENERIC_TEST_FALLBACK);
   }
 
@@ -556,7 +526,6 @@ class HeaderSocketTest extends BaseWebSocketTest {
                 session
                     .receive()
                     .map(WebSocketMessage::getPayloadAsText)
-                    .log()
                     .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
                     .then())
         .subscribe();
@@ -565,7 +534,6 @@ class HeaderSocketTest extends BaseWebSocketTest {
     StepVerifier.create(sink.asMono())
         .expectNext(expected)
         .expectComplete()
-        .log()
         .verify(DEFAULT_GENERIC_TEST_FALLBACK);
   }
 
@@ -590,7 +558,6 @@ class HeaderSocketTest extends BaseWebSocketTest {
                 session
                     .receive()
                     .map(WebSocketMessage::getPayloadAsText)
-                    .log()
                     .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
                     .then())
         .subscribe();
@@ -599,7 +566,6 @@ class HeaderSocketTest extends BaseWebSocketTest {
     StepVerifier.create(sink.asMono())
         .expectNext(expected)
         .expectComplete()
-        .log()
         .verify(DEFAULT_GENERIC_TEST_FALLBACK);
   }
 
@@ -624,7 +590,6 @@ class HeaderSocketTest extends BaseWebSocketTest {
                 session
                     .receive()
                     .map(WebSocketMessage::getPayloadAsText)
-                    .log()
                     .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
                     .then())
         .subscribe();
@@ -633,7 +598,6 @@ class HeaderSocketTest extends BaseWebSocketTest {
     StepVerifier.create(sink.asMono())
         .expectNext(expected)
         .expectComplete()
-        .log()
         .verify(DEFAULT_GENERIC_TEST_FALLBACK);
   }
 
@@ -658,7 +622,6 @@ class HeaderSocketTest extends BaseWebSocketTest {
                 session
                     .receive()
                     .map(WebSocketMessage::getPayloadAsText)
-                    .log()
                     .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
                     .then())
         .subscribe();
@@ -667,7 +630,6 @@ class HeaderSocketTest extends BaseWebSocketTest {
     StepVerifier.create(sink.asMono())
         .expectNext(expected)
         .expectComplete()
-        .log()
         .verify(DEFAULT_GENERIC_TEST_FALLBACK);
   }
 
@@ -692,7 +654,6 @@ class HeaderSocketTest extends BaseWebSocketTest {
                 session
                     .receive()
                     .map(WebSocketMessage::getPayloadAsText)
-                    .log()
                     .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
                     .then())
         .subscribe();
@@ -701,7 +662,6 @@ class HeaderSocketTest extends BaseWebSocketTest {
     StepVerifier.create(sink.asMono())
         .expectNext(expected)
         .expectComplete()
-        .log()
         .verify(DEFAULT_GENERIC_TEST_FALLBACK);
   }
 
@@ -726,7 +686,6 @@ class HeaderSocketTest extends BaseWebSocketTest {
                 session
                     .receive()
                     .map(WebSocketMessage::getPayloadAsText)
-                    .log()
                     .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
                     .then())
         .subscribe();
@@ -735,7 +694,6 @@ class HeaderSocketTest extends BaseWebSocketTest {
     StepVerifier.create(sink.asMono())
         .expectNext(expected)
         .expectComplete()
-        .log()
         .verify(DEFAULT_GENERIC_TEST_FALLBACK);
   }
 
@@ -760,7 +718,6 @@ class HeaderSocketTest extends BaseWebSocketTest {
                 session
                     .receive()
                     .map(WebSocketMessage::getPayloadAsText)
-                    .log()
                     .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
                     .then())
         .subscribe();
@@ -769,7 +726,6 @@ class HeaderSocketTest extends BaseWebSocketTest {
     StepVerifier.create(sink.asMono())
         .expectNext(expected)
         .expectComplete()
-        .log()
         .verify(DEFAULT_GENERIC_TEST_FALLBACK);
   }
 
@@ -795,7 +751,6 @@ class HeaderSocketTest extends BaseWebSocketTest {
                 session
                     .receive()
                     .map(WebSocketMessage::getPayloadAsText)
-                    .log()
                     .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
                     .then())
         .subscribe();
@@ -804,7 +759,6 @@ class HeaderSocketTest extends BaseWebSocketTest {
     StepVerifier.create(sink.asMono())
         .expectNext(expected)
         .expectComplete()
-        .log()
         .verify(DEFAULT_GENERIC_TEST_FALLBACK);
   }
 
@@ -829,7 +783,6 @@ class HeaderSocketTest extends BaseWebSocketTest {
                 session
                     .receive()
                     .map(WebSocketMessage::getPayloadAsText)
-                    .log()
                     .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
                     .then())
         .subscribe();
@@ -838,7 +791,6 @@ class HeaderSocketTest extends BaseWebSocketTest {
     StepVerifier.create(sink.asMono())
         .expectNext(expected)
         .expectComplete()
-        .log()
         .verify(DEFAULT_GENERIC_TEST_FALLBACK);
   }
 
@@ -863,7 +815,6 @@ class HeaderSocketTest extends BaseWebSocketTest {
                 session
                     .receive()
                     .map(WebSocketMessage::getPayloadAsText)
-                    .log()
                     .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
                     .then())
         .subscribe();
@@ -872,7 +823,6 @@ class HeaderSocketTest extends BaseWebSocketTest {
     StepVerifier.create(sink.asMono())
         .expectNext(expected)
         .expectComplete()
-        .log()
         .verify(DEFAULT_GENERIC_TEST_FALLBACK);
   }
 
@@ -897,7 +847,6 @@ class HeaderSocketTest extends BaseWebSocketTest {
                 session
                     .receive()
                     .map(WebSocketMessage::getPayloadAsText)
-                    .log()
                     .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
                     .then())
         .subscribe();
@@ -906,7 +855,6 @@ class HeaderSocketTest extends BaseWebSocketTest {
     StepVerifier.create(sink.asMono())
         .expectNext(expected)
         .expectComplete()
-        .log()
         .verify(DEFAULT_GENERIC_TEST_FALLBACK);
   }
 
@@ -933,7 +881,6 @@ class HeaderSocketTest extends BaseWebSocketTest {
                 session
                     .receive()
                     .map(WebSocketMessage::getPayloadAsText)
-                    .log()
                     .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
                     .then())
         .subscribe();
@@ -942,7 +889,6 @@ class HeaderSocketTest extends BaseWebSocketTest {
     StepVerifier.create(sink.asMono())
         .expectNext(expected)
         .expectComplete()
-        .log()
         .verify(DEFAULT_GENERIC_TEST_FALLBACK);
   }
 }

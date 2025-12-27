@@ -146,7 +146,7 @@ public abstract class SocketHandshakeService extends HandshakeWebSocketService {
                     .map(ServerWebExchangeMatcher.MatchResult::isMatch))
         .switchIfEmpty(Mono.error(() -> new WebSocketProcessingException("Security chain failed")))
         .onErrorResume(
-            throwable -> this.errorHandler().handle(exchange, throwable).then(Mono.empty()))
+            throwable -> this.errorHandler().handle(exchange, throwable).then(Mono.never()))
         .flatMap(
             serverWebExchange ->
                 this.handshake(serverWebExchange)
