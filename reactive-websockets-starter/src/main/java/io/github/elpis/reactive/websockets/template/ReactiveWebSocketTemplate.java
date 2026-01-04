@@ -8,6 +8,8 @@ import java.util.Set;
 import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
@@ -51,14 +53,20 @@ import reactor.core.publisher.Sinks;
  *
  * @since 1.0.0
  */
+@Component
 public class ReactiveWebSocketTemplate {
 
   private static final Logger log = LoggerFactory.getLogger(ReactiveWebSocketTemplate.class);
 
   private final WebSocketSessionRegistry registry;
+  private final int broadcastConcurrency;
 
-  public ReactiveWebSocketTemplate(WebSocketSessionRegistry registry) {
+  public ReactiveWebSocketTemplate(
+      WebSocketSessionRegistry registry,
+      @Value("${broadcast.concurrency:32}") final int broadcastConcurrency) {
+
     this.registry = registry;
+    this.broadcastConcurrency = broadcastConcurrency;
   }
 
   /**
@@ -96,7 +104,9 @@ public class ReactiveWebSocketTemplate {
    * @return Mono that completes when all messages are broadcast
    */
   public Mono<Void> sendBroadcast(String path, Publisher<?> messages) {
-    return Flux.from(messages).flatMap(msg -> sendBroadcast(path, msg)).then();
+    return Flux.from(messages)
+        .flatMapSequential(msg -> sendBroadcast(path, msg), this.broadcastConcurrency)
+        .then();
   }
 
   /**
@@ -134,7 +144,9 @@ public class ReactiveWebSocketTemplate {
    * @return Mono that completes when all messages are sent
    */
   public Mono<Void> sendToSession(String path, String sessionId, Publisher<?> messages) {
-    return Flux.from(messages).flatMap(msg -> sendToSession(path, sessionId, msg)).then();
+    return Flux.from(messages)
+        .flatMapSequential(msg -> sendToSession(path, sessionId, msg), this.broadcastConcurrency)
+        .then();
   }
 
   /**
@@ -142,7 +154,7 @@ public class ReactiveWebSocketTemplate {
    *
    * @param path the WebSocket path
    * @param sessionIds set of target session IDs
-   * @param payload the message payload (any Object - converted by handler)
+   * @param payload Publisher of message payloads
    * @return Mono that completes when all messages are sent
    */
   public Mono<Void> sendToSessions(String path, Set<String> sessionIds, Object payload) {
@@ -156,6 +168,20 @@ public class ReactiveWebSocketTemplate {
                           log.debug("Skipping non-existent session: {}", sessionId);
                           return Mono.empty();
                         }))
+        .then();
+  }
+
+  /**
+   * Sends a stream of messages to multiple specific sessions.
+   *
+   * @param path the WebSocket path
+   * @param sessionIds set of target session IDs
+   * @param messages the message payload (any Object - converted by handler)
+   * @return Mono that completes when all messages are sent
+   */
+  public Mono<Void> sendToSessions(String path, Set<String> sessionIds, Publisher<?> messages) {
+    return Flux.from(messages)
+        .flatMapSequential(msg -> sendToSessions(path, sessionIds, msg), this.broadcastConcurrency)
         .then();
   }
 

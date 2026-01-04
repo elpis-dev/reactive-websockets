@@ -9,6 +9,7 @@ import io.github.elpis.reactive.websockets.handler.route.WebSocketHandlerFunctio
 import io.github.elpis.reactive.websockets.handler.route.WebSocketHandlerFunctions;
 import io.github.elpis.reactive.websockets.handler.route.WebSocketHandlerRouteResolver;
 import io.github.elpis.reactive.websockets.session.WebSocketSessionRegistry;
+import io.github.elpis.reactive.websockets.template.ReactiveWebSocketTemplate;
 import io.github.elpis.reactive.websockets.web.annotation.OnMessage;
 import java.util.HashMap;
 import java.util.List;
@@ -40,6 +41,7 @@ import reactor.util.context.Context;
   WebSocketEventConfiguration.class,
   WebSocketRouteConfiguration.class,
   RateLimiterService.class,
+  ReactiveWebSocketTemplate.class
 })
 @ComponentScan("io.github.elpis.reactive.websockets.generated")
 public class WebSocketConfiguration {
@@ -61,7 +63,7 @@ public class WebSocketConfiguration {
   }
 
   /**
-   * {@link HandlerMapping} bean with all {@link OnMessage @SocketMapping} resource.
+   * {@link HandlerMapping} bean with all {@link OnMessage} resource.
    *
    * @return {@link HandlerMapping}
    * @since 1.0.0
