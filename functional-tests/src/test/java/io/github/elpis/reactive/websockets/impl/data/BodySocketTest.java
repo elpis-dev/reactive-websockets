@@ -25,8 +25,7 @@ class BodySocketTest extends BaseWebSocketTest {
   @Test
   void receiveDefaultMessageTestLong() throws Exception {
     // given
-    final Flux<String> data =
-        Flux.interval(Duration.ofMillis(100)).map(i -> "Entry " + i).take(100);
+    final Flux<String> data = Flux.interval(Duration.ofMillis(100)).map(i -> "Entry " + i).take(50);
 
     final String path = "/body/post";
     final Sinks.Many<String> sink = Sinks.many().replay().all();

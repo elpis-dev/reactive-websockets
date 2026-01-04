@@ -1,8 +1,10 @@
 logging:
   level:
-    root: ERROR
+    root: OFF
     org:
-      springframework: ERROR
+      springframework: OFF
+    reactor: OFF
+
 spring:
   main:
     banner-mode: off

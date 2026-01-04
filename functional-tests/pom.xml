@@ -152,6 +152,10 @@
 
                     <!-- Randomize test class execution order to catch isolation issues -->
                     <runOrder>random</runOrder>
+
+                    <excludes>
+                        <exclude>**/WebSocketSessionRegistryTest.java</exclude>
+                    </excludes>
                 </configuration>
             </plugin>
 

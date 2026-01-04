@@ -13,6 +13,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.lang.NonNull;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.web.server.SecurityWebFilterChain;
+import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.socket.WebSocketSession;
 import org.springframework.web.reactive.socket.client.ReactorNettyWebSocketClient;
 import org.springframework.web.reactive.socket.server.upgrade.ReactorNettyRequestUpgradeStrategy;
@@ -21,12 +22,16 @@ import reactor.core.publisher.Mono;
 public abstract class BaseWebSocketTest {
   public static final String DEFAULT_TEST_PROFILE = "test";
 
-  protected static final Duration DEFAULT_GENERIC_TEST_FALLBACK = Duration.ofSeconds(10L);
-  protected static final Duration DEFAULT_FAST_TEST_FALLBACK = Duration.ofSeconds(5L);
+  protected static final Duration DEFAULT_GENERIC_TEST_FALLBACK = Duration.ofSeconds(6L);
+  protected static final Duration DEFAULT_FAST_TEST_FALLBACK = Duration.ofSeconds(2L);
 
   private final Random random = new Random();
 
   @LocalServerPort private Integer port;
+
+  public WebTestClient getWebClient() {
+    return WebTestClient.bindToServer().baseUrl("http://localhost:" + this.port).build();
+  }
 
   public Mono<Void> withClient(
       @NonNull final String path,
@@ -90,7 +95,9 @@ public abstract class BaseWebSocketTest {
 
     @Bean
     public SecurityWebFilterChain securityWebFilterChain(final ServerHttpSecurity http) {
-      return http.authorizeExchange(exchange -> exchange.anyExchange().permitAll()).build();
+      return http.csrf(ServerHttpSecurity.CsrfSpec::disable)
+          .authorizeExchange(exchange -> exchange.anyExchange().permitAll())
+          .build();
     }
 
     @Bean

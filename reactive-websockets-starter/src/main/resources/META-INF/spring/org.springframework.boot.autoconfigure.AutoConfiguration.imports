@@ -1,3 +1,2 @@
-io.github.elpis.reactive.websockets.config.ReactiveWebSocketTemplateAutoConfiguration
 io.github.elpis.reactive.websockets.config.WebSocketRegistryMaintenanceConfig
 

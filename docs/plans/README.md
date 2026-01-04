@@ -1,14 +1,36 @@
 # Implementation Plans
 
-## Current Plan
+## Current Plans
 
-**📋 [Reactive WebSockets Implementation Plan](./reactive-websockets-implementation-plan.md)** - **USE THIS**
+### 📋 [RWS-52: Add Missing Tests](./RWS-52/) - **ACTIVE**
 
-This is the consolidated, up-to-date plan covering:
+**Status:** 🔄 Ready for Implementation  
+**Priority:** 🔴 High  
+**Estimated Effort:** 19 hours (~2.5 days)
+
+Comprehensive functional tests for critical components:
+- ReactiveWebSocketTemplate (7% → 90% coverage)
+- WebSocketSessionRegistry (40% → 90% coverage)
+- WebSocketHandlerFunction (expanded coverage)
+
+**Quick Links:**
+- 📄 [Full Implementation Plan](./RWS-52/plan.md) - Complete detailed plan
+- 📊 [Planning Summary](./RWS-52/PLANNING_SUMMARY.md) - Key findings and decisions
+- 🚀 [Quick Start Guide](./RWS-52/QUICK_START.md) - Get started immediately
+
+Last updated: December 28, 2025
+
+---
+
+### 📋 [Reactive WebSockets Implementation Plan](./reactive-websockets-implementation-plan.md)
+
+**Status:** ✅ Mostly Complete  
+**Last Updated:** December 21, 2025
+
+Consolidated plan covering:
 - ✅ RWS-36: Error Handling (85% complete)
 - ✅ RWS-41: Session Registry & Broadcast Messaging (70% complete)
 
-Last updated: December 21, 2025
 
 ### ⚠️ CRITICAL: Read This First
 
