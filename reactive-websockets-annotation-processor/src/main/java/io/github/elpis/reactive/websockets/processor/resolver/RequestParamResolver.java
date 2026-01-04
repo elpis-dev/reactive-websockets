@@ -72,9 +72,9 @@ public final class RequestParamResolver extends SocketApiAnnotationResolver<Requ
               listDeclaredType,
               varName,
               String.format(
-                  "@RequestParam List<%s> %s is marked as required but was not present on request. "
+                  "Parameter `%s` is marked as required but was not present on request. "
                       + "Default value was not set.",
-                  listDeclaredType.toString(), parameter.getSimpleName()));
+                  parameter.getSimpleName()));
         } else {
           return CodeBlock.of(
               CODE_FOR_GET_LIST_QUERY,
@@ -102,9 +102,9 @@ public final class RequestParamResolver extends SocketApiAnnotationResolver<Requ
             defaultValue,
             parameterType,
             String.format(
-                "@RequestParam %s %s is marked as required but was not present on request. "
+                "Parameter `%s` is marked as required but was not present on request. "
                     + "Default value was not set.",
-                parameter.asType().toString(), parameter.getSimpleName()));
+                parameter.getSimpleName()));
       } else {
         return CodeBlock.of(
             CODE_FOR_GET_SINGLE_QUERY,

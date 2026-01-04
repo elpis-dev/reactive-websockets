@@ -1,5 +1,7 @@
 package io.github.elpis.reactive.websockets.impl.data;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import io.github.elpis.reactive.websockets.BaseWebSocketTest;
 import io.github.elpis.reactive.websockets.context.BootStarter;
 import io.github.elpis.reactive.websockets.context.resource.data.HeaderSocketResource;
@@ -61,7 +63,6 @@ class HeaderSocketTest extends BaseWebSocketTest {
     headers.add("id", data);
 
     final String path = "/header/single/get/no/string";
-    final Sinks.One<String> sink = Sinks.one();
     final Sinks.One<CloseStatus> closeStatusSink = Sinks.one();
 
     // test - authentication should fail due to wrong principal value
@@ -72,19 +73,18 @@ class HeaderSocketTest extends BaseWebSocketTest {
                 session
                     .receive()
                     .map(WebSocketMessage::getPayloadAsText)
-                    .doOnNext(sink::tryEmitValue)
                     .then(session.closeStatus().doOnNext(closeStatusSink::tryEmitValue).then()))
         .subscribe();
 
     // verify - expect WebSocketProcessingException wrapped in handshake error
-    StepVerifier.create(sink.asMono())
-        .expectNext(
-            "{\"message\":\"@RequestHeader java.lang.String id is marked as required but was not present on request. Default value was not set.\"}")
-        .expectComplete()
-        .verify(DEFAULT_GENERIC_TEST_FALLBACK);
-
     StepVerifier.create(closeStatusSink.asMono())
-        .expectNext(CloseStatus.BAD_DATA)
+        .assertNext(
+            closeStatus -> {
+              assertThat(closeStatus.getCode()).isEqualTo(CloseStatus.BAD_DATA.getCode());
+              assertThat(closeStatus.getReason())
+                  .isEqualTo(
+                      "Header `id` is marked as required but was not present on request. Default value was not set.");
+            })
         .expectComplete()
         .verify(DEFAULT_GENERIC_TEST_FALLBACK);
   }

@@ -40,8 +40,8 @@ public final class PathVariableResolver extends SocketApiAnnotationResolver<Path
           annotation.value(),
           parameterType,
           String.format(
-              "@PathVariable %s %s is marked as required but was not present on request. Default value was not set.",
-              parameter.asType().toString(), parameter.getSimpleName()));
+              "Parameter `%s` is marked as required but was not present on request. Default value was not set.",
+              parameter.getSimpleName()));
     } else {
       return CodeBlock.of(
           CODE_FOR_GET_SINGLE_PATH,

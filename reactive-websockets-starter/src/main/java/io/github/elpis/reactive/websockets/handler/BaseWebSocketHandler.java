@@ -7,7 +7,7 @@ import io.github.elpis.reactive.websockets.event.manager.WebSocketEventManagerFa
 import io.github.elpis.reactive.websockets.event.model.impl.ClientSessionClosedEvent;
 import io.github.elpis.reactive.websockets.event.model.impl.ServerSessionClosedEvent;
 import io.github.elpis.reactive.websockets.event.model.impl.SessionConnectedEvent;
-import io.github.elpis.reactive.websockets.exception.model.ErrorResponse;
+import io.github.elpis.reactive.websockets.exception.WebSocketProcessingException;
 import io.github.elpis.reactive.websockets.handler.exception.ErrorResponseException;
 import io.github.elpis.reactive.websockets.mapper.JsonMapper;
 import io.github.elpis.reactive.websockets.security.principal.Anonymous;
@@ -315,12 +315,8 @@ public abstract class BaseWebSocketHandler implements WebSocketHandler {
                       "Processing error for session {}: {}",
                       webSocketSessionContext.getSessionId(),
                       e.getMessage()));
-    } catch (Exception e) {
-      return Flux.just(
-              streams
-                  .outboundSink()
-                  .tryEmitError(new ErrorResponseException(new ErrorResponse(e.getMessage()))))
-          .thenMany(session.close(CloseStatus.BAD_DATA));
+    } catch (WebSocketProcessingException e) {
+      return Flux.from(session.close(CloseStatus.BAD_DATA.withReason(e.getMessage())));
     }
   }
 

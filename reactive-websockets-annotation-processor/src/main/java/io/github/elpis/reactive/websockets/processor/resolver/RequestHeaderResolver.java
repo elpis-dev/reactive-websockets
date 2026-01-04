@@ -73,7 +73,7 @@ public final class RequestHeaderResolver extends SocketApiAnnotationResolver<Req
         .isAssignable(this.getTypes().erasure(parameterType), multiValueMapType.asType())) {
       if (!this.isMultimapParamValid(parameterType)) {
         throw new WebSocketResolverException(
-            "Request header `@RequestHeader %s %s` should accept "
+            "Request header `%s %s` should accept "
                 + "`org.springframework.util.MultiValueMap<java.lang.String, java.lang.String>`, but got `%s`",
             parameterType, parameter.getSimpleName(), parameterType);
       }
@@ -106,9 +106,8 @@ public final class RequestHeaderResolver extends SocketApiAnnotationResolver<Req
               listDeclaredType,
               varName,
               String.format(
-                  "@RequestHeader %s %s is marked as required but was not present on request. "
-                      + "Default value was not set.",
-                  parameter.asType().toString(), parameter.getSimpleName()));
+                  "Header `%s` is marked as required but was not present on request. Default value was not set.",
+                  parameter.getSimpleName()));
         } else {
           return CodeBlock.of(
               CODE_FOR_GET_LIST_HEADER,
@@ -139,9 +138,9 @@ public final class RequestHeaderResolver extends SocketApiAnnotationResolver<Req
             defaultValue,
             parameterType,
             String.format(
-                "@RequestHeader %s %s is marked as required but was not present on request. "
+                "Header `%s` is marked as required but was not present on request. "
                     + "Default value was not set.",
-                parameter.asType().toString(), parameter.getSimpleName()));
+                parameter.getSimpleName()));
       } else {
         return CodeBlock.of(
             CODE_FOR_GET_SINGLE_HEADER,
