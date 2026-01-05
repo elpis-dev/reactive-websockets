@@ -10,6 +10,7 @@ import io.github.elpis.reactive.websockets.context.security.model.SecurityProfil
 import io.github.elpis.reactive.websockets.session.WebSocketSessionRegistry;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
@@ -38,6 +39,11 @@ import reactor.test.StepVerifier;
 })
 class WebSocketSessionRegistryTest extends BaseWebSocketTest {
   private static final int EXPECTED_SESSION_COUNT = 3;
+
+  @BeforeEach
+  void setup() {
+    this.getWebClient().delete().uri("/sessionRegistry/shutdown").exchange().expectStatus().isOk();
+  }
 
   @Test
   void testGetTotalSessionCountPerPath() throws Exception {
