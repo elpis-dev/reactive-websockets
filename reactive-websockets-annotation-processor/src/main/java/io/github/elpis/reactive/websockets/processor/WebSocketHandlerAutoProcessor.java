@@ -21,14 +21,17 @@ import io.github.elpis.reactive.websockets.processor.resolver.ExceptionHandlerRe
 import io.github.elpis.reactive.websockets.processor.resolver.SocketAnnotationResolverFactory;
 import io.github.elpis.reactive.websockets.processor.util.HashUtils;
 import io.github.elpis.reactive.websockets.util.TypeUtils;
+import io.github.elpis.reactive.websockets.web.annotation.Backpressure;
 import io.github.elpis.reactive.websockets.web.annotation.MessageEndpoint;
 import io.github.elpis.reactive.websockets.web.annotation.OnMessage;
+import io.github.elpis.reactive.websockets.web.annotation.RateLimit;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
@@ -387,9 +390,14 @@ public class WebSocketHandlerAutoProcessor extends AbstractProcessor {
   public record HeartbeatConfigData(long interval, long timeout) {}
 
   public record RateLimitConfigData(
-      int limitForPeriod, long limitRefreshPeriod, String timeUnit, long timeout, String scope) {}
+      int limitForPeriod,
+      long limitRefreshPeriod,
+      TimeUnit timeUnit,
+      long timeout,
+      RateLimit.RateLimitScope scope) {}
 
-  public record BackpressureConfigData(String strategy, int bufferSize) {}
+  public record BackpressureConfigData(
+      Backpressure.BackpressureStrategy strategy, int bufferSize) {}
 
   private record WebHandlerResourceDescriptor(
       ExecutableElement method,

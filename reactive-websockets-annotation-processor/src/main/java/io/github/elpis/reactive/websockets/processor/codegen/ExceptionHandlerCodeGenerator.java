@@ -135,8 +135,7 @@ public class ExceptionHandlerCodeGenerator {
       // Inline error handling that keeps the stream alive
       ClassName flux = ClassName.get("reactor.core.publisher", "Flux");
       ClassName errorResponseException =
-          ClassName.get(
-              "io.github.elpis.reactive.websockets.handler.exception", "ErrorResponseException");
+          ClassName.get("io.github.elpis.reactive.websockets.exception", "ErrorResponseException");
 
       return CodeBlock.builder()
           .add(

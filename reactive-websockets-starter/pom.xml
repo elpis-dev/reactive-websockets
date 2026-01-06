@@ -48,6 +48,12 @@
         </dependency>
 
         <dependency>
+            <groupId>io.github.elpis-dev</groupId>
+            <artifactId>reactive-websockets-core</artifactId>
+            <version>${reactive-websockets.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter</artifactId>
         </dependency>

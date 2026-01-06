@@ -54,10 +54,10 @@ public final class HeartbeatFlowController {
    */
   public static String generateHeartbeatConfig(final HeartbeatConfigData config) {
     if (config == null) {
-      return "io.github.elpis.reactive.websockets.handler.config.HeartbeatConfig.disabled()";
+      return "io.github.elpis.reactive.websockets.config.flow.HeartbeatConfig.disabled()";
     }
     return String.format(
-        "io.github.elpis.reactive.websockets.handler.config.HeartbeatConfig.of(%dL, %dL)",
+        "io.github.elpis.reactive.websockets.config.flow.HeartbeatConfig.of(%dL, %dL)",
         config.interval(), config.timeout());
   }
 }

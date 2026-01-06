@@ -1,7 +1,9 @@
 package io.github.elpis.reactive.websockets.config;
 
 import io.github.elpis.reactive.websockets.config.event.WebSocketEventConfiguration;
-import io.github.elpis.reactive.websockets.config.handler.route.WebSocketRouteConfiguration;
+import io.github.elpis.reactive.websockets.config.maintenance.WebSocketRegistryMaintenanceConfig;
+import io.github.elpis.reactive.websockets.config.session.WebSocketSessionConfiguration;
+import io.github.elpis.reactive.websockets.event.manager.WebSocketEventManagerFactory;
 import io.github.elpis.reactive.websockets.exception.WebSocketMappingException;
 import io.github.elpis.reactive.websockets.handler.BaseWebSocketHandler;
 import io.github.elpis.reactive.websockets.handler.ratelimit.RateLimiterService;
@@ -15,6 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -37,11 +40,9 @@ import reactor.util.context.Context;
 @SuppressWarnings("SpringComponentScan")
 @Configuration
 @Import({
-  WebSocketSessionRegistry.class,
   WebSocketEventConfiguration.class,
-  WebSocketRouteConfiguration.class,
-  RateLimiterService.class,
-  ReactiveWebSocketTemplate.class
+  WebSocketSessionConfiguration.class,
+  WebSocketRegistryMaintenanceConfig.class
 })
 @ComponentScan("io.github.elpis.reactive.websockets.generated")
 public class WebSocketConfiguration {
@@ -87,5 +88,29 @@ public class WebSocketConfiguration {
             });
 
     return new SimpleUrlHandlerMapping(handlerMap, HANDLER_ORDER);
+  }
+
+  @Bean
+  public ReactiveWebSocketTemplate webSocketTemplate(
+      final WebSocketSessionRegistry registry,
+      @Value("${broadcast.concurrency:32}") final int broadcastConcurrency) {
+
+    return new ReactiveWebSocketTemplate(registry, broadcastConcurrency);
+  }
+
+  // TODO: Make RateLimiterRegistry configurable
+  @Bean
+  public RateLimiterService rateLimiterService() {
+    return new RateLimiterService();
+  }
+
+  @Bean
+  public WebSocketHandlerRouteResolver webSocketHandlerRouteResolver(
+      final WebSocketSessionRegistry registry,
+      final RateLimiterService rateLimiterService,
+      final WebSocketEventManagerFactory eventManagerFactory,
+      final List<WebSocketHandlerFunction> functions) {
+    return new WebSocketHandlerRouteResolver(
+        eventManagerFactory, registry, rateLimiterService, functions);
   }
 }

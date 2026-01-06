@@ -67,7 +67,7 @@ public final class BackpressureFlowController {
    */
   private static BackpressureConfigData createBackpressureConfigData(
       final Backpressure backpressure) {
-    return new BackpressureConfigData(backpressure.strategy().name(), backpressure.bufferSize());
+    return new BackpressureConfigData(backpressure.strategy(), backpressure.bufferSize());
   }
 
   /**
@@ -78,10 +78,12 @@ public final class BackpressureFlowController {
    */
   public static String generateBackpressureConfig(final BackpressureConfigData config) {
     if (config == null) {
-      return "io.github.elpis.reactive.websockets.handler.config.BackpressureConfig.disabled()";
+      return "io.github.elpis.reactive.websockets.config.flow.BackpressureConfig.disabled()";
     }
+
+    final String strategy = config.strategy().getDeclaringClass().getCanonicalName() + "." + config.strategy().name();
     return String.format(
-        "io.github.elpis.reactive.websockets.handler.config.BackpressureConfig.of(\"%s\", %d)",
-        config.strategy(), config.bufferSize());
+        "io.github.elpis.reactive.websockets.config.flow.BackpressureConfig.of(%s, %d)",
+        strategy, config.bufferSize());
   }
 }

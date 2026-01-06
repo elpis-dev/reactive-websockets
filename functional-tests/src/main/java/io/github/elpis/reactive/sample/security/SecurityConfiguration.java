@@ -1,6 +1,5 @@
 package io.github.elpis.reactive.sample.security;
 
-import io.github.elpis.reactive.websockets.EnableReactiveSocketSecurity;
 import io.github.elpis.reactive.websockets.security.SocketHandshakeService;
 import io.github.elpis.reactive.websockets.security.principal.Anonymous;
 import java.util.List;
@@ -14,7 +13,6 @@ import org.springframework.security.web.server.authentication.AnonymousAuthentic
 import org.springframework.web.reactive.socket.server.upgrade.ReactorNettyRequestUpgradeStrategy;
 import org.springframework.web.server.WebFilter;
 
-@EnableReactiveSocketSecurity
 @EnableWebFluxSecurity
 @EnableReactiveMethodSecurity
 public class SecurityConfiguration {

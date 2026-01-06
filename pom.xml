@@ -73,6 +73,7 @@
         <module>reactive-websockets-starter</module>
         <module>functional-tests</module>
         <module>report-aggregate</module>
+        <module>reactive-websockets-core</module>
     </modules>
 
     <distributionManagement>

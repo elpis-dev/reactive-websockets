@@ -64,9 +64,9 @@ public final class RateLimitFlowController {
     return new RateLimitConfigData(
         rateLimit.limitForPeriod(),
         rateLimit.limitRefreshPeriod(),
-        rateLimit.timeUnit().name(),
+        rateLimit.timeUnit(),
         rateLimit.timeoutDuration(),
-        rateLimit.scope().name());
+        rateLimit.scope());
   }
 
   /**
@@ -77,14 +77,13 @@ public final class RateLimitFlowController {
    */
   public static String generateRateLimitConfig(final RateLimitConfigData config) {
     if (config == null) {
-      return "io.github.elpis.reactive.websockets.handler.config.RateLimitConfig.disabled()";
+      return "io.github.elpis.reactive.websockets.config.flow.RateLimitConfig.disabled()";
     }
+
+    final String timeUnit = config.timeUnit().getDeclaringClass().getCanonicalName() + "." + config.timeUnit().name();
+    final String scope = config.scope().getDeclaringClass().getCanonicalName() + "." + config.scope().name();
     return String.format(
-        "io.github.elpis.reactive.websockets.handler.config.RateLimitConfig.of(%d, %dL, \"%s\", %dL, \"%s\")",
-        config.limitForPeriod(),
-        config.limitRefreshPeriod(),
-        config.timeUnit(),
-        config.timeout(),
-        config.scope());
+        "io.github.elpis.reactive.websockets.config.flow.RateLimitConfig.of(%d, %dL, %s, %dL, %s)",
+        config.limitForPeriod(), config.limitRefreshPeriod(), timeUnit, config.timeout(), scope);
   }
 }
