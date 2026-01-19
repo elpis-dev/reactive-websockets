@@ -14,8 +14,6 @@ import reactor.test.StepVerifier;
 
 public class JsonMapperTest {
 
-  // ========== Serialization Tests (applyWith*) ==========
-
   @Test
   public void applyWithFallback_shouldSerializeMap() {
     final String result = JsonMapper.applyWithFallback(Map.of("test", "test"));
@@ -129,8 +127,6 @@ public class JsonMapperTest {
 
     assertThat(result.blockFirst()).isEqualTo(input);
   }
-
-  // ========== Deserialization Tests (deserialize*) ==========
 
   @Test
   public void deserialize_shouldDeserializeSimpleObject() {
@@ -280,8 +276,6 @@ public class JsonMapperTest {
         .verify();
   }
 
-  // ========== Round-trip Tests (Serialize + Deserialize) ==========
-
   @Test
   public void shouldRoundTripSerializeAndDeserialize() {
     final TestPojo original = new TestPojo("Eve", 45, List.of("travel", "photography"));
@@ -329,8 +323,6 @@ public class JsonMapperTest {
             })
         .verifyComplete();
   }
-
-  // ========== Test POJOs ==========
 
   /** Test class that cannot be serialized by Jackson ObjectMapper. */
   private static class UnserializableObject {

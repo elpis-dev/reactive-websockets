@@ -23,7 +23,7 @@ jobs:
       - name: Build project
         run: |
           mvn clean install -DskipTests \
-            -pl reactive-websockets-model,reactive-websockets-annotation-processor,reactive-websockets-starter \
+            -pl reactive-websockets-model,reactive-websockets-core,reactive-websockets-starter \
             -am
 
       - name: Deploy to Maven Central
@@ -33,5 +33,5 @@ jobs:
           MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
         run: |
           mvn deploy -DskipTests \
-            -pl reactive-websockets-model,reactive-websockets-annotation-processor,reactive-websockets-starter \
+            -pl reactive-websockets-model,reactive-websockets-core,reactive-websockets-starter \
             -Prelease

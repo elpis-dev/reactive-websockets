@@ -1,6 +1,7 @@
 package io.github.elpis.reactive.websockets.context.controller;
 
-import io.github.elpis.reactive.websockets.session.WebSocketSessionRegistry;
+import io.github.elpis.reactive.websockets.session.ReactiveWebSocketSessionMaintenanceService;
+import io.github.elpis.reactive.websockets.session.ReactiveWebSocketSessionRegistry;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,10 +15,16 @@ import reactor.core.publisher.Mono;
 @RestController
 @RequestMapping("/sessionRegistry")
 public class SessionRegistryController {
-  private final WebSocketSessionRegistry sessionRegistry;
+  private final ReactiveWebSocketSessionRegistry sessionRegistry;
+  private final ReactiveWebSocketSessionMaintenanceService
+      reactiveWebSocketSessionMaintenanceService;
 
-  public SessionRegistryController(final WebSocketSessionRegistry sessionRegistry) {
+  public SessionRegistryController(
+      final ReactiveWebSocketSessionRegistry sessionRegistry,
+      final ReactiveWebSocketSessionMaintenanceService reactiveWebSocketSessionMaintenanceService) {
+
     this.sessionRegistry = sessionRegistry;
+    this.reactiveWebSocketSessionMaintenanceService = reactiveWebSocketSessionMaintenanceService;
   }
 
   @PostMapping("/count")
@@ -37,6 +44,6 @@ public class SessionRegistryController {
 
   @DeleteMapping("/shutdown")
   public void doShutdown() {
-    sessionRegistry.shutdown();
+    reactiveWebSocketSessionMaintenanceService.shutdown();
   }
 }

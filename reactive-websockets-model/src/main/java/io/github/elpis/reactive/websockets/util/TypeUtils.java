@@ -138,4 +138,8 @@ public final class TypeUtils {
 
     return (T) convertFunction.apply(data, clazz);
   }
+
+  public static boolean isSimpleType(final Class<?> clazz) {
+    return convertRegistry.containsKey(clazz);
+  }
 }

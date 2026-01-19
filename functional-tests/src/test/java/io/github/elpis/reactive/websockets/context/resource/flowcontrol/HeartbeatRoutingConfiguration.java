@@ -1,8 +1,8 @@
 package io.github.elpis.reactive.websockets.context.resource.flowcontrol;
 
-import static io.github.elpis.reactive.websockets.handler.route.WebSocketHandlerFunctions.handle;
+import static io.github.elpis.reactive.websockets.handler.route.ReactiveWebSocketHandlerFunctions.handle;
 
-import io.github.elpis.reactive.websockets.handler.route.WebSocketHandlerFunction;
+import io.github.elpis.reactive.websockets.handler.route.ReactiveWebSocketHandlerFunction;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import reactor.core.publisher.Flux;
@@ -11,7 +11,7 @@ import reactor.core.publisher.Flux;
 public class HeartbeatRoutingConfiguration {
 
   @Bean
-  public WebSocketHandlerFunction pingRouting() {
+  public ReactiveWebSocketHandlerFunction pingRouting() {
     return handle(
             "/ping/routing/returns",
             true,

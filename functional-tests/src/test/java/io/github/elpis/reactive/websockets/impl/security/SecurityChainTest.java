@@ -5,7 +5,7 @@ import io.github.elpis.reactive.websockets.context.BootStarter;
 import io.github.elpis.reactive.websockets.context.resource.security.SecurityChainResource;
 import io.github.elpis.reactive.websockets.context.security.model.SecurityProfiles;
 import io.github.elpis.reactive.websockets.context.security.model.TestConstants;
-import io.github.elpis.reactive.websockets.security.SocketHandshakeService;
+import io.github.elpis.reactive.websockets.security.ReactiveWebSocketHandshakeService;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -119,8 +119,8 @@ class SecurityChainTest extends BaseWebSocketTest {
     }
 
     @Bean
-    SocketHandshakeService socketHandshakeService() {
-      return SocketHandshakeService.builder()
+    ReactiveWebSocketHandshakeService socketHandshakeService() {
+      return ReactiveWebSocketHandshakeService.builder()
           .handshake(
               serverWebExchange ->
                   Mono.justOrEmpty(

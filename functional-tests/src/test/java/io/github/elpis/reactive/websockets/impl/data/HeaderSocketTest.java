@@ -80,10 +80,9 @@ class HeaderSocketTest extends BaseWebSocketTest {
     StepVerifier.create(closeStatusSink.asMono())
         .assertNext(
             closeStatus -> {
-              assertThat(closeStatus.getCode()).isEqualTo(CloseStatus.BAD_DATA.getCode());
+              assertThat(closeStatus.getCode()).isEqualTo(CloseStatus.PROTOCOL_ERROR.getCode());
               assertThat(closeStatus.getReason())
-                  .isEqualTo(
-                      "Header `id` is marked as required but was not present on request. Default value was not set.");
+                  .isEqualTo("Header `ids` is marked as required but was not present.");
             })
         .expectComplete()
         .verify(DEFAULT_GENERIC_TEST_FALLBACK);

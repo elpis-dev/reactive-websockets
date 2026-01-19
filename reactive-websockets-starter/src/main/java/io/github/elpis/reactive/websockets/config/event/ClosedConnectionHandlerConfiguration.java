@@ -4,9 +4,9 @@ import io.github.elpis.reactive.websockets.config.WebSocketCloseStatus;
 import io.github.elpis.reactive.websockets.event.annotation.CloseStatusHandler;
 import io.github.elpis.reactive.websockets.event.annotation.EventSelector;
 import io.github.elpis.reactive.websockets.event.annotation.SessionCloseStatus;
-import io.github.elpis.reactive.websockets.event.manager.WebSocketEventManagerFactory;
-import io.github.elpis.reactive.websockets.event.matcher.EventSelectorMatcher;
-import io.github.elpis.reactive.websockets.event.matcher.impl.ClosedSessionEventSelectorMatcher;
+import io.github.elpis.reactive.websockets.event.manager.ReactiveWebSocketEventManagerFactory;
+import io.github.elpis.reactive.websockets.event.matcher.ReactiveWebSocketEventSelectorMatcher;
+import io.github.elpis.reactive.websockets.event.matcher.impl.ClosedSessionReactiveWebSocketEventSelectorMatcher;
 import io.github.elpis.reactive.websockets.event.model.impl.ClientSessionClosedEvent;
 import io.github.elpis.reactive.websockets.exception.WebSocketConfigurationException;
 import java.lang.reflect.InvocationTargetException;
@@ -47,11 +47,13 @@ public class ClosedConnectionHandlerConfiguration {
       Executors.newFixedThreadPool(Queues.XS_BUFFER_SIZE);
 
   @Bean
-  public EventSelectorMatcher<ClientSessionClosedEvent> closedEventSelectorMatcher() {
-    return new ClosedSessionEventSelectorMatcher();
+  public ReactiveWebSocketEventSelectorMatcher<ClientSessionClosedEvent>
+      closedEventSelectorMatcher() {
+    return new ClosedSessionReactiveWebSocketEventSelectorMatcher();
   }
 
   @Bean
+  // TODO: Rewrite with similar approach as for Context Initializer
   public ClosedEventHandlers closedEventHandlers(final ApplicationContext context) {
     final ClosedEventHandlers handlers = new ClosedEventHandlers();
 
@@ -92,7 +94,7 @@ public class ClosedConnectionHandlerConfiguration {
   @Bean
   public ApplicationListener<ApplicationReadyEvent> closedSessionListener(
       final ClosedEventHandlers closedEventHandlers,
-      final WebSocketEventManagerFactory eventManagerFactory) {
+      final ReactiveWebSocketEventManagerFactory eventManagerFactory) {
 
     return event ->
         eventManagerFactory

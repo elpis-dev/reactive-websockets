@@ -8,7 +8,7 @@ import static org.mockito.Mockito.when;
 
 import io.github.elpis.reactive.websockets.config.SessionCloseInfo;
 import io.github.elpis.reactive.websockets.event.annotation.EventSelector;
-import io.github.elpis.reactive.websockets.event.matcher.impl.ClosedSessionEventSelectorMatcher;
+import io.github.elpis.reactive.websockets.event.matcher.impl.ClosedSessionReactiveWebSocketEventSelectorMatcher;
 import io.github.elpis.reactive.websockets.event.model.impl.ClientSessionClosedEvent;
 import io.github.elpis.reactive.websockets.session.ReactiveWebSocketSession;
 import java.util.UUID;
@@ -24,8 +24,8 @@ class ClosedSessionEventSelectorMatcherTest {
 
   @Mock private EventSelector eventSelector;
 
-  private final ClosedSessionEventSelectorMatcher eventSelectorMatcher =
-      new ClosedSessionEventSelectorMatcher();
+  private final ClosedSessionReactiveWebSocketEventSelectorMatcher eventSelectorMatcher =
+      new ClosedSessionReactiveWebSocketEventSelectorMatcher();
 
   @BeforeEach
   public void before() {

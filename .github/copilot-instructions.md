@@ -54,7 +54,6 @@ The project is organized into distinct modules with clear responsibilities:
 | Module | Purpose | Key Packages |
 |--------|---------|--------------|
 | `reactive-websockets-model` | Interfaces, annotations, domain models | `event`, `web.annotation`, `exception` |
-| `reactive-websockets-annotation-processor` | Compile-time code generation (APT) | `processor` |
 | `reactive-websockets-starter` | Core implementation and auto-config | `config`, `event`, `handler`, `session`, `security` |
 | `functional-tests` | Integration tests and examples | `impl.<feature>` |
 | `report-aggregate` | Test coverage reporting | - |
@@ -222,7 +221,6 @@ reactive-websockets (root)
 │       └── testing.instructions.md
 ├── docs/                       # Project documentation
 ├── reactive-websockets-model/  # Interfaces, annotations, models
-├── reactive-websockets-annotation-processor/  # APT code generation
 ├── reactive-websockets-starter/  # Main implementation
 ├── functional-tests/           # Integration tests
 ├── report-aggregate/           # Coverage reports

@@ -5,7 +5,7 @@ import io.github.elpis.reactive.websockets.context.BootStarter;
 import io.github.elpis.reactive.websockets.context.resource.security.SecurityChainResource;
 import io.github.elpis.reactive.websockets.context.security.model.SecurityProfiles;
 import io.github.elpis.reactive.websockets.context.security.model.TestPrincipal;
-import io.github.elpis.reactive.websockets.security.SocketHandshakeService;
+import io.github.elpis.reactive.websockets.security.ReactiveWebSocketHandshakeService;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -65,8 +65,8 @@ class JustPrincipalTest extends BaseWebSocketTest {
     }
 
     @Bean
-    SocketHandshakeService socketHandshakeService() {
-      return SocketHandshakeService.builder()
+    ReactiveWebSocketHandshakeService socketHandshakeService() {
+      return ReactiveWebSocketHandshakeService.builder()
           .handshake(
               (exchange, chain) ->
                   chain.filter(exchange.mutate().principal(Mono.just(new TestPrincipal())).build()))

@@ -9,7 +9,6 @@ import reactor.core.publisher.Mono;
 
 public class ReactiveWebSocketSession {
   private final String sessionId;
-
   private final BooleanSupplier isOpen;
   private final BiFunction<String, CloseStatus, Mono<Void>> onClose;
 

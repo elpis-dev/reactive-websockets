@@ -2,8 +2,8 @@ package io.github.elpis.reactive.websockets.template;
 
 import io.github.elpis.reactive.websockets.exception.ErrorResponseException;
 import io.github.elpis.reactive.websockets.exception.SessionNotFoundException;
+import io.github.elpis.reactive.websockets.session.ReactiveWebSocketSessionRegistry;
 import io.github.elpis.reactive.websockets.session.SessionStreams;
-import io.github.elpis.reactive.websockets.session.WebSocketSessionRegistry;
 import java.util.Collection;
 import java.util.Set;
 import org.reactivestreams.Publisher;
@@ -55,11 +55,11 @@ import reactor.core.publisher.Sinks;
 public class ReactiveWebSocketTemplate {
   private static final Logger log = LoggerFactory.getLogger(ReactiveWebSocketTemplate.class);
 
-  private final WebSocketSessionRegistry registry;
+  private final ReactiveWebSocketSessionRegistry registry;
   private final int broadcastConcurrency;
 
   public ReactiveWebSocketTemplate(
-      final WebSocketSessionRegistry registry, final int broadcastConcurrency) {
+      final ReactiveWebSocketSessionRegistry registry, final int broadcastConcurrency) {
     this.registry = registry;
     this.broadcastConcurrency = broadcastConcurrency;
   }
@@ -76,19 +76,23 @@ public class ReactiveWebSocketTemplate {
     return Mono.fromRunnable(
         () -> {
           final Collection<SessionStreams> sessions = registry.getAllSessions(path);
+          sessions.forEach(
+              streams -> {
+                final Sinks.EmitResult result = streams.outboundSink().tryEmitNext(payload);
+                if (result.isFailure()) {
+                  if (log.isWarnEnabled()) {
+                    log.warn(
+                        "Failed to broadcast to session {} on path {}: {}",
+                        streams.metadata().getSessionId(),
+                        path,
+                        result);
+                  }
+                }
+              });
 
-          for (SessionStreams streams : sessions) {
-            final Sinks.EmitResult result = streams.outboundSink().tryEmitNext(payload);
-            if (result.isFailure()) {
-              log.warn(
-                  "Failed to broadcast to session {} on path {}: {}",
-                  streams.metadata().getSessionId(),
-                  path,
-                  result);
-            }
+          if (log.isDebugEnabled()) {
+            log.debug("Broadcast completed to {} sessions on path {}", sessions.size(), path);
           }
-
-          log.debug("Broadcast completed to {} sessions on path {}", sessions.size(), path);
         });
   }
 
@@ -128,7 +132,9 @@ public class ReactiveWebSocketTemplate {
 
           final Sinks.EmitResult result = streams.outboundSink().tryEmitNext(payload);
           if (result.isFailure()) {
-            log.warn("Failed to send message to session {}: {}", sessionId, result);
+            if (log.isWarnEnabled()) {
+              log.warn("Failed to send message to session {}: {}", sessionId, result);
+            }
           }
         });
   }
@@ -165,7 +171,9 @@ public class ReactiveWebSocketTemplate {
                     .onErrorResume(
                         SessionNotFoundException.class,
                         e -> {
-                          log.debug("Skipping non-existent session: {}", sessionId);
+                          if (log.isDebugEnabled()) {
+                            log.debug("Skipping non-existent session: {}", sessionId);
+                          }
                           return Mono.empty();
                         }))
         .then();
@@ -212,7 +220,9 @@ public class ReactiveWebSocketTemplate {
           final Sinks.EmitResult result =
               streams.outboundSink().tryEmitError(new ErrorResponseException(errorPayload));
           if (result.isFailure()) {
-            log.warn("Failed to send error to session {}: {}", sessionId, result);
+            if (log.isWarnEnabled()) {
+              log.warn("Failed to send error to session {}: {}", sessionId, result);
+            }
           }
         });
   }
@@ -229,17 +239,20 @@ public class ReactiveWebSocketTemplate {
     return Mono.fromRunnable(
         () -> {
           final Collection<SessionStreams> sessions = registry.getAllSessions(path);
-          for (SessionStreams streams : sessions) {
-            final Sinks.EmitResult result =
-                streams.outboundSink().tryEmitError(new ErrorResponseException(errorPayload));
-            if (result.isFailure()) {
-              log.warn(
-                  "Failed to broadcast error to session {} on path {}: {}",
-                  streams.metadata().getSessionId(),
-                  path,
-                  result);
-            }
-          }
+          sessions.forEach(
+              streams -> {
+                final Sinks.EmitResult result =
+                    streams.outboundSink().tryEmitError(new ErrorResponseException(errorPayload));
+                if (result.isFailure()) {
+                  if (log.isWarnEnabled()) {
+                    log.warn(
+                        "Failed to broadcast error to session {} on path {}: {}",
+                        streams.metadata().getSessionId(),
+                        path,
+                        result);
+                  }
+                }
+              });
         });
   }
 }

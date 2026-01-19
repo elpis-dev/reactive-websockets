@@ -1,6 +1,6 @@
 package io.github.elpis.reactive.websockets.context.controller;
 
-import io.github.elpis.reactive.websockets.session.WebSocketSessionRegistry;
+import io.github.elpis.reactive.websockets.session.ReactiveWebSocketSessionRegistry;
 import io.github.elpis.reactive.websockets.template.ReactiveWebSocketTemplate;
 import java.util.List;
 import java.util.Set;
@@ -22,10 +22,10 @@ public class SessionController {
           "Update: New features have been added to your dashboard.");
 
   private final ReactiveWebSocketTemplate template;
-  private final WebSocketSessionRegistry sessionRegistry;
+  private final ReactiveWebSocketSessionRegistry sessionRegistry;
 
   public SessionController(
-      ReactiveWebSocketTemplate template, WebSocketSessionRegistry sessionRegistry) {
+      ReactiveWebSocketTemplate template, ReactiveWebSocketSessionRegistry sessionRegistry) {
 
     this.template = template;
     this.sessionRegistry = sessionRegistry;

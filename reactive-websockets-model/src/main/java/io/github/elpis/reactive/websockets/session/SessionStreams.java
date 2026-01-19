@@ -37,7 +37,7 @@ public record SessionStreams(
    * @param session the reactive WebSocket session metadata
    * @return new SessionStreams instance
    */
-  public static SessionStreams create(ReactiveWebSocketSession session) {
+  public static SessionStreams create(final ReactiveWebSocketSession session) {
     Sinks.Many<WebSocketMessage> inbound =
         Sinks.many().multicast().onBackpressureBuffer(256, false);
 

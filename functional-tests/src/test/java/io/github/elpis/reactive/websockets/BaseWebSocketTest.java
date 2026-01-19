@@ -1,6 +1,6 @@
 package io.github.elpis.reactive.websockets;
 
-import io.github.elpis.reactive.websockets.security.SocketHandshakeService;
+import io.github.elpis.reactive.websockets.security.ReactiveWebSocketHandshakeService;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.Duration;
@@ -101,8 +101,9 @@ public abstract class BaseWebSocketTest {
     }
 
     @Bean
-    public SocketHandshakeService socketHandshakeService() {
-      return SocketHandshakeService.builder().build(new ReactorNettyRequestUpgradeStrategy());
+    public ReactiveWebSocketHandshakeService socketHandshakeService() {
+      return ReactiveWebSocketHandshakeService.builder()
+          .build(new ReactorNettyRequestUpgradeStrategy());
     }
   }
 }

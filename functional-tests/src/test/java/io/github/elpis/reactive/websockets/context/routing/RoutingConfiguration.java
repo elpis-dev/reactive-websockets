@@ -1,8 +1,8 @@
 package io.github.elpis.reactive.websockets.context.routing;
 
-import static io.github.elpis.reactive.websockets.handler.route.WebSocketHandlerFunctions.handle;
+import static io.github.elpis.reactive.websockets.handler.route.ReactiveWebSocketHandlerFunctions.handle;
 
-import io.github.elpis.reactive.websockets.handler.route.WebSocketHandlerFunction;
+import io.github.elpis.reactive.websockets.handler.route.ReactiveWebSocketHandlerFunction;
 import io.github.elpis.reactive.websockets.util.MessageUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,8 +16,8 @@ public class RoutingConfiguration {
   private static final Logger log = LoggerFactory.getLogger(RoutingConfiguration.class);
 
   @Bean
-  public WebSocketHandlerFunction handlerFunction() {
-    final WebSocketHandlerFunction publish =
+  public ReactiveWebSocketHandlerFunction handlerFunction() {
+    final ReactiveWebSocketHandlerFunction publish =
         handle(
                 "/routing/publish",
                 (context, messages) -> {
@@ -31,7 +31,7 @@ public class RoutingConfiguration {
                   log.info("Connected with header {}", header);
                 });
 
-    final WebSocketHandlerFunction listen =
+    final ReactiveWebSocketHandlerFunction listen =
         handle(
                 "/routing/listen",
                 (context, messages) -> {

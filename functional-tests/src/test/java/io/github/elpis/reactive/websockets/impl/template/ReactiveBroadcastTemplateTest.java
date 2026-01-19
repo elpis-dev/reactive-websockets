@@ -80,7 +80,7 @@ class ReactiveBroadcastTemplateTest extends BaseWebSocketTest {
                     .then())
         .subscribe();
 
-    assertThat(latch.await(DEFAULT_FAST_TEST_FALLBACK.getSeconds(), TimeUnit.SECONDS)).isTrue();
+    assertThat(latch.await(DEFAULT_GENERIC_TEST_FALLBACK.getSeconds(), TimeUnit.SECONDS)).isTrue();
 
     this.getWebClient()
         .post()
@@ -132,7 +132,7 @@ class ReactiveBroadcastTemplateTest extends BaseWebSocketTest {
                     .then())
         .subscribe();
 
-    assertThat(latch.await(DEFAULT_FAST_TEST_FALLBACK.getSeconds(), TimeUnit.SECONDS)).isTrue();
+    assertThat(latch.await(DEFAULT_GENERIC_TEST_FALLBACK.getSeconds(), TimeUnit.SECONDS)).isTrue();
 
     this.getWebClient()
         .post()

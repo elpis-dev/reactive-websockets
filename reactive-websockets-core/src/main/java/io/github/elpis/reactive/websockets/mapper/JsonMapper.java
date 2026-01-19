@@ -3,6 +3,7 @@ package io.github.elpis.reactive.websockets.mapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.RuntimeJsonMappingException;
+import io.github.elpis.reactive.websockets.util.TypeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Flux;
@@ -34,7 +35,9 @@ public final class JsonMapper {
           ? (String) object
           : objectMapper.writeValueAsString(object);
     } catch (JsonProcessingException e) {
-      log.warn("Failed to serialize object to JSON", e);
+      if (log.isWarnEnabled()) {
+        log.warn("Failed to serialize object to JSON", e);
+      }
       throw new RuntimeJsonMappingException(
           "Unable to translate " + object.getClass() + " instance to String.class");
     }
@@ -52,7 +55,9 @@ public final class JsonMapper {
           ? (String) object
           : objectMapper.writeValueAsString(object);
     } catch (JsonProcessingException e) {
-      log.debug("Failed to serialize object to JSON. Applying fallback value", e);
+      if (log.isDebugEnabled()) {
+        log.debug("Failed to serialize object to JSON. Applying fallback value", e);
+      }
       return defaultValue;
     }
   }
@@ -73,7 +78,9 @@ public final class JsonMapper {
 
       return Mono.just(value);
     } catch (JsonProcessingException e) {
-      log.warn("Failed to serialize object to JSON", e);
+      if (log.isWarnEnabled()) {
+        log.warn("Failed to serialize object to JSON", e);
+      }
       return Mono.empty();
     }
   }
@@ -94,7 +101,9 @@ public final class JsonMapper {
 
       return Flux.just(value);
     } catch (JsonProcessingException e) {
-      log.warn("Failed to serialize object to JSON", e);
+      if (log.isWarnEnabled()) {
+        log.warn("Failed to serialize object to JSON", e);
+      }
       return Flux.empty();
     }
   }
@@ -110,13 +119,28 @@ public final class JsonMapper {
    * @throws RuntimeJsonMappingException if deserialization fails
    * @since 1.0.0
    */
-  public static <T> T deserialize(final String json, final Class<T> clazz) {
+  private static <T> T deserializeInternal(final String json, final Class<T> clazz) {
     try {
-      return String.class.equals(clazz) ? clazz.cast(json) : objectMapper.readValue(json, clazz);
+      return objectMapper.readValue(json, clazz);
     } catch (JsonProcessingException e) {
-      log.warn("Failed to deserialize the json value", e);
+      if (log.isWarnEnabled()) {
+        log.warn("Failed to deserialize the json value", e);
+      }
       throw new RuntimeJsonMappingException(
           "Unable to deserialize JSON to " + clazz.getSimpleName() + ": " + e.getMessage());
+    }
+  }
+
+  public static <T> T deserialize(final String value, final Class<T> targetClass) {
+    try {
+      if (TypeUtils.isSimpleType(targetClass)) {
+        return TypeUtils.convert(value, targetClass);
+      } else {
+        return JsonMapper.deserializeInternal(value, targetClass);
+      }
+    } catch (Exception e) {
+      throw new RuntimeJsonMappingException(
+          "Failed to deserialize to type %s: %s".formatted(targetClass.getName(), e.getMessage()));
     }
   }
 
@@ -137,7 +161,9 @@ public final class JsonMapper {
           String.class.equals(clazz) ? clazz.cast(json) : objectMapper.readValue(json, clazz);
       return Mono.just(value);
     } catch (JsonProcessingException e) {
-      log.warn("Failed to deserialize the json value", e);
+      if (log.isWarnEnabled()) {
+        log.warn("Failed to deserialize the json value", e);
+      }
       return Mono.error(
           new RuntimeJsonMappingException(
               "Unable to deserialize JSON to " + clazz.getSimpleName() + ": " + e.getMessage()));
@@ -161,7 +187,9 @@ public final class JsonMapper {
           String.class.equals(clazz) ? clazz.cast(json) : objectMapper.readValue(json, clazz);
       return Flux.just(value);
     } catch (JsonProcessingException e) {
-      log.warn("Failed to deserialize the json value", e);
+      if (log.isWarnEnabled()) {
+        log.warn("Failed to deserialize the json value", e);
+      }
       return Flux.error(
           new RuntimeJsonMappingException(
               "Unable to deserialize JSON to " + clazz.getSimpleName() + ": " + e.getMessage()));

@@ -1,0 +1,213 @@
+{
+  "groups": [
+    {
+      "name": "spring.webflux.reactive.websockets.flow-control",
+      "type": "io.github.elpis.reactive.websockets.config.flowcontrol.ReactiveWebSocketFlowControlProperties",
+      "description": "Configuration for WebSocket flow control mechanisms including backpressure, rate limiting, and heartbeat."
+    },
+    {
+      "name": "spring.webflux.reactive.websockets.flow-control.backpressure",
+      "type": "io.github.elpis.reactive.websockets.config.flowcontrol.ReactiveWebSocketFlowControlProperties$BackpressureProperties",
+      "sourceType": "io.github.elpis.reactive.websockets.config.flowcontrol.ReactiveWebSocketFlowControlProperties",
+      "description": "Configuration for WebSocket backpressure handling to manage message overflow scenarios."
+    },
+    {
+      "name": "spring.webflux.reactive.websockets.flow-control.backpressure.default-config",
+      "type": "io.github.elpis.reactive.websockets.config.flowcontrol.ReactiveWebSocketFlowControlProperties$BackpressurePathConfig",
+      "sourceType": "io.github.elpis.reactive.websockets.config.flowcontrol.ReactiveWebSocketFlowControlProperties$BackpressureProperties",
+      "description": "Default backpressure configuration applied to all WebSocket paths unless overridden."
+    },
+    {
+      "name": "spring.webflux.reactive.websockets.flow-control.rate-limit",
+      "type": "io.github.elpis.reactive.websockets.config.flowcontrol.ReactiveWebSocketFlowControlProperties$RateLimitProperties",
+      "sourceType": "io.github.elpis.reactive.websockets.config.flowcontrol.ReactiveWebSocketFlowControlProperties",
+      "description": "Configuration for WebSocket rate limiting to prevent abuse and ensure fair resource usage."
+    },
+    {
+      "name": "spring.webflux.reactive.websockets.flow-control.rate-limit.default-config",
+      "type": "io.github.elpis.reactive.websockets.config.flowcontrol.ReactiveWebSocketFlowControlProperties$RateLimitPathConfig",
+      "sourceType": "io.github.elpis.reactive.websockets.config.flowcontrol.ReactiveWebSocketFlowControlProperties$RateLimitProperties",
+      "description": "Default rate limit configuration applied to all WebSocket paths unless overridden."
+    },
+    {
+      "name": "spring.webflux.reactive.websockets.flow-control.heartbeat",
+      "type": "io.github.elpis.reactive.websockets.config.flowcontrol.ReactiveWebSocketFlowControlProperties$HeartbeatProperties",
+      "sourceType": "io.github.elpis.reactive.websockets.config.flowcontrol.ReactiveWebSocketFlowControlProperties",
+      "description": "Configuration for WebSocket heartbeat (ping/pong) to detect connection health and timeout inactive connections."
+    },
+    {
+      "name": "spring.webflux.reactive.websockets.flow-control.heartbeat.default-config",
+      "type": "io.github.elpis.reactive.websockets.config.flowcontrol.ReactiveWebSocketFlowControlProperties$HeartbeatPathConfig",
+      "sourceType": "io.github.elpis.reactive.websockets.config.flowcontrol.ReactiveWebSocketFlowControlProperties$HeartbeatProperties",
+      "description": "Default heartbeat configuration applied to all WebSocket paths unless overridden."
+    }
+  ],
+  "properties": [
+    {
+      "name": "spring.webflux.reactive.websockets.flow-control.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enable or disable all flow control mechanisms globally.",
+      "defaultValue": true
+    },
+    {
+      "name": "spring.webflux.reactive.websockets.flow-control.backpressure.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enable or disable backpressure flow control.",
+      "defaultValue": true
+    },
+    {
+      "name": "spring.webflux.reactive.websockets.flow-control.backpressure.default-config.strategy",
+      "type": "io.github.elpis.reactive.websockets.web.annotation.Backpressure$BackpressureStrategy",
+      "description": "Backpressure strategy to apply when buffer is full. BUFFER: Buffer messages up to bufferSize. DROP_OLDEST: Drop oldest messages when full. DROP_LATEST: Drop newest messages when full. ERROR: Emit error when full.",
+      "defaultValue": "BUFFER"
+    },
+    {
+      "name": "spring.webflux.reactive.websockets.flow-control.backpressure.default-config.buffer-size",
+      "type": "java.lang.Integer",
+      "description": "Maximum number of messages to buffer when using BUFFER strategy.",
+      "defaultValue": 256
+    },
+    {
+      "name": "spring.webflux.reactive.websockets.flow-control.backpressure.paths",
+      "type": "java.util.Map<java.lang.String,io.github.elpis.reactive.websockets.config.flowcontrol.ReactiveWebSocketFlowControlProperties.BackpressurePathConfig>",
+      "description": "Path-specific backpressure configurations. Keys should be WebSocket endpoint paths (e.g., '/ws/chat')."
+    },
+    {
+      "name": "spring.webflux.reactive.websockets.flow-control.rate-limit.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enable or disable rate limiting flow control.",
+      "defaultValue": true
+    },
+    {
+      "name": "spring.webflux.reactive.websockets.flow-control.rate-limit.default-config.limit-for-period",
+      "type": "java.lang.Integer",
+      "description": "Maximum number of messages allowed within the refresh period.",
+      "defaultValue": 10
+    },
+    {
+      "name": "spring.webflux.reactive.websockets.flow-control.rate-limit.default-config.limit-refresh-period",
+      "type": "java.lang.Long",
+      "description": "Duration of the rate limit period in the specified time unit.",
+      "defaultValue": 1
+    },
+    {
+      "name": "spring.webflux.reactive.websockets.flow-control.rate-limit.default-config.time-unit",
+      "type": "java.util.concurrent.TimeUnit",
+      "description": "Time unit for the limit refresh period (NANOSECONDS, MICROSECONDS, MILLISECONDS, SECONDS, MINUTES, HOURS, DAYS).",
+      "defaultValue": "SECONDS"
+    },
+    {
+      "name": "spring.webflux.reactive.websockets.flow-control.rate-limit.default-config.timeout",
+      "type": "java.lang.Long",
+      "description": "Maximum time in milliseconds to wait for permission when rate limit is reached.",
+      "defaultValue": 25
+    },
+    {
+      "name": "spring.webflux.reactive.websockets.flow-control.rate-limit.default-config.scope",
+      "type": "io.github.elpis.reactive.websockets.web.annotation.RateLimit$RateLimitScope",
+      "description": "Scope of rate limiting. SESSION: Per WebSocket session. USER: Per authenticated user. IP: Per IP address.",
+      "defaultValue": "SESSION"
+    },
+    {
+      "name": "spring.webflux.reactive.websockets.flow-control.rate-limit.paths",
+      "type": "java.util.Map<java.lang.String,io.github.elpis.reactive.websockets.config.flowcontrol.ReactiveWebSocketFlowControlProperties.RateLimitPathConfig>",
+      "description": "Path-specific rate limit configurations. Keys should be WebSocket endpoint paths (e.g., '/ws/api')."
+    },
+    {
+      "name": "spring.webflux.reactive.websockets.flow-control.heartbeat.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enable or disable heartbeat (ping/pong) flow control.",
+      "defaultValue": true
+    },
+    {
+      "name": "spring.webflux.reactive.websockets.flow-control.heartbeat.default-config.interval",
+      "type": "java.lang.Long",
+      "description": "Interval in seconds between heartbeat ping messages.",
+      "defaultValue": 30
+    },
+    {
+      "name": "spring.webflux.reactive.websockets.flow-control.heartbeat.default-config.timeout",
+      "type": "java.lang.Long",
+      "description": "Timeout in seconds to wait for pong response before considering connection dead.",
+      "defaultValue": 60
+    },
+    {
+      "name": "spring.webflux.reactive.websockets.flow-control.heartbeat.paths",
+      "type": "java.util.Map<java.lang.String,io.github.elpis.reactive.websockets.config.flowcontrol.ReactiveWebSocketFlowControlProperties.HeartbeatPathConfig>",
+      "description": "Path-specific heartbeat configurations. Keys should be WebSocket endpoint paths (e.g., '/ws/realtime')."
+    }
+  ],
+  "hints": [
+    {
+      "name": "spring.webflux.reactive.websockets.flow-control.backpressure.default-config.strategy",
+      "values": [
+        {
+          "value": "BUFFER",
+          "description": "Buffer messages up to the specified buffer size."
+        },
+        {
+          "value": "DROP_OLDEST",
+          "description": "Drop the oldest messages when buffer is full."
+        },
+        {
+          "value": "DROP_LATEST",
+          "description": "Drop the newest messages when buffer is full."
+        },
+        {
+          "value": "ERROR",
+          "description": "Emit an error when buffer is full."
+        }
+      ]
+    },
+    {
+      "name": "spring.webflux.reactive.websockets.flow-control.rate-limit.default-config.time-unit",
+      "values": [
+        {
+          "value": "NANOSECONDS",
+          "description": "Time unit in nanoseconds."
+        },
+        {
+          "value": "MICROSECONDS",
+          "description": "Time unit in microseconds."
+        },
+        {
+          "value": "MILLISECONDS",
+          "description": "Time unit in milliseconds."
+        },
+        {
+          "value": "SECONDS",
+          "description": "Time unit in seconds."
+        },
+        {
+          "value": "MINUTES",
+          "description": "Time unit in minutes."
+        },
+        {
+          "value": "HOURS",
+          "description": "Time unit in hours."
+        },
+        {
+          "value": "DAYS",
+          "description": "Time unit in days."
+        }
+      ]
+    },
+    {
+      "name": "spring.webflux.reactive.websockets.flow-control.rate-limit.default-config.scope",
+      "values": [
+        {
+          "value": "SESSION",
+          "description": "Rate limit per WebSocket session (default)."
+        },
+        {
+          "value": "USER",
+          "description": "Rate limit per authenticated user across all sessions."
+        },
+        {
+          "value": "IP",
+          "description": "Rate limit per IP address."
+        }
+      ]
+    }
+  ]
+}

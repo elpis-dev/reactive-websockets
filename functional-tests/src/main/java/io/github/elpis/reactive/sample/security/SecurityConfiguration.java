@@ -1,6 +1,6 @@
 package io.github.elpis.reactive.sample.security;
 
-import io.github.elpis.reactive.websockets.security.SocketHandshakeService;
+import io.github.elpis.reactive.websockets.security.ReactiveWebSocketHandshakeService;
 import io.github.elpis.reactive.websockets.security.principal.Anonymous;
 import java.util.List;
 import org.springframework.context.annotation.Bean;
@@ -31,8 +31,8 @@ public class SecurityConfiguration {
   }
 
   @Bean
-  public SocketHandshakeService socketHandshakeService() {
-    return SocketHandshakeService.builder()
+  public ReactiveWebSocketHandshakeService socketHandshakeService() {
+    return ReactiveWebSocketHandshakeService.builder()
         .handshake(anonymousFilter()::filter)
         .build(new ReactorNettyRequestUpgradeStrategy());
   }

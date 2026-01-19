@@ -4,7 +4,7 @@ import io.github.elpis.reactive.websockets.BaseWebSocketTest;
 import io.github.elpis.reactive.websockets.context.BootStarter;
 import io.github.elpis.reactive.websockets.context.resource.security.SecurityChainResource;
 import io.github.elpis.reactive.websockets.context.security.model.SecurityProfiles;
-import io.github.elpis.reactive.websockets.security.SocketHandshakeService;
+import io.github.elpis.reactive.websockets.security.ReactiveWebSocketHandshakeService;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -59,8 +59,8 @@ class AnonymousFallbackAuthenticationFilterTest extends BaseWebSocketTest {
   public static class AnonymousFallbackTestSecurityConfiguration {
 
     @Bean
-    public SocketHandshakeService socketHandshakeService() {
-      return SocketHandshakeService.builder()
+    public ReactiveWebSocketHandshakeService socketHandshakeService() {
+      return ReactiveWebSocketHandshakeService.builder()
           .handshake(
               (serverWebExchange, webFilterChain) -> webFilterChain.filter(serverWebExchange))
           .fallbackToAnonymous(true)

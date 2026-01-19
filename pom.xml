@@ -48,7 +48,7 @@
         <maven.source.version>3.4.0</maven.source.version>
         <maven.javadoc.version>3.12.0</maven.javadoc.version>
         <maven.gpg.version>3.2.8</maven.gpg.version>
-        <maven.flatten.version>1.6.0</maven.flatten.version>
+        <maven.flatten.version>1.7.3</maven.flatten.version>
         <maven.spotless.version>3.1.0</maven.spotless.version>
 
         <central.publishing.plugin.version>0.9.0</central.publishing.plugin.version>
@@ -60,7 +60,7 @@
 
         <spring.boot.version>3.5.8</spring.boot.version>
 
-        <log4j2.version>2.25.2</log4j2.version>
+        <log4j2.version>2.25.3</log4j2.version>
 
         <reactive-websockets.version>1.0.0-alpha</reactive-websockets.version>
 
@@ -69,7 +69,6 @@
 
     <modules>
         <module>reactive-websockets-model</module>
-        <module>reactive-websockets-annotation-processor</module>
         <module>reactive-websockets-starter</module>
         <module>functional-tests</module>
         <module>report-aggregate</module>

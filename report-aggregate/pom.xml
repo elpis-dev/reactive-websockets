@@ -51,6 +51,12 @@
 
         <dependency>
             <groupId>io.github.elpis-dev</groupId>
+            <artifactId>reactive-websockets-core</artifactId>
+            <version>${reactive-websockets.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.github.elpis-dev</groupId>
             <artifactId>functional-tests</artifactId>
             <version>${reactive-websockets.version}</version>
         </dependency>
