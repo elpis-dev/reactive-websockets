@@ -1,5 +1,15 @@
 package io.github.elpis.reactive.websockets.config.flowcontrol;
 
+import static io.github.elpis.reactive.websockets.Constants.DEFAULT_BACKPRESSURE_BUFFER_CAPACITY;
+import static io.github.elpis.reactive.websockets.Constants.DEFAULT_BACKPRESSURE_STRATEGY;
+import static io.github.elpis.reactive.websockets.Constants.DEFAULT_HEARTBEAT_INTERVAL;
+import static io.github.elpis.reactive.websockets.Constants.DEFAULT_HEARTBEAT_TIMEOUT;
+import static io.github.elpis.reactive.websockets.Constants.DEFAULT_RATE_LIMIT_FOR_PERIOD;
+import static io.github.elpis.reactive.websockets.Constants.DEFAULT_RATE_LIMIT_REFRESH_PERIOD;
+import static io.github.elpis.reactive.websockets.Constants.DEFAULT_RATE_LIMIT_SCOPE;
+import static io.github.elpis.reactive.websockets.Constants.DEFAULT_RATE_LIMIT_TIMEOUT;
+import static io.github.elpis.reactive.websockets.Constants.DEFAULT_RATE_LIMIT_TIME_UNIT;
+
 import io.github.elpis.reactive.websockets.web.annotation.Backpressure;
 import io.github.elpis.reactive.websockets.web.annotation.RateLimit;
 import java.util.HashMap;
@@ -68,9 +78,8 @@ public final class ReactiveWebSocketFlowControlProperties {
   }
 
   public static final class BackpressurePathConfig {
-    // TODO: Extract to constants
-    private Backpressure.BackpressureStrategy strategy = Backpressure.BackpressureStrategy.BUFFER;
-    private int bufferSize = 256;
+    private Backpressure.BackpressureStrategy strategy = DEFAULT_BACKPRESSURE_STRATEGY;
+    private int bufferSize = DEFAULT_BACKPRESSURE_BUFFER_CAPACITY;
 
     public Backpressure.BackpressureStrategy getStrategy() {
       return strategy;
@@ -120,12 +129,11 @@ public final class ReactiveWebSocketFlowControlProperties {
   }
 
   public static final class RateLimitPathConfig {
-    // TODO: Extract to constants
-    private int limitForPeriod = 10;
-    private long limitRefreshPeriod = 1L;
-    private TimeUnit timeUnit = TimeUnit.SECONDS;
-    private long timeout = 25L;
-    private RateLimit.RateLimitScope scope = RateLimit.RateLimitScope.SESSION;
+    private int limitForPeriod = DEFAULT_RATE_LIMIT_FOR_PERIOD;
+    private long limitRefreshPeriod = DEFAULT_RATE_LIMIT_REFRESH_PERIOD;
+    private TimeUnit timeUnit = DEFAULT_RATE_LIMIT_TIME_UNIT;
+    private long timeout = DEFAULT_RATE_LIMIT_TIMEOUT;
+    private RateLimit.RateLimitScope scope = DEFAULT_RATE_LIMIT_SCOPE;
 
     public int getLimitForPeriod() {
       return limitForPeriod;
@@ -199,9 +207,8 @@ public final class ReactiveWebSocketFlowControlProperties {
   }
 
   public static final class HeartbeatPathConfig {
-    // TODO: Extract to constants
-    private long interval = 30L;
-    private long timeout = 60L;
+    private long interval = DEFAULT_HEARTBEAT_INTERVAL;
+    private long timeout = DEFAULT_HEARTBEAT_TIMEOUT;
 
     public long getInterval() {
       return interval;

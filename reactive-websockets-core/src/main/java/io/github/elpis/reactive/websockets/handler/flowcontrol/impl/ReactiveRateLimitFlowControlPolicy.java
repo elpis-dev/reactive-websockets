@@ -82,13 +82,13 @@ public class ReactiveRateLimitFlowControlPolicy implements FlowControlPolicy {
     return switch (scope) {
       case USER -> {
         final Object principal = context.getPrincipal("", false, Object.class);
-        yield principal != null ? principal.toString() : context.getSessionId();
+        yield principal != null ? principal.toString() : context.sessionId();
       }
       case IP -> {
-        final String remoteAddress = context.getRemoteAddress();
-        yield remoteAddress != null ? remoteAddress : context.getSessionId();
+        final String remoteAddress = context.remoteAddress();
+        yield remoteAddress != null ? remoteAddress : context.sessionId();
       }
-      default -> context.getSessionId();
+      default -> context.sessionId();
     };
   }
 

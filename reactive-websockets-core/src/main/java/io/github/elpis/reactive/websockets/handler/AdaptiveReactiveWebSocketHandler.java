@@ -7,6 +7,7 @@ import io.github.elpis.reactive.websockets.exception.ErrorResponseException;
 import io.github.elpis.reactive.websockets.flowcontrol.config.HeartbeatConfig;
 import io.github.elpis.reactive.websockets.handler.flowcontrol.ReactiveFlowControlChain;
 import io.github.elpis.reactive.websockets.handler.flowcontrol.registry.ReactiveHeartbeatFlowControlRegistry;
+import io.github.elpis.reactive.websockets.mapper.JsonMapper;
 import io.github.elpis.reactive.websockets.session.ReactiveWebSocketSessionRegistry;
 import io.github.elpis.reactive.websockets.session.SessionStreams;
 import io.github.elpis.reactive.websockets.session.WebSocketSessionContext;
@@ -64,11 +65,12 @@ public abstract class AdaptiveReactiveWebSocketHandler extends BaseReactiveWebSo
   protected AdaptiveReactiveWebSocketHandler(
       final ReactiveWebSocketEventManagerFactory eventManagerFactory,
       final ReactiveWebSocketSessionRegistry sessionRegistry,
+      final JsonMapper jsonMapper,
       final String pathTemplate,
       final ReactiveHeartbeatFlowControlRegistry reactiveHeartbeatFlowControlRegistry,
       final ReactiveFlowControlChain reactiveFlowControlChain) {
 
-    super(eventManagerFactory, sessionRegistry, pathTemplate);
+    super(eventManagerFactory, sessionRegistry, jsonMapper, pathTemplate);
     this.reactiveHeartbeatFlowControlRegistry = reactiveHeartbeatFlowControlRegistry;
     this.reactiveFlowControlChain = reactiveFlowControlChain;
   }
@@ -88,14 +90,12 @@ public abstract class AdaptiveReactiveWebSocketHandler extends BaseReactiveWebSo
    * @param webSocketSessionContext the session context with path/query params
    * @return Mono&lt;Void&gt; that completes when session closes
    */
-  // TODO: Compare with BaseWebSocketHandler.buildChain to ensure all features are correctly
-  // integrated and no duplication occurs.
   @Override
   protected Mono<Void> buildChain(
       final WebSocketSession session,
       final WebSocketSessionContext webSocketSessionContext,
       final SessionStreams streams) {
-    final String sessionId = webSocketSessionContext.getSessionId();
+    final String sessionId = webSocketSessionContext.sessionId();
     final String path = this.getPathTemplate();
 
     if (log.isDebugEnabled()) {

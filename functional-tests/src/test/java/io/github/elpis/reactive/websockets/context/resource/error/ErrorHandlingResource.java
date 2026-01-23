@@ -2,6 +2,7 @@ package io.github.elpis.reactive.websockets.context.resource.error;
 
 import io.github.elpis.reactive.websockets.web.annotation.MessageEndpoint;
 import io.github.elpis.reactive.websockets.web.annotation.OnMessage;
+import java.io.IOException;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,8 +69,7 @@ public class ErrorHandlingResource {
         .flatMap(
             msg -> {
               if (msg.contains("trigger-io")) {
-                return Flux.error(
-                    new RuntimeException(new java.io.IOException("IO error triggered: " + msg)));
+                return Flux.error(new IOException("IO error triggered: " + msg));
               }
               return Mono.just("Processed: " + msg);
             });
@@ -88,7 +88,7 @@ public class ErrorHandlingResource {
    * handler.
    */
   @ExceptionHandler
-  public Mono<Map<String, Object>> handleLocalIllegalState(IllegalStateException ex) {
+  public Mono<Map<String, Object>> handleLocalIllegalState(final IllegalStateException ex) {
     log.warn("Handling IllegalStateException locally: {}", ex.getMessage());
     return Mono.just(
         Map.of(

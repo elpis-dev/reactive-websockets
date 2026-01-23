@@ -1,5 +1,6 @@
 package io.github.elpis.reactive.websockets.session;
 
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.reactive.socket.WebSocketMessage;
@@ -27,9 +28,17 @@ import reactor.core.publisher.Sinks;
 public record SessionStreams(
     Sinks.Many<WebSocketMessage> inboundSink,
     Sinks.Many<Object> outboundSink,
-    ReactiveWebSocketSession metadata) {
+    ReactiveWebSocketSession metadata,
+    AtomicBoolean closed) {
 
   private static final Logger log = LoggerFactory.getLogger(SessionStreams.class);
+
+  public SessionStreams(
+      final Sinks.Many<WebSocketMessage> inboundSink,
+      final Sinks.Many<Object> outboundSink,
+      final ReactiveWebSocketSession metadata) {
+    this(inboundSink, outboundSink, metadata, new AtomicBoolean(false));
+  }
 
   /**
    * Factory method to create SessionStreams with proper Sink configuration.
@@ -80,20 +89,35 @@ public record SessionStreams(
    * logged at WARN level, while successful closures are logged at DEBUG level.
    */
   public void close() {
+    if (!closed.compareAndSet(false, true)) {
+      if (log.isTraceEnabled()) {
+        log.debug("Session {} already closed", metadata.getSessionId());
+      }
+      return;
+    }
+
     final String sessionId = metadata.getSessionId();
 
     final Sinks.EmitResult inboundResult = inboundSink.tryEmitComplete();
     if (inboundResult.isFailure()) {
-      log.warn("Failed to close inbound sink for session {}: {}", sessionId, inboundResult);
+      if (log.isWarnEnabled()) {
+        log.warn("Failed to close inbound sink for session {}: {}", sessionId, inboundResult);
+      }
     } else {
-      log.debug("Successfully closed inbound sink for session {}", sessionId);
+      if (log.isDebugEnabled()) {
+        log.debug("Successfully closed inbound sink for session {}", sessionId);
+      }
     }
 
     final Sinks.EmitResult outboundResult = outboundSink.tryEmitComplete();
     if (outboundResult.isFailure()) {
-      log.warn("Failed to close outbound sink for session {}: {}", sessionId, outboundResult);
+      if (log.isWarnEnabled()) {
+        log.warn("Failed to close outbound sink for session {}: {}", sessionId, outboundResult);
+      }
     } else {
-      log.debug("Successfully closed outbound sink for session {}", sessionId);
+      if (log.isDebugEnabled()) {
+        log.debug("Successfully closed outbound sink for session {}", sessionId);
+      }
     }
   }
 }

@@ -2,6 +2,7 @@ package io.github.elpis.reactive.websockets.context.resource.impl;
 
 import io.github.elpis.reactive.websockets.event.manager.ReactiveWebSocketEventManagerFactory;
 import io.github.elpis.reactive.websockets.handler.BaseReactiveWebSocketHandler;
+import io.github.elpis.reactive.websockets.mapper.JsonMapper;
 import io.github.elpis.reactive.websockets.session.ReactiveWebSocketSessionRegistry;
 import io.github.elpis.reactive.websockets.session.WebSocketSessionContext;
 import java.util.List;
@@ -23,9 +24,10 @@ public class TestWebSocketHandler extends BaseReactiveWebSocketHandler {
    * @param sessionRegistry registry for session management
    */
   protected TestWebSocketHandler(
-      ReactiveWebSocketEventManagerFactory eventManagerFactory,
-      ReactiveWebSocketSessionRegistry sessionRegistry) {
-    super(eventManagerFactory, sessionRegistry, "/test/handler");
+      final ReactiveWebSocketEventManagerFactory eventManagerFactory,
+      final ReactiveWebSocketSessionRegistry sessionRegistry,
+      final JsonMapper jsonMapper) {
+    super(eventManagerFactory, sessionRegistry, jsonMapper, "/test/handler");
   }
 
   @Override

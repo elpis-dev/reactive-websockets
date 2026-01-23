@@ -71,7 +71,6 @@ public record RateLimitConfig(Optional<RateLimitConfigData> config) {
   }
 
   /** Gets the time unit. */
-  // TODO: Extract to Constants or Enum
   public TimeUnit getTimeUnit() {
     return config.map(RateLimitConfigData::timeUnit).orElse(TimeUnit.SECONDS);
   }
@@ -82,7 +81,6 @@ public record RateLimitConfig(Optional<RateLimitConfigData> config) {
   }
 
   /** Gets the rate limiting scope. */
-  // TODO: Extract to Constants or Enum
   public RateLimit.RateLimitScope getScope() {
     return config.map(RateLimitConfigData::scope).orElse(RateLimit.RateLimitScope.SESSION);
   }

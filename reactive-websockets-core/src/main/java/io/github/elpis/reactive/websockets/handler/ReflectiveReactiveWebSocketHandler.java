@@ -8,6 +8,7 @@ import io.github.elpis.reactive.websockets.exception.ErrorResponseException;
 import io.github.elpis.reactive.websockets.exception.WebSocketProcessingException;
 import io.github.elpis.reactive.websockets.handler.flowcontrol.ReactiveFlowControlChain;
 import io.github.elpis.reactive.websockets.handler.flowcontrol.registry.ReactiveHeartbeatFlowControlRegistry;
+import io.github.elpis.reactive.websockets.mapper.JsonMapper;
 import io.github.elpis.reactive.websockets.session.ReactiveWebSocketSessionRegistry;
 import io.github.elpis.reactive.websockets.session.WebSocketSessionContext;
 import io.github.elpis.reactive.websockets.util.TypeUtils;
@@ -52,6 +53,7 @@ public final class ReflectiveReactiveWebSocketHandler extends AdaptiveReactiveWe
   ReflectiveReactiveWebSocketHandler(
       final ReactiveWebSocketEventManagerFactory eventManagerFactory,
       final ReactiveWebSocketSessionRegistry sessionRegistry,
+      final JsonMapper jsonMapper,
       final String pathTemplate,
       final ReactiveHeartbeatFlowControlRegistry reactiveHeartbeatFlowControlRegistry,
       final ReactiveFlowControlChain reactiveFlowControlChain,
@@ -61,6 +63,7 @@ public final class ReflectiveReactiveWebSocketHandler extends AdaptiveReactiveWe
     super(
         eventManagerFactory,
         sessionRegistry,
+        jsonMapper,
         pathTemplate,
         reactiveHeartbeatFlowControlRegistry,
         reactiveFlowControlChain);

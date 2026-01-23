@@ -5,6 +5,7 @@ import io.github.elpis.reactive.websockets.handler.AdaptiveReactiveWebSocketHand
 import io.github.elpis.reactive.websockets.handler.BaseReactiveWebSocketHandler;
 import io.github.elpis.reactive.websockets.handler.flowcontrol.ReactiveFlowControlChain;
 import io.github.elpis.reactive.websockets.handler.flowcontrol.registry.ReactiveHeartbeatFlowControlRegistry;
+import io.github.elpis.reactive.websockets.mapper.JsonMapper;
 import io.github.elpis.reactive.websockets.session.ReactiveWebSocketSessionRegistry;
 import io.github.elpis.reactive.websockets.session.WebSocketSessionContext;
 import java.util.function.BiConsumer;
@@ -24,43 +25,22 @@ public final class ReactiveWebSocketHandlerFunctions {
   public static <T> ReactiveWebSocketHandlerFunction handle(
       final String path, final WebSocketMessageHandlerFunction<T> handlerFunction) {
 
-    return handle(path, false, 30L, 60L, handlerFunction);
-  }
-
-  public static <T> ReactiveWebSocketHandlerFunction handle(
-      final String path,
-      final boolean heartbeatEnabled,
-      final long heartbeatInterval,
-      final long heartbeatTimeout,
-      final WebSocketMessageHandlerFunction<T> handlerFunction) {
-
-    return new HandleRouterFunctionReactive<>(
-        path, heartbeatEnabled, heartbeatInterval, heartbeatTimeout, handlerFunction);
+    return new HandleRouterFunctionReactive<>(path, handlerFunction);
   }
 
   public static ReactiveWebSocketHandlerFunction handle(
       final String path, final WebSocketVoidHandlerFunction handlerFunction) {
 
-    return handle(path, false, 30L, 60L, handlerFunction);
-  }
-
-  public static ReactiveWebSocketHandlerFunction handle(
-      final String path,
-      final boolean heartbeatEnabled,
-      final long heartbeatInterval,
-      final long heartbeatTimeout,
-      final WebSocketVoidHandlerFunction handlerFunction) {
-
-    return new VoidRouterFunctionReactive(
-        path, heartbeatEnabled, heartbeatInterval, heartbeatTimeout, handlerFunction);
+    return new VoidRouterFunctionReactive(path, handlerFunction);
   }
 
   public static ReactiveWebSocketHandlerFunction empty() {
-    return new DefaultRouterFunctionReactive(null, false, -1L, -1L) {
+    return new DefaultRouterFunctionReactive(null) {
       @Override
       public BaseReactiveWebSocketHandler register(
           final ReactiveWebSocketEventManagerFactory eventManagerFactory,
           final ReactiveWebSocketSessionRegistry sessionRegistry,
+          final JsonMapper jsonMapper,
           final ReactiveHeartbeatFlowControlRegistry reactiveHeartbeatFlowControlRegistry,
           final ReactiveFlowControlChain reactiveFlowControlChain) {
         return null;
@@ -70,26 +50,18 @@ public final class ReactiveWebSocketHandlerFunctions {
 
   abstract static class DefaultRouterFunctionReactive implements ReactiveWebSocketHandlerFunction {
     final String path;
-    final boolean heartbeatEnabled;
-    final long heartbeatInterval;
-    final long heartbeatTimeout;
 
     ReactiveWebSocketHandlerFunction next = null;
 
-    private DefaultRouterFunctionReactive(
-        String path, boolean heartbeatEnabled, long heartbeatInterval, long heartbeatTimeout) {
-
+    private DefaultRouterFunctionReactive(final String path) {
       this.path = path;
-      this.heartbeatEnabled = heartbeatEnabled;
-      this.heartbeatInterval = heartbeatInterval;
-      this.heartbeatTimeout = heartbeatTimeout;
     }
 
     ReactiveWebSocketHandlerFunction getNext() {
       return next;
     }
 
-    DefaultRouterFunctionReactive setNext(ReactiveWebSocketHandlerFunction next) {
+    DefaultRouterFunctionReactive setNext(final ReactiveWebSocketHandlerFunction next) {
       this.next = next;
       return this;
     }
@@ -100,13 +72,9 @@ public final class ReactiveWebSocketHandlerFunctions {
     private final WebSocketMessageHandlerFunction<U> handlerFunction;
 
     private HandleRouterFunctionReactive(
-        String path,
-        boolean heartbeatEnabled,
-        long heartbeatInterval,
-        long heartbeatTimeout,
-        WebSocketMessageHandlerFunction<U> handlerFunction) {
+        final String path, final WebSocketMessageHandlerFunction<U> handlerFunction) {
 
-      super(path, heartbeatEnabled, heartbeatInterval, heartbeatTimeout);
+      super(path);
       this.handlerFunction = handlerFunction;
     }
 
@@ -114,6 +82,7 @@ public final class ReactiveWebSocketHandlerFunctions {
     public BaseReactiveWebSocketHandler register(
         final ReactiveWebSocketEventManagerFactory eventManagerFactory,
         final ReactiveWebSocketSessionRegistry sessionRegistry,
+        final JsonMapper jsonMapper,
         final ReactiveHeartbeatFlowControlRegistry reactiveHeartbeatFlowControlRegistry,
         final ReactiveFlowControlChain reactiveFlowControlChain) {
 
@@ -122,6 +91,7 @@ public final class ReactiveWebSocketHandlerFunctions {
       return new AdaptiveReactiveWebSocketHandler(
           eventManagerFactory,
           sessionRegistry,
+          jsonMapper,
           path,
           reactiveHeartbeatFlowControlRegistry,
           reactiveFlowControlChain) {
@@ -149,13 +119,9 @@ public final class ReactiveWebSocketHandlerFunctions {
     private final WebSocketVoidHandlerFunction handlerFunction;
 
     private VoidRouterFunctionReactive(
-        String path,
-        boolean heartbeatEnabled,
-        long heartbeatInterval,
-        long heartbeatTimeout,
-        WebSocketVoidHandlerFunction handlerFunction) {
+        final String path, final WebSocketVoidHandlerFunction handlerFunction) {
 
-      super(path, heartbeatEnabled, heartbeatInterval, heartbeatTimeout);
+      super(path);
       this.handlerFunction = handlerFunction;
     }
 
@@ -163,6 +129,7 @@ public final class ReactiveWebSocketHandlerFunctions {
     public BaseReactiveWebSocketHandler register(
         final ReactiveWebSocketEventManagerFactory eventManagerFactory,
         final ReactiveWebSocketSessionRegistry sessionRegistry,
+        final JsonMapper jsonMapper,
         final ReactiveHeartbeatFlowControlRegistry reactiveHeartbeatFlowControlRegistry,
         final ReactiveFlowControlChain reactiveFlowControlChain) {
 
@@ -171,6 +138,7 @@ public final class ReactiveWebSocketHandlerFunctions {
       return new AdaptiveReactiveWebSocketHandler(
           eventManagerFactory,
           sessionRegistry,
+          jsonMapper,
           path,
           reactiveHeartbeatFlowControlRegistry,
           reactiveFlowControlChain) {

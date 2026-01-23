@@ -1,10 +1,12 @@
 package io.github.elpis.reactive.websockets.config.mapper;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.elpis.reactive.websockets.flowcontrol.config.BackpressureConfig;
 import io.github.elpis.reactive.websockets.flowcontrol.config.HeartbeatConfig;
 import io.github.elpis.reactive.websockets.flowcontrol.config.RateLimitConfig;
 import io.github.elpis.reactive.websockets.mapper.AnnotationMapper;
 import io.github.elpis.reactive.websockets.mapper.AnnotationMapperFactory;
+import io.github.elpis.reactive.websockets.mapper.JsonMapper;
 import io.github.elpis.reactive.websockets.mapper.impl.BackpressureAnnotationMapper;
 import io.github.elpis.reactive.websockets.mapper.impl.HeartbeatAnnotationMapper;
 import io.github.elpis.reactive.websockets.mapper.impl.RateLimitAnnotationMapper;
@@ -13,6 +15,7 @@ import io.github.elpis.reactive.websockets.web.annotation.Heartbeat;
 import io.github.elpis.reactive.websockets.web.annotation.RateLimit;
 import java.lang.annotation.Annotation;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -37,5 +40,16 @@ public class ReactiveWebSocketMappingConfiguration {
   public AnnotationMapperFactory annotationMapperFactory(
       final ObjectProvider<AnnotationMapper<? extends Annotation, ?>> mappers) {
     return new AnnotationMapperFactory(mappers.stream().toList());
+  }
+
+  @Bean
+  @ConditionalOnMissingBean(ObjectMapper.class)
+  public ObjectMapper objectMapper() {
+    return new ObjectMapper();
+  }
+
+  @Bean
+  public JsonMapper jsonMapper(final ObjectMapper objectMapper) {
+    return new JsonMapper(objectMapper);
   }
 }

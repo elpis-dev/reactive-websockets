@@ -233,13 +233,13 @@ public final class ReactiveWebSocketExceptionResolver
       }
     }
 
-    if (exceptionTypes.isEmpty()) {
-      throw new IllegalStateException(
-          "@ExceptionHandler method ["
-              + method
-              + "] must declare exception type "
-              + "either in annotation value or as method parameter");
-    }
+    Assert.state(
+        !exceptionTypes.isEmpty(),
+        () ->
+            "@ExceptionHandler method ["
+                + method
+                + "] must declare exception type "
+                + "either in annotation value or as method parameter");
 
     return exceptionTypes.toArray(new Class[0]);
   }

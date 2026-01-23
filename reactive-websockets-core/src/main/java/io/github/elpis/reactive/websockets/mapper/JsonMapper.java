@@ -19,9 +19,11 @@ import reactor.core.publisher.Mono;
 public final class JsonMapper {
   private static final Logger log = LoggerFactory.getLogger(JsonMapper.class);
 
-  private static final ObjectMapper objectMapper = new ObjectMapper();
+  private final ObjectMapper objectMapper;
 
-  private JsonMapper() {}
+  public JsonMapper(final ObjectMapper objectMapper) {
+    this.objectMapper = objectMapper;
+  }
 
   /**
    * Converts object to JSON string. If not possible to convert - throws {@link
@@ -29,7 +31,7 @@ public final class JsonMapper {
    *
    * @since 1.0.0
    */
-  public static String applyWithFallback(final Object object) {
+  public String applyWithFallback(final Object object) {
     try {
       return String.class.isAssignableFrom(object.getClass())
           ? (String) object
@@ -49,7 +51,7 @@ public final class JsonMapper {
    *
    * @since 1.0.0
    */
-  public static String applyWithDefault(final Object object, final String defaultValue) {
+  public String applyWithDefault(final Object object, final String defaultValue) {
     try {
       return String.class.isAssignableFrom(object.getClass())
           ? (String) object
@@ -69,7 +71,7 @@ public final class JsonMapper {
    *
    * @since 1.0.0
    */
-  public static Mono<String> applyWithMono(final Object object) {
+  public Mono<String> applyWithMono(final Object object) {
     try {
       final String value =
           String.class.isAssignableFrom(object.getClass())
@@ -92,7 +94,7 @@ public final class JsonMapper {
    *
    * @since 1.0.0
    */
-  public static Flux<String> applyWithFlux(final Object object) {
+  public Flux<String> applyWithFlux(final Object object) {
     try {
       final String value =
           String.class.isAssignableFrom(object.getClass())
@@ -108,6 +110,19 @@ public final class JsonMapper {
     }
   }
 
+  public <T> T deserialize(final String value, final Class<T> targetClass) {
+    try {
+      if (TypeUtils.isSimpleType(targetClass)) {
+        return TypeUtils.convert(value, targetClass);
+      } else {
+        return this.deserializeInternal(value, targetClass);
+      }
+    } catch (Exception e) {
+      throw new RuntimeJsonMappingException(
+          "Failed to deserialize to type %s: %s".formatted(targetClass.getName(), e.getMessage()));
+    }
+  }
+
   /**
    * Deserializes JSON string to the specified type. If not possible to deserialize - throws {@link
    * RuntimeJsonMappingException}. {@link String} type parameters are returned as they are.
@@ -119,7 +134,7 @@ public final class JsonMapper {
    * @throws RuntimeJsonMappingException if deserialization fails
    * @since 1.0.0
    */
-  private static <T> T deserializeInternal(final String json, final Class<T> clazz) {
+  private <T> T deserializeInternal(final String json, final Class<T> clazz) {
     try {
       return objectMapper.readValue(json, clazz);
     } catch (JsonProcessingException e) {
@@ -128,19 +143,6 @@ public final class JsonMapper {
       }
       throw new RuntimeJsonMappingException(
           "Unable to deserialize JSON to " + clazz.getSimpleName() + ": " + e.getMessage());
-    }
-  }
-
-  public static <T> T deserialize(final String value, final Class<T> targetClass) {
-    try {
-      if (TypeUtils.isSimpleType(targetClass)) {
-        return TypeUtils.convert(value, targetClass);
-      } else {
-        return JsonMapper.deserializeInternal(value, targetClass);
-      }
-    } catch (Exception e) {
-      throw new RuntimeJsonMappingException(
-          "Failed to deserialize to type %s: %s".formatted(targetClass.getName(), e.getMessage()));
     }
   }
 
@@ -155,7 +157,7 @@ public final class JsonMapper {
    * @return a Mono containing the deserialized object or an error
    * @since 1.0.0
    */
-  public static <T> Mono<T> deserializeWithMono(final String json, final Class<T> clazz) {
+  public <T> Mono<T> deserializeWithMono(final String json, final Class<T> clazz) {
     try {
       final T value =
           String.class.equals(clazz) ? clazz.cast(json) : objectMapper.readValue(json, clazz);
@@ -181,7 +183,7 @@ public final class JsonMapper {
    * @return a Flux containing the deserialized object or an error
    * @since 1.0.0
    */
-  public static <T> Flux<T> deserializeWithFlux(final String json, final Class<T> clazz) {
+  public <T> Flux<T> deserializeWithFlux(final String json, final Class<T> clazz) {
     try {
       final T value =
           String.class.equals(clazz) ? clazz.cast(json) : objectMapper.readValue(json, clazz);

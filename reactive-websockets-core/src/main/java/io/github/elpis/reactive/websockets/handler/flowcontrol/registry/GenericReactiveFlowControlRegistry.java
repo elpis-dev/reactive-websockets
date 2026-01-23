@@ -30,22 +30,33 @@ public abstract class GenericReactiveFlowControlRegistry<A extends Annotation, T
 
   public abstract boolean shouldRegister(final A annotation);
 
-  void initialize() {
+  private void initialize() {
     endpointProcessor
         .getHandlerMethods()
         .forEach(
             (path, handlerMethod) -> {
-              final A annotation = handlerMethod.getAnnotation(this.getAnnotationType());
-              if (this.shouldRegister(annotation)) {
-                final T t = annotationMapper.mapTo(annotation);
-                this.put(path, t);
+              if (handlerMethod.hasAnnotation(this.getAnnotationType())) {
+                final A annotation = handlerMethod.getAnnotation(this.getAnnotationType());
+                if (this.shouldRegister(annotation)) {
+                  final T t = annotationMapper.mapTo(annotation);
+                  this.put(path, t);
 
-                if (log.isTraceEnabled()) {
-                  log.trace("Registered handler method {} for path {}", handlerMethod, path);
+                  if (log.isTraceEnabled()) {
+                    log.trace("Registered handler method {} for path {}", handlerMethod, path);
+                  }
+                } else {
+                  if (log.isTraceEnabled()) {
+                    log.trace(
+                        "Ignoring invalid handler method {} for path {}", handlerMethod, path);
+                  }
                 }
               } else {
                 if (log.isTraceEnabled()) {
-                  log.trace("Ignoring invalid handler method {} for path {}", handlerMethod, path);
+                  log.trace(
+                      "Ignoring handler method {} for path {}, since it doesn't have an annotation {}",
+                      handlerMethod,
+                      path,
+                      this.getAnnotationType().getSimpleName());
                 }
               }
             });

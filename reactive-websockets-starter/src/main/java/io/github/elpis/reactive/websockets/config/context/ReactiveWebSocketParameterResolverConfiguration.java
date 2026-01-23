@@ -81,7 +81,7 @@ public class ReactiveWebSocketParameterResolverConfiguration {
    */
   @Bean
   public ReactiveWebSocketMethodParameterResolver requestBodyParameterResolver(
-      final ReactiveWebSocketSessionRegistry sessionRegistry) {
+      final ReactiveWebSocketSessionRegistry sessionRegistry, final JsonMapper jsonMapper) {
     return new ReactiveWebSocketMethodParameterResolver() {
       @Override
       public boolean supports(final MethodParameter parameter) {
@@ -94,13 +94,13 @@ public class ReactiveWebSocketParameterResolverConfiguration {
           final MethodParameter parameter, final WebSocketSessionContext context) {
         final SessionStreams streams =
             sessionRegistry
-                .getSession(context.getPathTemplate(), context.getSessionId())
+                .getSession(context.pathTemplate(), context.sessionId())
                 .orElseThrow(
                     () ->
                         new WebSocketProcessingException(
                             "Cannot resolve parameter @RequestBody %s: Cannot find session with id %s"
                                 .formatted(
-                                    parameter.getParameter().getName(), context.getSessionId())));
+                                    parameter.getParameter().getName(), context.sessionId())));
 
         final Flux<WebSocketMessage> messages = streams.inboundFlux();
         final Class<?> parameterType = parameter.getParameterType();
@@ -121,12 +121,12 @@ public class ReactiveWebSocketParameterResolverConfiguration {
         if (isFlux) {
           return messages
               .map(WebSocketMessage::getPayloadAsText)
-              .map(text -> JsonMapper.deserialize(text, genericClass));
+              .map(text -> jsonMapper.deserialize(text, genericClass));
         } else {
           return messages
               .next()
               .map(WebSocketMessage::getPayloadAsText)
-              .map(text -> JsonMapper.deserialize(text, genericClass));
+              .map(text -> jsonMapper.deserialize(text, genericClass));
         }
       }
 
@@ -174,7 +174,7 @@ public class ReactiveWebSocketParameterResolverConfiguration {
       @Override
       public Object resolve(
           final MethodParameter parameter, final WebSocketSessionContext context) {
-        return context.getHeaders();
+        return context.headers();
       }
     };
   }
@@ -208,7 +208,7 @@ public class ReactiveWebSocketParameterResolverConfiguration {
       @Override
       public Object resolve(
           final MethodParameter parameter, final WebSocketSessionContext context) {
-        return context.getHeaders();
+        return context.headers();
       }
 
       @Override
@@ -563,19 +563,19 @@ public class ReactiveWebSocketParameterResolverConfiguration {
         final Class<?> parameterType = parameter.getParameterType();
         if (Optional.class.isAssignableFrom(parameterType)) {
           return registry
-              .getSession(context.getPathTemplate(), context.getSessionId())
+              .getSession(context.pathTemplate(), context.sessionId())
               .map(SessionStreams::metadata);
         }
 
         final Optional<ReactiveWebSocketSession> session =
             registry
-                .getSession(context.getPathTemplate(), context.getSessionId())
+                .getSession(context.pathTemplate(), context.sessionId())
                 .map(SessionStreams::metadata);
         if (annotation.required()) {
           return session.orElseThrow(
               () ->
                   new WebSocketProcessingException(
-                      "Cannot find session with id %s".formatted(context.getSessionId())));
+                      "Cannot find session with id %s".formatted(context.sessionId())));
         }
 
         return session.orElse(null);

@@ -6,7 +6,7 @@ import io.github.elpis.reactive.websockets.config.context.ReactiveWebSocketConte
 import io.github.elpis.reactive.websockets.config.context.ReactiveWebSocketParameterResolverConfiguration;
 import io.github.elpis.reactive.websockets.config.event.ReactiveWebSocketEventConfiguration;
 import io.github.elpis.reactive.websockets.config.flowcontrol.ReactiveWebSocketFlowControlConfiguration;
-import io.github.elpis.reactive.websockets.config.maintenance.ReactiveWebSocketRegistryMaintenanceConfig;
+import io.github.elpis.reactive.websockets.config.maintenance.ReactiveWebSocketRegistryMaintenanceConfiguration;
 import io.github.elpis.reactive.websockets.config.mapper.ReactiveWebSocketMappingConfiguration;
 import io.github.elpis.reactive.websockets.config.session.ReactiveWebSocketSessionConfiguration;
 import io.github.elpis.reactive.websockets.context.ReactiveWebsocketMessageEndpointResolver;
@@ -19,6 +19,7 @@ import io.github.elpis.reactive.websockets.handler.flowcontrol.registry.Reactive
 import io.github.elpis.reactive.websockets.handler.route.ReactiveWebSocketHandlerFunction;
 import io.github.elpis.reactive.websockets.handler.route.ReactiveWebSocketHandlerFunctions;
 import io.github.elpis.reactive.websockets.handler.route.ReactiveWebSocketHandlerRouteResolver;
+import io.github.elpis.reactive.websockets.mapper.JsonMapper;
 import io.github.elpis.reactive.websockets.session.ReactiveWebSocketSessionRegistry;
 import io.github.elpis.reactive.websockets.template.ReactiveWebSocketTemplate;
 import io.github.elpis.reactive.websockets.web.annotation.OnMessage;
@@ -27,10 +28,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.web.reactive.HandlerMapping;
 import org.springframework.web.reactive.handler.SimpleUrlHandlerMapping;
@@ -43,20 +46,21 @@ import reactor.util.context.Context;
  * Configuration class that setups all the websocket endpoints and processes annotated methods.
  *
  * @author Phillip J. Fry
- * @see org.springframework.context.annotation.Configuration
+ * @see org.springframework.boot.autoconfigure.AutoConfiguration
  * @since 1.0.0
  */
-@Configuration
+@AutoConfiguration
+@AutoConfigureAfter(JacksonAutoConfiguration.class)
 @Import({
   ReactiveWebSocketFlowControlConfiguration.class,
   ReactiveWebSocketEventConfiguration.class,
   ReactiveWebSocketSessionConfiguration.class,
-  ReactiveWebSocketRegistryMaintenanceConfig.class,
+  ReactiveWebSocketRegistryMaintenanceConfiguration.class,
   ReactiveWebSocketMappingConfiguration.class,
   ReactiveWebSocketParameterResolverConfiguration.class,
   ReactiveWebSocketContextInitializingConfiguration.class
 })
-public class ReactiveWebSocketConfiguration {
+public class ReactiveWebSocketAutoConfiguration {
 
   @Bean
   @ConditionalOnMissingBean(ReactiveWebSocketHandlerFunction.class)
@@ -121,6 +125,7 @@ public class ReactiveWebSocketConfiguration {
   public ReactiveWebSocketHandlerRouteResolver webSocketHandlerRouteResolver(
       final ReactiveWebSocketSessionRegistry registry,
       final ReactiveWebSocketEventManagerFactory eventManagerFactory,
+      final JsonMapper jsonMapper,
       final ReactiveHeartbeatFlowControlRegistry reactiveHeartbeatFlowControlRegistry,
       final ReactiveFlowControlChain reactiveFlowControlChain,
       final List<ReactiveWebSocketHandlerFunction> functions) {
@@ -129,6 +134,7 @@ public class ReactiveWebSocketConfiguration {
         registry,
         reactiveHeartbeatFlowControlRegistry,
         reactiveFlowControlChain,
+        jsonMapper,
         functions);
   }
 }

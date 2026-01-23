@@ -1,12 +1,12 @@
 package io.github.elpis.reactive.websockets.config.security;
 
 import io.github.elpis.reactive.websockets.security.ReactiveWebSocketHandshakeService;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.web.server.SecurityWebFilterChain;
@@ -19,12 +19,12 @@ import org.springframework.web.reactive.socket.server.support.WebSocketHandlerAd
  * Configuration class that setups a basic security principles for websocket connection handshake.
  *
  * @author Phillip J. Fry
- * @see org.springframework.context.annotation.Configuration
+ * @see org.springframework.boot.autoconfigure.AutoConfiguration
  * @since 1.0.0
  */
 @Lazy
-@Configuration
-public class ReactiveWebSocketSecurityConfiguration {
+@AutoConfiguration
+public class ReactiveWebSocketSecurityAutoConfiguration {
 
   /**
    * Creates a new {@link Bean @Bean} of type {@link WebSocketHandlerAdapter} with custom {@link

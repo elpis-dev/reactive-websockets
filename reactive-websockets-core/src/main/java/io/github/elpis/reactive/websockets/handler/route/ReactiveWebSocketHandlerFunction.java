@@ -4,6 +4,7 @@ import io.github.elpis.reactive.websockets.event.manager.ReactiveWebSocketEventM
 import io.github.elpis.reactive.websockets.handler.BaseReactiveWebSocketHandler;
 import io.github.elpis.reactive.websockets.handler.flowcontrol.ReactiveFlowControlChain;
 import io.github.elpis.reactive.websockets.handler.flowcontrol.registry.ReactiveHeartbeatFlowControlRegistry;
+import io.github.elpis.reactive.websockets.mapper.JsonMapper;
 import io.github.elpis.reactive.websockets.session.ReactiveWebSocketSessionRegistry;
 
 // TODO: Check if it's consistent with the latest API changes
@@ -12,38 +13,9 @@ public interface ReactiveWebSocketHandlerFunction {
   BaseReactiveWebSocketHandler register(
       final ReactiveWebSocketEventManagerFactory eventManagerFactory,
       final ReactiveWebSocketSessionRegistry sessionRegistry,
+      final JsonMapper jsonMapper,
       final ReactiveHeartbeatFlowControlRegistry reactiveHeartbeatFlowControlRegistry,
       final ReactiveFlowControlChain reactiveFlowControlChain);
-
-  default <T> ReactiveWebSocketHandlerFunction handle(
-      final String path,
-      final boolean heartbeatEnabled,
-      final long heartbeatInterval,
-      final long heartbeatTimeout,
-      final ReactiveWebSocketHandlerFunctions.WebSocketMessageHandlerFunction<T> function) {
-
-    final ReactiveWebSocketHandlerFunctions.DefaultRouterFunctionReactive webSocketHandlerFunction =
-        (ReactiveWebSocketHandlerFunctions.DefaultRouterFunctionReactive)
-            ReactiveWebSocketHandlerFunctions.handle(
-                path, heartbeatEnabled, heartbeatInterval, heartbeatTimeout, function);
-
-    return webSocketHandlerFunction.setNext(this);
-  }
-
-  default ReactiveWebSocketHandlerFunction handle(
-      final String path,
-      final boolean heartbeatEnabled,
-      final long heartbeatInterval,
-      final long heartbeatTimeout,
-      final ReactiveWebSocketHandlerFunctions.WebSocketVoidHandlerFunction function) {
-
-    final ReactiveWebSocketHandlerFunctions.DefaultRouterFunctionReactive webSocketHandlerFunction =
-        (ReactiveWebSocketHandlerFunctions.DefaultRouterFunctionReactive)
-            ReactiveWebSocketHandlerFunctions.handle(
-                path, heartbeatEnabled, heartbeatInterval, heartbeatTimeout, function);
-
-    return webSocketHandlerFunction.setNext(this);
-  }
 
   default <T> ReactiveWebSocketHandlerFunction handle(
       final String path,

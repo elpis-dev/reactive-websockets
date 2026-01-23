@@ -18,11 +18,15 @@ import io.github.elpis.reactive.websockets.session.WebSocketSessionContext;
 import java.io.InputStream;
 import java.nio.channels.Channels;
 import java.security.Principal;
+import java.util.Map;
 import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.core.io.buffer.DefaultDataBufferFactory;
+import org.springframework.http.HttpCookie;
+import org.springframework.http.HttpHeaders;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.socket.CloseStatus;
 import org.springframework.web.reactive.socket.HandshakeInfo;
 import org.springframework.web.reactive.socket.WebSocketHandler;
@@ -64,25 +68,38 @@ public abstract class BaseReactiveWebSocketHandler implements WebSocketHandler {
 
   private final Logger log = LoggerFactory.getLogger(this.getClass());
 
-  private final ReactiveWebSocketEventManagerFactory eventManagerFactory;
   private final ReactiveWebSocketSessionRegistry sessionRegistry;
+  private final JsonMapper jsonMapper;
+
   private final String pathTemplate;
+
+  private final ReactiveWebSocketEventManager<ClientSessionClosedEvent> closedEventManager;
+  private final ReactiveWebSocketEventManager<ServerSessionClosedEvent>
+      serverSessionClosedEventManager;
+  private final ReactiveWebSocketEventManager<SessionConnectedEvent> sessionConnectedEventManager;
 
   /**
    * Creates a BaseWebSocketHandler with minimal dependencies.
    *
    * @param eventManagerFactory factory for creating event managers
    * @param sessionRegistry registry for session management
+   * @param jsonMapper JSON mapper for serialization/deserialization
    * @param pathTemplate the WebSocket path template (e.g., "/chat/{room}")
    */
   protected BaseReactiveWebSocketHandler(
       final ReactiveWebSocketEventManagerFactory eventManagerFactory,
       final ReactiveWebSocketSessionRegistry sessionRegistry,
+      final JsonMapper jsonMapper,
       final String pathTemplate) {
 
-    this.eventManagerFactory = eventManagerFactory;
     this.sessionRegistry = sessionRegistry;
+    this.jsonMapper = jsonMapper;
     this.pathTemplate = pathTemplate;
+    this.closedEventManager = eventManagerFactory.getEventManager(ClientSessionClosedEvent.class);
+    this.serverSessionClosedEventManager =
+        eventManagerFactory.getEventManager(ServerSessionClosedEvent.class);
+    this.sessionConnectedEventManager =
+        eventManagerFactory.getEventManager(SessionConnectedEvent.class);
   }
 
   /**
@@ -128,14 +145,6 @@ public abstract class BaseReactiveWebSocketHandler implements WebSocketHandler {
 
   @Override
   public Mono<Void> handle(final WebSocketSession session) {
-    // TODO: Can it be initialized at constructor?
-    final ReactiveWebSocketEventManager<ClientSessionClosedEvent> closedEventManager =
-        this.eventManagerFactory.getEventManager(ClientSessionClosedEvent.class);
-    final ReactiveWebSocketEventManager<ServerSessionClosedEvent> serverSessionClosedEventManager =
-        this.eventManagerFactory.getEventManager(ServerSessionClosedEvent.class);
-    final ReactiveWebSocketEventManager<SessionConnectedEvent> sessionConnectedEventManager =
-        this.eventManagerFactory.getEventManager(SessionConnectedEvent.class);
-
     return Mono.deferContextual(Mono::just)
         .flatMap(contextView -> (Mono<String>) contextView.get("sessionId"))
         .flatMap(
@@ -261,11 +270,12 @@ public abstract class BaseReactiveWebSocketHandler implements WebSocketHandler {
                 return DataBufferUtils.readByteChannel(
                         () -> Channels.newChannel((InputStream) any),
                         DefaultDataBufferFactory.sharedInstance,
+                        // TODO: Make buffer size configurable
                         4096)
                     .map(dataBuffer -> session.binaryMessage(factory -> dataBuffer));
               }
 
-              return JsonMapper.applyWithFlux(any).map(session::textMessage);
+              return this.jsonMapper.applyWithFlux(any).map(session::textMessage);
             });
   }
 
@@ -298,7 +308,7 @@ public abstract class BaseReactiveWebSocketHandler implements WebSocketHandler {
       final WebSocketSessionContext webSocketSessionContext,
       final SessionStreams streams) {
 
-    final String sessionId = webSocketSessionContext.getSessionId();
+    final String sessionId = webSocketSessionContext.sessionId();
     final String path = this.getPathTemplate();
 
     if (log.isDebugEnabled()) {
@@ -376,7 +386,7 @@ public abstract class BaseReactiveWebSocketHandler implements WebSocketHandler {
                 if (log.isErrorEnabled()) {
                   log.error(
                       "Processing error for session {}: {}",
-                      webSocketSessionContext.getSessionId(),
+                      webSocketSessionContext.sessionId(),
                       e.getMessage());
                 }
               });
@@ -384,14 +394,13 @@ public abstract class BaseReactiveWebSocketHandler implements WebSocketHandler {
       if (log.isErrorEnabled()) {
         log.error(
             "Processing error for session {}: {}",
-            webSocketSessionContext.getSessionId(),
+            webSocketSessionContext.sessionId(),
             e.getMessage());
       }
       return Flux.from(session.close(CloseStatus.PROTOCOL_ERROR.withReason(e.getMessage())));
     }
   }
 
-  // TODO: Add missing cookies
   private WebSocketSessionContext getSessionContext(
       final String pathTemplate,
       final String sessionId,
@@ -401,10 +410,11 @@ public abstract class BaseReactiveWebSocketHandler implements WebSocketHandler {
     final String uriPath = handshakeInfo.getUri().getPath();
     final UriTemplate uriTemplate = new UriTemplate(pathTemplate);
 
-    final var pathParameters = uriTemplate.match(uriPath);
-    final var queryParameters =
+    final Map<String, String> pathParameters = uriTemplate.match(uriPath);
+    final MultiValueMap<String, String> queryParameters =
         UriComponentsBuilder.fromUri(handshakeInfo.getUri()).build().getQueryParams();
-    final var headers = handshakeInfo.getHeaders();
+    final HttpHeaders headers = handshakeInfo.getHeaders();
+    final MultiValueMap<String, HttpCookie> cookies = handshakeInfo.getCookies();
 
     final String remoteAddress =
         handshakeInfo.getRemoteAddress() != null
@@ -417,6 +427,7 @@ public abstract class BaseReactiveWebSocketHandler implements WebSocketHandler {
         .pathParameters(pathParameters)
         .queryParameters(queryParameters)
         .headers(headers)
+        .cookies(cookies)
         .sessionId(sessionId)
         .remoteAddress(remoteAddress)
         .build();

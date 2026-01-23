@@ -11,7 +11,6 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
@@ -188,7 +187,7 @@ public final class ReactiveWebsocketMessageEndpointResolver
 
     final Map<MethodParameter, ReactiveWebSocketMethodParameterResolver> result =
         new LinkedHashMap<>();
-    int parameterCount = method.getParameterCount();
+    final int parameterCount = method.getParameterCount();
     for (int i = 0; i < parameterCount; i++) {
       final MethodParameter parameter = new MethodParameter(method, i);
       final ReactiveWebSocketMethodParameterResolver resolver =
@@ -262,7 +261,6 @@ public final class ReactiveWebsocketMessageEndpointResolver
    * @param method the handler method
    * @param annotations all annotations from class and method level
    */
-  // TODO: Use this for further method invokation - ditch annotation processing
   public record MessageHandlerMethod(
       String beanName,
       Class<?> beanType,
@@ -304,11 +302,6 @@ public final class ReactiveWebsocketMessageEndpointResolver
           .filter(annotationType::isInstance)
           .map(annotationType::cast)
           .toList();
-    }
-
-    private Optional<ReactiveWebSocketMethodParameterResolver> findParameterResolver(
-        final MethodParameter parameter) {
-      return Optional.ofNullable(parameterResolvers.get(parameter));
     }
   }
 }

@@ -1,5 +1,6 @@
 package io.github.elpis.reactive.websockets.config.context;
 
+import io.github.elpis.reactive.websockets.context.ReactiveWebSocketClosedEventHandlersResolver;
 import io.github.elpis.reactive.websockets.context.ReactiveWebSocketExceptionResolver;
 import io.github.elpis.reactive.websockets.context.ReactiveWebsocketMessageEndpointResolver;
 import org.springframework.context.ApplicationContext;
@@ -18,5 +19,11 @@ public class ReactiveWebSocketContextInitializingConfiguration {
   public ReactiveWebsocketMessageEndpointResolver reactiveWebsocketMessageEndpointProcessor(
       final ApplicationContext applicationContext) {
     return new ReactiveWebsocketMessageEndpointResolver(applicationContext);
+  }
+
+  @Bean(initMethod = "initialize")
+  public ReactiveWebSocketClosedEventHandlersResolver reactiveWebSocketClosedEventHandlersResolver(
+      final ApplicationContext applicationContext) {
+    return new ReactiveWebSocketClosedEventHandlersResolver(applicationContext);
   }
 }

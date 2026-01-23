@@ -19,7 +19,9 @@ import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
 public abstract sealed class AbstractReactiveWebSocketExceptionResolver
-    permits ReactiveWebSocketExceptionResolver, ReactiveWebsocketMessageEndpointResolver {
+    permits ReactiveWebSocketClosedEventHandlersResolver,
+        ReactiveWebSocketExceptionResolver,
+        ReactiveWebsocketMessageEndpointResolver {
   private static final Logger log =
       LoggerFactory.getLogger(AbstractReactiveWebSocketExceptionResolver.class);
 

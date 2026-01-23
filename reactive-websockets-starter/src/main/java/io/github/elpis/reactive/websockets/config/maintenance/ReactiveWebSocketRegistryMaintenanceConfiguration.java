@@ -41,14 +41,14 @@ import org.springframework.scheduling.annotation.Scheduled;
     name = "enabled",
     havingValue = "true",
     matchIfMissing = true)
-public class ReactiveWebSocketRegistryMaintenanceConfig {
+public class ReactiveWebSocketRegistryMaintenanceConfiguration {
   private static final Logger log =
-      LoggerFactory.getLogger(ReactiveWebSocketRegistryMaintenanceConfig.class);
+      LoggerFactory.getLogger(ReactiveWebSocketRegistryMaintenanceConfiguration.class);
 
   private final ReactiveWebSocketSessionMaintenanceService
       reactiveWebSocketSessionMaintenanceService;
 
-  public ReactiveWebSocketRegistryMaintenanceConfig(
+  public ReactiveWebSocketRegistryMaintenanceConfiguration(
       final ReactiveWebSocketSessionMaintenanceService reactiveWebSocketSessionMaintenanceService) {
     this.reactiveWebSocketSessionMaintenanceService = reactiveWebSocketSessionMaintenanceService;
   }

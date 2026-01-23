@@ -5,6 +5,7 @@ import io.github.elpis.reactive.websockets.context.ReactiveWebsocketMessageEndpo
 import io.github.elpis.reactive.websockets.event.manager.ReactiveWebSocketEventManagerFactory;
 import io.github.elpis.reactive.websockets.handler.flowcontrol.ReactiveFlowControlChain;
 import io.github.elpis.reactive.websockets.handler.flowcontrol.registry.ReactiveHeartbeatFlowControlRegistry;
+import io.github.elpis.reactive.websockets.mapper.JsonMapper;
 import io.github.elpis.reactive.websockets.session.ReactiveWebSocketSessionRegistry;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +26,7 @@ public class ReflectiveWebSocketHandlerFactory {
   private final ReactiveFlowControlChain flowControlChain;
   private final ReactiveWebSocketExceptionResolver exceptionResolver;
   private final ApplicationContext applicationContext;
+  private final JsonMapper jsonMapper;
 
   public ReflectiveWebSocketHandlerFactory(
       final ReactiveWebsocketMessageEndpointResolver messageEndpointResolver,
@@ -55,6 +57,9 @@ public class ReflectiveWebSocketHandlerFactory {
     this.exceptionResolver = applicationContext.getBean(ReactiveWebSocketExceptionResolver.class);
     Assert.notNull(
         this.exceptionResolver, "ReactiveWebSocketExceptionResolver bean must not be null");
+
+    this.jsonMapper = applicationContext.getBean(JsonMapper.class);
+    Assert.notNull(this.jsonMapper, "JsonMapper bean must not be null");
   }
 
   public List<BaseReactiveWebSocketHandler> createHandlers() {
@@ -98,6 +103,7 @@ public class ReflectiveWebSocketHandlerFactory {
     return new ReflectiveReactiveWebSocketHandler(
         eventManagerFactory,
         sessionRegistry,
+        jsonMapper,
         path,
         heartbeatFlowControlRegistry,
         flowControlChain,

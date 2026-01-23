@@ -40,7 +40,7 @@ public abstract class ReactiveWebSocketHandshakeService extends HandshakeWebSock
   }
 
   /**
-   * Provides custom {@link WebExceptionHandler} to process exceptions and server response when
+   * Provides custom {@link WebExceptionHandler} to process exceptions and server response during
    * handshake.
    *
    * @return any {@link WebExceptionHandler} implementation.

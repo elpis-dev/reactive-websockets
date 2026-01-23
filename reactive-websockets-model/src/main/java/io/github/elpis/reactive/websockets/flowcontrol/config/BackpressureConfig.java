@@ -43,7 +43,6 @@ public record BackpressureConfig(Optional<BackpressureConfigData> config) {
   }
 
   /** Gets the backpressure strategy. */
-  // TODO: Extract to Constants or Enum
   public Backpressure.BackpressureStrategy getStrategy() {
     return config
         .map(BackpressureConfigData::strategy)

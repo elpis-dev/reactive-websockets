@@ -4,16 +4,20 @@ import io.github.elpis.reactive.websockets.security.ReactiveWebSocketHandshakeSe
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.Duration;
+import java.util.Collection;
 import java.util.Random;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Bean;
+import org.springframework.http.HttpCookie;
 import org.springframework.http.HttpHeaders;
 import org.springframework.lang.NonNull;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.test.web.reactive.server.WebTestClient;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.socket.WebSocketSession;
 import org.springframework.web.reactive.socket.client.ReactorNettyWebSocketClient;
 import org.springframework.web.reactive.socket.server.upgrade.ReactorNettyRequestUpgradeStrategy;
@@ -49,6 +53,23 @@ public abstract class BaseWebSocketTest {
 
     return new ReactorNettyWebSocketClient()
         .execute(this.getUrl(path), headers, webSocketHandler::apply);
+  }
+
+  public Mono<Void> withClient(
+      @NonNull final String path,
+      @NonNull final MultiValueMap<String, HttpCookie> cookies,
+      @NonNull final Function<WebSocketSession, Mono<Void>> webSocketHandler)
+      throws URISyntaxException {
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.add(
+        HttpHeaders.COOKIE,
+        cookies.values().stream()
+            .flatMap(Collection::stream)
+            .map(cookie -> cookie.getName() + "=" + cookie.getValue())
+            .collect(Collectors.joining("; ")));
+
+    return this.withClient(path, headers, webSocketHandler);
   }
 
   public String randomTextString(final int length) {

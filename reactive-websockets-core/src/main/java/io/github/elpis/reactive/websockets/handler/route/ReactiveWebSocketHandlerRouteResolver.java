@@ -4,6 +4,7 @@ import io.github.elpis.reactive.websockets.event.manager.ReactiveWebSocketEventM
 import io.github.elpis.reactive.websockets.handler.BaseReactiveWebSocketHandler;
 import io.github.elpis.reactive.websockets.handler.flowcontrol.ReactiveFlowControlChain;
 import io.github.elpis.reactive.websockets.handler.flowcontrol.registry.ReactiveHeartbeatFlowControlRegistry;
+import io.github.elpis.reactive.websockets.mapper.JsonMapper;
 import io.github.elpis.reactive.websockets.session.ReactiveWebSocketSessionRegistry;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,6 +16,7 @@ public class ReactiveWebSocketHandlerRouteResolver {
   private final ReactiveWebSocketSessionRegistry sessionRegistry;
   private final ReactiveHeartbeatFlowControlRegistry reactiveHeartbeatFlowControlRegistry;
   private final ReactiveFlowControlChain reactiveFlowControlChain;
+  private final JsonMapper jsonMapper;
   private final List<ReactiveWebSocketHandlerFunction> functions;
 
   public ReactiveWebSocketHandlerRouteResolver(
@@ -22,6 +24,7 @@ public class ReactiveWebSocketHandlerRouteResolver {
       final ReactiveWebSocketSessionRegistry sessionRegistry,
       final ReactiveHeartbeatFlowControlRegistry reactiveHeartbeatFlowControlRegistry,
       final ReactiveFlowControlChain reactiveFlowControlChain,
+      final JsonMapper jsonMapper,
       final List<ReactiveWebSocketHandlerFunction> functions) {
 
     this.eventManagerFactory = eventManagerFactory;
@@ -29,6 +32,7 @@ public class ReactiveWebSocketHandlerRouteResolver {
     this.reactiveHeartbeatFlowControlRegistry = reactiveHeartbeatFlowControlRegistry;
     this.reactiveFlowControlChain = reactiveFlowControlChain;
     this.functions = functions;
+    this.jsonMapper = jsonMapper;
   }
 
   public List<BaseReactiveWebSocketHandler> resolve() {
@@ -44,6 +48,7 @@ public class ReactiveWebSocketHandlerRouteResolver {
                 function.register(
                     eventManagerFactory,
                     sessionRegistry,
+                    jsonMapper,
                     reactiveHeartbeatFlowControlRegistry,
                     reactiveFlowControlChain);
             if (webSocketHandler == null) {
@@ -60,6 +65,7 @@ public class ReactiveWebSocketHandlerRouteResolver {
                   function.register(
                       eventManagerFactory,
                       sessionRegistry,
+                      jsonMapper,
                       reactiveHeartbeatFlowControlRegistry,
                       reactiveFlowControlChain))
               .ifPresent(handlers::add);
