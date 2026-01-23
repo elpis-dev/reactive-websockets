@@ -5,16 +5,13 @@ import io.github.elpis.reactive.websockets.context.BootStarter;
 import io.github.elpis.reactive.websockets.context.resource.data.QueryParamSocketResource;
 import java.util.List;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.reactive.socket.WebSocketMessage;
 import reactor.core.publisher.Sinks;
 import reactor.test.StepVerifier;
 
-@ExtendWith(OutputCaptureExtension.class)
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
     classes = BootStarter.class)
@@ -40,7 +37,6 @@ class QueryParameterSocketTest extends BaseWebSocketTest {
                 session
                     .receive()
                     .map(WebSocketMessage::getPayloadAsText)
-                    .log()
                     .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
                     .then())
         .subscribe();
@@ -49,7 +45,6 @@ class QueryParameterSocketTest extends BaseWebSocketTest {
     StepVerifier.create(sink.asMono())
         .expectNext(expected)
         .expectComplete()
-        .log()
         .verify(DEFAULT_GENERIC_TEST_FALLBACK);
   }
 
@@ -71,7 +66,6 @@ class QueryParameterSocketTest extends BaseWebSocketTest {
                 session
                     .receive()
                     .map(WebSocketMessage::getPayloadAsText)
-                    .log()
                     .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
                     .then())
         .subscribe();
@@ -80,7 +74,6 @@ class QueryParameterSocketTest extends BaseWebSocketTest {
     StepVerifier.create(sink.asMono())
         .expectNext(expected)
         .expectComplete()
-        .log()
         .verify(DEFAULT_GENERIC_TEST_FALLBACK);
   }
 
@@ -102,7 +95,6 @@ class QueryParameterSocketTest extends BaseWebSocketTest {
                 session
                     .receive()
                     .map(WebSocketMessage::getPayloadAsText)
-                    .log()
                     .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
                     .then())
         .subscribe();
@@ -111,7 +103,6 @@ class QueryParameterSocketTest extends BaseWebSocketTest {
     StepVerifier.create(sink.asMono())
         .expectNext(expected)
         .expectComplete()
-        .log()
         .verify(DEFAULT_GENERIC_TEST_FALLBACK);
   }
 
@@ -133,7 +124,6 @@ class QueryParameterSocketTest extends BaseWebSocketTest {
                 session
                     .receive()
                     .map(WebSocketMessage::getPayloadAsText)
-                    .log()
                     .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
                     .then())
         .subscribe();
@@ -142,7 +132,6 @@ class QueryParameterSocketTest extends BaseWebSocketTest {
     StepVerifier.create(sink.asMono())
         .expectNext(expected)
         .expectComplete()
-        .log()
         .verify(DEFAULT_GENERIC_TEST_FALLBACK);
   }
 
@@ -164,7 +153,6 @@ class QueryParameterSocketTest extends BaseWebSocketTest {
                 session
                     .receive()
                     .map(WebSocketMessage::getPayloadAsText)
-                    .log()
                     .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
                     .then())
         .subscribe();
@@ -173,7 +161,6 @@ class QueryParameterSocketTest extends BaseWebSocketTest {
     StepVerifier.create(sink.asMono())
         .expectNext(expected)
         .expectComplete()
-        .log()
         .verify(DEFAULT_GENERIC_TEST_FALLBACK);
   }
 
@@ -195,7 +182,6 @@ class QueryParameterSocketTest extends BaseWebSocketTest {
                 session
                     .receive()
                     .map(WebSocketMessage::getPayloadAsText)
-                    .log()
                     .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
                     .then())
         .subscribe();
@@ -204,7 +190,6 @@ class QueryParameterSocketTest extends BaseWebSocketTest {
     StepVerifier.create(sink.asMono())
         .expectNext(expected)
         .expectComplete()
-        .log()
         .verify(DEFAULT_GENERIC_TEST_FALLBACK);
   }
 
@@ -226,7 +211,6 @@ class QueryParameterSocketTest extends BaseWebSocketTest {
                 session
                     .receive()
                     .map(WebSocketMessage::getPayloadAsText)
-                    .log()
                     .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
                     .then())
         .subscribe();
@@ -235,7 +219,6 @@ class QueryParameterSocketTest extends BaseWebSocketTest {
     StepVerifier.create(sink.asMono())
         .expectNext(expected)
         .expectComplete()
-        .log()
         .verify(DEFAULT_GENERIC_TEST_FALLBACK);
   }
 
@@ -257,7 +240,6 @@ class QueryParameterSocketTest extends BaseWebSocketTest {
                 session
                     .receive()
                     .map(WebSocketMessage::getPayloadAsText)
-                    .log()
                     .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
                     .then())
         .subscribe();
@@ -266,7 +248,6 @@ class QueryParameterSocketTest extends BaseWebSocketTest {
     StepVerifier.create(sink.asMono())
         .expectNext(expected)
         .expectComplete()
-        .log()
         .verify(DEFAULT_GENERIC_TEST_FALLBACK);
   }
 
@@ -288,7 +269,6 @@ class QueryParameterSocketTest extends BaseWebSocketTest {
                 session
                     .receive()
                     .map(WebSocketMessage::getPayloadAsText)
-                    .log()
                     .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
                     .then())
         .subscribe();
@@ -297,7 +277,6 @@ class QueryParameterSocketTest extends BaseWebSocketTest {
     StepVerifier.create(sink.asMono())
         .expectNext(expected)
         .expectComplete()
-        .log()
         .verify(DEFAULT_GENERIC_TEST_FALLBACK);
   }
 
@@ -319,7 +298,6 @@ class QueryParameterSocketTest extends BaseWebSocketTest {
                 session
                     .receive()
                     .map(WebSocketMessage::getPayloadAsText)
-                    .log()
                     .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
                     .then())
         .subscribe();
@@ -328,7 +306,6 @@ class QueryParameterSocketTest extends BaseWebSocketTest {
     StepVerifier.create(sink.asMono())
         .expectNext(expected)
         .expectComplete()
-        .log()
         .verify(DEFAULT_GENERIC_TEST_FALLBACK);
   }
 
@@ -350,7 +327,6 @@ class QueryParameterSocketTest extends BaseWebSocketTest {
                 session
                     .receive()
                     .map(WebSocketMessage::getPayloadAsText)
-                    .log()
                     .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
                     .then())
         .subscribe();
@@ -359,7 +335,6 @@ class QueryParameterSocketTest extends BaseWebSocketTest {
     StepVerifier.create(sink.asMono())
         .expectNext(expected)
         .expectComplete()
-        .log()
         .verify(DEFAULT_GENERIC_TEST_FALLBACK);
   }
 
@@ -381,7 +356,6 @@ class QueryParameterSocketTest extends BaseWebSocketTest {
                 session
                     .receive()
                     .map(WebSocketMessage::getPayloadAsText)
-                    .log()
                     .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
                     .then())
         .subscribe();
@@ -390,7 +364,6 @@ class QueryParameterSocketTest extends BaseWebSocketTest {
     StepVerifier.create(sink.asMono())
         .expectNext(expected)
         .expectComplete()
-        .log()
         .verify(DEFAULT_GENERIC_TEST_FALLBACK);
   }
 
@@ -412,7 +385,6 @@ class QueryParameterSocketTest extends BaseWebSocketTest {
                 session
                     .receive()
                     .map(WebSocketMessage::getPayloadAsText)
-                    .log()
                     .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
                     .then())
         .subscribe();
@@ -421,7 +393,6 @@ class QueryParameterSocketTest extends BaseWebSocketTest {
     StepVerifier.create(sink.asMono())
         .expectNext(expected)
         .expectComplete()
-        .log()
         .verify(DEFAULT_GENERIC_TEST_FALLBACK);
   }
 
@@ -443,7 +414,6 @@ class QueryParameterSocketTest extends BaseWebSocketTest {
                 session
                     .receive()
                     .map(WebSocketMessage::getPayloadAsText)
-                    .log()
                     .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
                     .then())
         .subscribe();
@@ -452,7 +422,6 @@ class QueryParameterSocketTest extends BaseWebSocketTest {
     StepVerifier.create(sink.asMono())
         .expectNext(expected)
         .expectComplete()
-        .log()
         .verify(DEFAULT_GENERIC_TEST_FALLBACK);
   }
 
@@ -474,7 +443,6 @@ class QueryParameterSocketTest extends BaseWebSocketTest {
                 session
                     .receive()
                     .map(WebSocketMessage::getPayloadAsText)
-                    .log()
                     .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
                     .then())
         .subscribe();
@@ -483,7 +451,6 @@ class QueryParameterSocketTest extends BaseWebSocketTest {
     StepVerifier.create(sink.asMono())
         .expectNext(expected)
         .expectComplete()
-        .log()
         .verify(DEFAULT_GENERIC_TEST_FALLBACK);
   }
 
@@ -505,7 +472,6 @@ class QueryParameterSocketTest extends BaseWebSocketTest {
                 session
                     .receive()
                     .map(WebSocketMessage::getPayloadAsText)
-                    .log()
                     .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
                     .then())
         .subscribe();
@@ -514,7 +480,6 @@ class QueryParameterSocketTest extends BaseWebSocketTest {
     StepVerifier.create(sink.asMono())
         .expectNext(expected)
         .expectComplete()
-        .log()
         .verify(DEFAULT_GENERIC_TEST_FALLBACK);
   }
 
@@ -536,7 +501,6 @@ class QueryParameterSocketTest extends BaseWebSocketTest {
                 session
                     .receive()
                     .map(WebSocketMessage::getPayloadAsText)
-                    .log()
                     .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
                     .then())
         .subscribe();
@@ -545,7 +509,6 @@ class QueryParameterSocketTest extends BaseWebSocketTest {
     StepVerifier.create(sink.asMono())
         .expectNext(expected)
         .expectComplete()
-        .log()
         .verify(DEFAULT_GENERIC_TEST_FALLBACK);
   }
 
@@ -567,7 +530,6 @@ class QueryParameterSocketTest extends BaseWebSocketTest {
                 session
                     .receive()
                     .map(WebSocketMessage::getPayloadAsText)
-                    .log()
                     .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
                     .then())
         .subscribe();
@@ -576,7 +538,6 @@ class QueryParameterSocketTest extends BaseWebSocketTest {
     StepVerifier.create(sink.asMono())
         .expectNext(expected)
         .expectComplete()
-        .log()
         .verify(DEFAULT_GENERIC_TEST_FALLBACK);
   }
 
@@ -598,7 +559,6 @@ class QueryParameterSocketTest extends BaseWebSocketTest {
                 session
                     .receive()
                     .map(WebSocketMessage::getPayloadAsText)
-                    .log()
                     .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
                     .then())
         .subscribe();
@@ -607,7 +567,6 @@ class QueryParameterSocketTest extends BaseWebSocketTest {
     StepVerifier.create(sink.asMono())
         .expectNext(expected)
         .expectComplete()
-        .log()
         .verify(DEFAULT_GENERIC_TEST_FALLBACK);
   }
 
@@ -629,7 +588,6 @@ class QueryParameterSocketTest extends BaseWebSocketTest {
                 session
                     .receive()
                     .map(WebSocketMessage::getPayloadAsText)
-                    .log()
                     .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
                     .then())
         .subscribe();
@@ -638,7 +596,6 @@ class QueryParameterSocketTest extends BaseWebSocketTest {
     StepVerifier.create(sink.asMono())
         .expectNext(expected)
         .expectComplete()
-        .log()
         .verify(DEFAULT_GENERIC_TEST_FALLBACK);
   }
 
@@ -660,7 +617,6 @@ class QueryParameterSocketTest extends BaseWebSocketTest {
                 session
                     .receive()
                     .map(WebSocketMessage::getPayloadAsText)
-                    .log()
                     .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
                     .then())
         .subscribe();
@@ -669,7 +625,6 @@ class QueryParameterSocketTest extends BaseWebSocketTest {
     StepVerifier.create(sink.asMono())
         .expectNext(expected)
         .expectComplete()
-        .log()
         .verify(DEFAULT_GENERIC_TEST_FALLBACK);
   }
 
@@ -692,7 +647,6 @@ class QueryParameterSocketTest extends BaseWebSocketTest {
                 session
                     .receive()
                     .map(WebSocketMessage::getPayloadAsText)
-                    .log()
                     .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
                     .then())
         .subscribe();
@@ -701,7 +655,6 @@ class QueryParameterSocketTest extends BaseWebSocketTest {
     StepVerifier.create(sink.asMono())
         .expectNext(expected)
         .expectComplete()
-        .log()
         .verify(DEFAULT_GENERIC_TEST_FALLBACK);
   }
 
@@ -723,7 +676,6 @@ class QueryParameterSocketTest extends BaseWebSocketTest {
                 session
                     .receive()
                     .map(WebSocketMessage::getPayloadAsText)
-                    .log()
                     .doOnNext(value -> sink.tryEmitValue(value.replaceAll(" ", "")))
                     .then())
         .subscribe();
@@ -732,7 +684,6 @@ class QueryParameterSocketTest extends BaseWebSocketTest {
     StepVerifier.create(sink.asMono())
         .expectNext(expected)
         .expectComplete()
-        .log()
         .verify(DEFAULT_GENERIC_TEST_FALLBACK);
   }
 }

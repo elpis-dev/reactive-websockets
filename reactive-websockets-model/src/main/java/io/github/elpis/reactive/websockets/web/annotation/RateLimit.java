@@ -8,18 +8,34 @@ import java.lang.annotation.Target;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Rate limiting configuration for WebSocket endpoints. Limits the number of messages that can be
- * processed within a specified time period per user/IP address.
+ * Configures rate limiting for WebSocket message processing.
  *
- * <p>Uses Resilience4j rate limiter to prevent abuse and DoS attacks. When the rate limit is
- * exceeded, an error response is sent to the client.
+ * <p>Limits the number of messages processed within a time period to prevent abuse. Uses
+ * Resilience4j rate limiter internally.
  *
- * <p>Can be applied at:
+ * <h2>Usage Example</h2>
  *
- * <ul>
- *   <li>Class level - applies to all methods in the @MessageEndpoint
- *   <li>Method level - applies to specific @OnMessage method, overrides class-level
- * </ul>
+ * <pre>{@code
+ * // Class-level: 100 messages per second for all handlers
+ * @MessageEndpoint("/ws")
+ * @RateLimit(limitForPeriod = 100, limitRefreshPeriod = 1)
+ * public class ChatEndpoint {
+ *     @OnMessage("/chat")
+ *     public Flux<String> chat(Flux<WebSocketMessage> messages) { ... }
+ * }
+ *
+ * // Method-level with custom scope
+ * @MessageEndpoint("/ws")
+ * public class MixedEndpoint {
+ *     @OnMessage("/api")
+ *     @RateLimit(limitForPeriod = 10, scope = RateLimitScope.USER)
+ *     public Flux<Response> api(Flux<WebSocketMessage> messages) { ... }
+ *
+ *     @OnMessage("/public")
+ *     @RateLimit(limitForPeriod = 5, scope = RateLimitScope.IP)
+ *     public Flux<Response> publicApi(Flux<WebSocketMessage> messages) { ... }
+ * }
+ * }</pre>
  *
  * <p>Precedence (highest to lowest):
  *
@@ -30,6 +46,7 @@ import java.util.concurrent.TimeUnit;
  * </ol>
  *
  * @author Phillip J. Fry
+ * @see RateLimitScope
  * @since 1.0.0
  */
 @Target({ElementType.TYPE, ElementType.METHOD, ElementType.ANNOTATION_TYPE})

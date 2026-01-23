@@ -202,7 +202,6 @@ The planning phase is **critical** and must be completed BEFORE any code is writ
 ### Affected Modules
 - `reactive-websockets-model` - [Changes needed]
 - `reactive-websockets-starter` - [Changes needed]
-- `reactive-websockets-annotation-processor` - [Changes needed]
 - `functional-tests` - [Test changes needed]
 
 ### Affected Packages
@@ -986,7 +985,7 @@ project-root/
 │
 └── src/
     ├── reactive-websockets-model/
-    ├── reactive-websockets-annotation-processor/
+    ├── reactive-websockets-core/
     ├── reactive-websockets-starter/
     ├── functional-tests/
     └── report-aggregate/

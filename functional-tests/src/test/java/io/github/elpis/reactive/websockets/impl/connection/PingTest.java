@@ -5,7 +5,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.github.elpis.reactive.websockets.BaseWebSocketTest;
 import io.github.elpis.reactive.websockets.context.BootStarter;
 import io.github.elpis.reactive.websockets.context.resource.flowcontrol.HeartbeatResource;
-import io.github.elpis.reactive.websockets.context.resource.flowcontrol.HeartbeatRoutingConfiguration;
 import java.time.Duration;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -22,11 +21,7 @@ import reactor.test.StepVerifier;
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
     classes = BootStarter.class)
 @ActiveProfiles({BaseWebSocketTest.DEFAULT_TEST_PROFILE})
-@Import({
-  BaseWebSocketTest.PermitAllSecurityConfiguration.class,
-  HeartbeatResource.class,
-  HeartbeatRoutingConfiguration.class
-})
+@Import({BaseWebSocketTest.PermitAllSecurityConfiguration.class, HeartbeatResource.class})
 public class PingTest extends BaseWebSocketTest {
 
   @Test

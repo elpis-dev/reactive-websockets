@@ -1,18 +1,23 @@
 package io.github.elpis.reactive.websockets;
 
-import io.github.elpis.reactive.websockets.security.SocketHandshakeService;
+import io.github.elpis.reactive.websockets.security.ReactiveWebSocketHandshakeService;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.Duration;
+import java.util.Collection;
 import java.util.Random;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Bean;
+import org.springframework.http.HttpCookie;
 import org.springframework.http.HttpHeaders;
 import org.springframework.lang.NonNull;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.web.server.SecurityWebFilterChain;
+import org.springframework.test.web.reactive.server.WebTestClient;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.socket.WebSocketSession;
 import org.springframework.web.reactive.socket.client.ReactorNettyWebSocketClient;
 import org.springframework.web.reactive.socket.server.upgrade.ReactorNettyRequestUpgradeStrategy;
@@ -21,12 +26,16 @@ import reactor.core.publisher.Mono;
 public abstract class BaseWebSocketTest {
   public static final String DEFAULT_TEST_PROFILE = "test";
 
-  protected static final Duration DEFAULT_GENERIC_TEST_FALLBACK = Duration.ofSeconds(10L);
-  protected static final Duration DEFAULT_FAST_TEST_FALLBACK = Duration.ofSeconds(5L);
+  protected static final Duration DEFAULT_GENERIC_TEST_FALLBACK = Duration.ofSeconds(6L);
+  protected static final Duration DEFAULT_FAST_TEST_FALLBACK = Duration.ofSeconds(2L);
 
   private final Random random = new Random();
 
   @LocalServerPort private Integer port;
+
+  public WebTestClient getWebClient() {
+    return WebTestClient.bindToServer().baseUrl("http://localhost:" + this.port).build();
+  }
 
   public Mono<Void> withClient(
       @NonNull final String path,
@@ -44,6 +53,23 @@ public abstract class BaseWebSocketTest {
 
     return new ReactorNettyWebSocketClient()
         .execute(this.getUrl(path), headers, webSocketHandler::apply);
+  }
+
+  public Mono<Void> withClient(
+      @NonNull final String path,
+      @NonNull final MultiValueMap<String, HttpCookie> cookies,
+      @NonNull final Function<WebSocketSession, Mono<Void>> webSocketHandler)
+      throws URISyntaxException {
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.add(
+        HttpHeaders.COOKIE,
+        cookies.values().stream()
+            .flatMap(Collection::stream)
+            .map(cookie -> cookie.getName() + "=" + cookie.getValue())
+            .collect(Collectors.joining("; ")));
+
+    return this.withClient(path, headers, webSocketHandler);
   }
 
   public String randomTextString(final int length) {
@@ -90,12 +116,15 @@ public abstract class BaseWebSocketTest {
 
     @Bean
     public SecurityWebFilterChain securityWebFilterChain(final ServerHttpSecurity http) {
-      return http.authorizeExchange(exchange -> exchange.anyExchange().permitAll()).build();
+      return http.csrf(ServerHttpSecurity.CsrfSpec::disable)
+          .authorizeExchange(exchange -> exchange.anyExchange().permitAll())
+          .build();
     }
 
     @Bean
-    public SocketHandshakeService socketHandshakeService() {
-      return SocketHandshakeService.builder().build(new ReactorNettyRequestUpgradeStrategy());
+    public ReactiveWebSocketHandshakeService socketHandshakeService() {
+      return ReactiveWebSocketHandshakeService.builder()
+          .build(new ReactorNettyRequestUpgradeStrategy());
     }
   }
 }

@@ -5,7 +5,7 @@ import io.github.elpis.reactive.websockets.context.BootStarter;
 import io.github.elpis.reactive.websockets.context.resource.security.WebFilterSecurityResource;
 import io.github.elpis.reactive.websockets.context.security.model.SecurityProfiles;
 import io.github.elpis.reactive.websockets.context.security.model.TestConstants;
-import io.github.elpis.reactive.websockets.security.SocketHandshakeService;
+import io.github.elpis.reactive.websockets.security.ReactiveWebSocketHandshakeService;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -48,7 +48,6 @@ class WebFilterCustomSocketTest extends BaseWebSocketTest {
                 session
                     .receive()
                     .map(WebSocketMessage::getPayloadAsText)
-                    .log()
                     .doOnNext(sink::tryEmitValue)
                     .then())
         .subscribe();
@@ -57,7 +56,6 @@ class WebFilterCustomSocketTest extends BaseWebSocketTest {
     StepVerifier.create(sink.asMono())
         .expectNext(expected)
         .expectComplete()
-        .log()
         .verify(DEFAULT_GENERIC_TEST_FALLBACK);
   }
 
@@ -77,7 +75,6 @@ class WebFilterCustomSocketTest extends BaseWebSocketTest {
                 session
                     .receive()
                     .map(WebSocketMessage::getPayloadAsText)
-                    .log()
                     .doOnNext(sink::tryEmitValue)
                     .then())
         .subscribe();
@@ -86,7 +83,6 @@ class WebFilterCustomSocketTest extends BaseWebSocketTest {
     StepVerifier.create(sink.asMono())
         .expectNext(expected)
         .expectComplete()
-        .log()
         .verify(DEFAULT_GENERIC_TEST_FALLBACK);
   }
 
@@ -101,14 +97,14 @@ class WebFilterCustomSocketTest extends BaseWebSocketTest {
     }
 
     @Bean
-    SocketHandshakeService socketHandshakeService() {
+    ReactiveWebSocketHandshakeService socketHandshakeService() {
       final WebFilter webFilter =
           (exchange, chain) -> {
             exchange.getAttributes().put(TestConstants.PRINCIPAL, TestConstants.TEST_VALUE);
             return chain.filter(exchange);
           };
 
-      return SocketHandshakeService.builder()
+      return ReactiveWebSocketHandshakeService.builder()
           .handshake(
               webFilter::filter,
               serverWebExchange ->

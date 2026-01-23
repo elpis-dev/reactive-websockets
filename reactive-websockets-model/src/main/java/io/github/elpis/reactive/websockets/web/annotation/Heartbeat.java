@@ -7,15 +7,34 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Heartbeat configuration for WebSocket connections. Defines ping/pong interval and timeout
- * settings.
+ * Configures heartbeat (ping/pong) for WebSocket connections.
  *
- * <p>Can be applied at:
+ * <p>Heartbeats keep the connection alive and detect stale connections.
  *
- * <ul>
- *   <li>Class level - applies to all methods in the @MessageEndpoint
- *   <li>Method level - applies to specific @OnMessage method, overrides class-level
- * </ul>
+ * <h2>Usage Example</h2>
+ *
+ * <pre>{@code
+ * // Class-level: applies to all handlers
+ * @MessageEndpoint("/ws")
+ * @Heartbeat(interval = 30, timeout = 60)
+ * public class ChatEndpoint {
+ *     @OnMessage("/chat")
+ *     public Flux<String> chat(Flux<WebSocketMessage> messages) { ... }
+ * }
+ *
+ * // Method-level: overrides class-level
+ * @MessageEndpoint("/ws")
+ * @Heartbeat(interval = 60)
+ * public class MixedEndpoint {
+ *     @OnMessage("/fast")
+ *     @Heartbeat(interval = 10)  // More frequent for this handler
+ *     public Flux<String> fastPing(Flux<WebSocketMessage> messages) { ... }
+ *
+ *     @OnMessage("/slow")
+ *     @Heartbeat(enabled = false)  // Disable for this handler
+ *     public Flux<String> noPing(Flux<WebSocketMessage> messages) { ... }
+ * }
+ * }</pre>
  *
  * <p>Precedence (highest to lowest):
  *

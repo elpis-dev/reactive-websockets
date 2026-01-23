@@ -1,9 +1,8 @@
 package io.github.elpis.reactive.sample.socket.config;
 
-import static io.github.elpis.reactive.websockets.handler.route.WebSocketHandlerFunctions.handle;
+import static io.github.elpis.reactive.websockets.handler.route.ReactiveWebSocketHandlerFunctions.handle;
 
-import io.github.elpis.reactive.websockets.config.Mode;
-import io.github.elpis.reactive.websockets.handler.route.WebSocketHandlerFunction;
+import io.github.elpis.reactive.websockets.handler.route.ReactiveWebSocketHandlerFunction;
 import java.time.Duration;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -18,10 +17,9 @@ public class SampleConfiguration {
   private static final Logger log = LoggerFactory.getLogger(SampleConfiguration.class);
 
   @Bean
-  public WebSocketHandlerFunction webSocketHandlerFunction() {
+  public ReactiveWebSocketHandlerFunction webSocketHandlerFunction() {
     return handle(
             "/ws/chat/listen",
-            Mode.BROADCAST,
             (context, messageFlux) -> {
               final String userName =
                   context.getHeader("userName", "", String.class).orElse("Not Found");
@@ -38,7 +36,6 @@ public class SampleConfiguration {
             })
         .handle(
             "/ws/chat/listen/me",
-            Mode.BROADCAST,
             (context, messageFlux) -> {
               messageFlux.map(WebSocketMessage::getPayloadAsText).subscribe(log::info);
             });

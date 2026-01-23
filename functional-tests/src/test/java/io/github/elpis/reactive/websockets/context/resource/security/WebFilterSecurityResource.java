@@ -1,7 +1,5 @@
 package io.github.elpis.reactive.websockets.context.resource.security;
 
-import static io.github.elpis.reactive.websockets.config.Mode.BROADCAST;
-
 import io.github.elpis.reactive.websockets.context.security.model.TestConstants;
 import io.github.elpis.reactive.websockets.security.principal.WebSocketPrincipal;
 import io.github.elpis.reactive.websockets.web.annotation.MessageEndpoint;
@@ -16,32 +14,32 @@ import reactor.core.publisher.Flux;
 @MessageEndpoint("/auth/filter")
 public class WebFilterSecurityResource {
 
-  @OnMessage(value = "/withPrincipal", mode = BROADCAST)
+  @OnMessage(value = "/withPrincipal")
   public Publisher<?> withPrincipal(@AuthenticationPrincipal final Principal principal) {
     return Flux.just(principal).map(Principal::getName);
   }
 
-  @OnMessage(value = "/withAuthentication", mode = BROADCAST)
+  @OnMessage(value = "/withAuthentication")
   public Publisher<?> withAuthentication(
       @AuthenticationPrincipal final Authentication authentication) {
     return Flux.just(authentication)
         .map(auth -> Map.of(TestConstants.PRINCIPAL, authentication.getName()));
   }
 
-  @OnMessage(value = "/withWebSocketPrincipal", mode = BROADCAST)
+  @OnMessage(value = "/withWebSocketPrincipal")
   public Publisher<?> withWebSocketPrincipal(@AuthenticationPrincipal final Principal principal) {
     return Flux.just(principal)
         .cast(WebSocketPrincipal.class)
         .map(WebSocketPrincipal::getAuthentication);
   }
 
-  @OnMessage(value = "/withExtractedAuthentication", mode = BROADCAST)
+  @OnMessage(value = "/withExtractedAuthentication")
   public Publisher<?> withExtractedAuthentication(
       @AuthenticationPrincipal final WebSocketPrincipal<String> authentication) {
     return Flux.just(authentication.getAuthentication());
   }
 
-  @OnMessage(value = "/withExpressionPrincipal", mode = BROADCAST)
+  @OnMessage(value = "/withExpressionPrincipal")
   public Publisher<?> withExpressionPrincipal(
       @AuthenticationPrincipal(expression = "principal.name") final String principalName) {
     return Flux.just(principalName);

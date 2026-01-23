@@ -23,7 +23,6 @@ The **Reactive WebSockets** project follows a well-organized multi-module Maven 
 ```
 reactive-websockets (parent pom)
 ├── reactive-websockets-model           (Data models, interfaces, annotations)
-├── reactive-websockets-annotation-processor (APT for code generation)
 ├── reactive-websockets-starter         (Main implementation & Spring Boot auto-config)
 ├── functional-tests                    (Integration tests)
 └── report-aggregate                    (Test coverage reporting)
@@ -263,7 +262,6 @@ The project uses reverse domain naming:
 | Event interface/model | `reactive-websockets-model` | `io.github.elpis.reactive.websockets.event.model` |
 | Annotation | `reactive-websockets-model` | `io.github.elpis.reactive.websockets.web.annotation` |
 | Exception | `reactive-websockets-model` | `io.github.elpis.reactive.websockets.exception` |
-| Annotation processor | `reactive-websockets-annotation-processor` | `io.github.elpis.reactive.websockets.processor` |
 | Event manager implementation | `reactive-websockets-starter` | `io.github.elpis.reactive.websockets.event.manager.impl` |
 | Handler implementation | `reactive-websockets-starter` | `io.github.elpis.reactive.websockets.handler` |
 | Spring configuration | `reactive-websockets-starter` | `io.github.elpis.reactive.websockets.config.<feature>` |

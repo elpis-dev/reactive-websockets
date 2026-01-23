@@ -1,0 +1,2 @@
+io.github.elpis.reactive.websockets.config.ReactiveWebSocketAutoConfiguration
+io.github.elpis.reactive.websockets.config.security.ReactiveWebSocketSecurityAutoConfiguration

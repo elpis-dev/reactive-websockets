@@ -6,7 +6,7 @@ import io.github.elpis.reactive.websockets.context.resource.security.WebFilterSe
 import io.github.elpis.reactive.websockets.context.security.model.SecurityProfiles;
 import io.github.elpis.reactive.websockets.context.security.model.TestConstants;
 import io.github.elpis.reactive.websockets.context.security.model.TestPrincipal;
-import io.github.elpis.reactive.websockets.security.SocketHandshakeService;
+import io.github.elpis.reactive.websockets.security.ReactiveWebSocketHandshakeService;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -54,7 +54,6 @@ class WebFilterAuthenticationSocketTest extends BaseWebSocketTest {
                 session
                     .receive()
                     .map(WebSocketMessage::getPayloadAsText)
-                    .log()
                     .doOnNext(sink::tryEmitValue)
                     .then())
         .subscribe();
@@ -63,7 +62,6 @@ class WebFilterAuthenticationSocketTest extends BaseWebSocketTest {
     StepVerifier.create(sink.asMono())
         .expectNext(expected)
         .expectComplete()
-        .log()
         .verify(DEFAULT_GENERIC_TEST_FALLBACK);
   }
 
@@ -83,7 +81,6 @@ class WebFilterAuthenticationSocketTest extends BaseWebSocketTest {
                 session
                     .receive()
                     .map(WebSocketMessage::getPayloadAsText)
-                    .log()
                     .doOnNext(v -> sink.tryEmitValue(v.replaceAll(" ", "")))
                     .then())
         .subscribe();
@@ -92,7 +89,6 @@ class WebFilterAuthenticationSocketTest extends BaseWebSocketTest {
     StepVerifier.create(sink.asMono())
         .expectNext(expected)
         .expectComplete()
-        .log()
         .verify(DEFAULT_GENERIC_TEST_FALLBACK);
   }
 
@@ -112,7 +108,6 @@ class WebFilterAuthenticationSocketTest extends BaseWebSocketTest {
                 session
                     .receive()
                     .map(WebSocketMessage::getPayloadAsText)
-                    .log()
                     .doOnNext(sink::tryEmitValue)
                     .then())
         .subscribe();
@@ -121,7 +116,6 @@ class WebFilterAuthenticationSocketTest extends BaseWebSocketTest {
     StepVerifier.create(sink.asMono())
         .expectNext(expected)
         .expectComplete()
-        .log()
         .verify(DEFAULT_GENERIC_TEST_FALLBACK);
   }
 
@@ -136,7 +130,7 @@ class WebFilterAuthenticationSocketTest extends BaseWebSocketTest {
     }
 
     @Bean
-    SocketHandshakeService socketHandshakeService() {
+    ReactiveWebSocketHandshakeService socketHandshakeService() {
       final WebFilter webFilter =
           (exchange, chain) ->
               ReactiveSecurityContextHolder.getContext()
@@ -161,7 +155,7 @@ class WebFilterAuthenticationSocketTest extends BaseWebSocketTest {
                           }))
                   .flatMap((securityContext) -> chain.filter(exchange));
 
-      return SocketHandshakeService.builder()
+      return ReactiveWebSocketHandshakeService.builder()
           .handshake(webFilter::filter)
           .build(new ReactorNettyRequestUpgradeStrategy());
     }

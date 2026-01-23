@@ -4,30 +4,37 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.fasterxml.jackson.databind.RuntimeJsonMappingException;
+import io.github.elpis.reactive.websockets.config.mapper.ReactiveWebSocketMappingConfiguration;
 import io.github.elpis.reactive.websockets.mapper.JsonMapper;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-public class JsonMapperTest {
+@ExtendWith(SpringExtension.class)
+@ContextConfiguration(classes = ReactiveWebSocketMappingConfiguration.class)
+class JsonMapperTest {
 
-  // ========== Serialization Tests (applyWith*) ==========
+  @Autowired private JsonMapper jsonMapper;
 
   @Test
-  public void applyWithFallback_shouldSerializeMap() {
-    final String result = JsonMapper.applyWithFallback(Map.of("test", "test"));
+  void testApplyWithFallbackSerializesMap() {
+    final String result = jsonMapper.applyWithFallback(Map.of("test", "test"));
 
     assertThat(result).isEqualTo("{\"test\":\"test\"}");
   }
 
   @Test
-  public void applyWithFallback_shouldSerializeComplexObject() {
+  void testApplyWithFallbackSerializesComplexObject() {
     final TestPojo pojo = new TestPojo("John", 30, List.of("reading", "coding"));
 
-    final String result = JsonMapper.applyWithFallback(pojo);
+    final String result = jsonMapper.applyWithFallback(pojo);
 
     assertThat(result)
         .contains("\"name\":\"John\"")
@@ -36,107 +43,105 @@ public class JsonMapperTest {
   }
 
   @Test
-  public void applyWithFallback_shouldReturnStringAsIs() {
+  void testApplyWithFallbackReturnsStringAsIs() {
     final String input = "already a string";
 
-    final String result = JsonMapper.applyWithFallback(input);
+    final String result = jsonMapper.applyWithFallback(input);
 
     assertThat(result).isEqualTo(input);
   }
 
   @Test
-  public void applyWithFallback_shouldThrowExceptionWhenCannotSerialize() {
+  void testApplyWithFallbackThrowsExceptionWhenCannotSerialize() {
     final UnserializableObject unserializable = new UnserializableObject();
 
-    assertThatThrownBy(() -> JsonMapper.applyWithFallback(unserializable))
+    assertThatThrownBy(() -> jsonMapper.applyWithFallback(unserializable))
         .isInstanceOf(RuntimeJsonMappingException.class)
         .hasMessageContaining("Unable to translate")
         .hasMessageContaining("UnserializableObject");
   }
 
   @Test
-  public void applyWithDefault_shouldSerializeObject() {
-    final String result = JsonMapper.applyWithDefault(Map.of("key", "value"), "default");
+  void testApplyWithDefaultSerializesObject() {
+    final String result = jsonMapper.applyWithDefault(Map.of("key", "value"), "default");
 
     assertThat(result).isEqualTo("{\"key\":\"value\"}");
   }
 
   @Test
-  public void applyWithDefault_shouldReturnDefaultValueWhenCannotSerialize() {
+  void testApplyWithDefaultReturnsDefaultValueWhenCannotSerialize() {
     final UnserializableObject unserializable = new UnserializableObject();
     final String defaultValue = "DEFAULT_VALUE";
 
-    final String result = JsonMapper.applyWithDefault(unserializable, defaultValue);
+    final String result = jsonMapper.applyWithDefault(unserializable, defaultValue);
 
     assertThat(result).isEqualTo(defaultValue);
   }
 
   @Test
-  public void applyWithDefault_shouldReturnStringAsIs() {
+  void testApplyWithDefaultReturnsStringAsIs() {
     final String input = "test string";
 
-    final String result = JsonMapper.applyWithDefault(input, "default");
+    final String result = jsonMapper.applyWithDefault(input, "default");
 
     assertThat(result).isEqualTo(input);
   }
 
   @Test
-  public void applyWithMono_shouldSerializeObject() {
-    final Mono<String> result = JsonMapper.applyWithMono(Map.of("test", "test"));
+  void testApplyWithMonoSerializesObject() {
+    final Mono<String> result = jsonMapper.applyWithMono(Map.of("test", "test"));
 
     assertThat(result.block()).isEqualTo("{\"test\":\"test\"}");
   }
 
   @Test
-  public void applyWithMono_shouldReturnEmptyWhenCannotSerialize() {
+  void testApplyWithMonoReturnsEmptyWhenCannotSerialize() {
     final UnserializableObject unserializable = new UnserializableObject();
 
-    final Mono<String> result = JsonMapper.applyWithMono(unserializable);
+    final Mono<String> result = jsonMapper.applyWithMono(unserializable);
 
     assertThat(result.blockOptional()).isEmpty();
   }
 
   @Test
-  public void applyWithMono_shouldReturnStringAsIs() {
+  void testApplyWithMonoReturnsStringAsIs() {
     final String input = "test string";
 
-    final Mono<String> result = JsonMapper.applyWithMono(input);
+    final Mono<String> result = jsonMapper.applyWithMono(input);
 
     assertThat(result.block()).isEqualTo(input);
   }
 
   @Test
-  public void applyWithFlux_shouldSerializeObject() {
-    final Flux<String> result = JsonMapper.applyWithFlux(Map.of("test", "test"));
+  void testApplyWithFluxSerializesObject() {
+    final Flux<String> result = jsonMapper.applyWithFlux(Map.of("test", "test"));
 
     assertThat(result.blockFirst()).isEqualTo("{\"test\":\"test\"}");
   }
 
   @Test
-  public void applyWithFlux_shouldReturnEmptyWhenCannotSerialize() {
+  void testApplyWithFluxReturnsEmptyWhenCannotSerialize() {
     final UnserializableObject unserializable = new UnserializableObject();
 
-    final Flux<String> result = JsonMapper.applyWithFlux(unserializable);
+    final Flux<String> result = jsonMapper.applyWithFlux(unserializable);
 
     assertThat(result.collectList().block()).isEmpty();
   }
 
   @Test
-  public void applyWithFlux_shouldReturnStringAsIs() {
+  void testApplyWithFluxReturnsStringAsIs() {
     final String input = "test string";
 
-    final Flux<String> result = JsonMapper.applyWithFlux(input);
+    final Flux<String> result = jsonMapper.applyWithFlux(input);
 
     assertThat(result.blockFirst()).isEqualTo(input);
   }
 
-  // ========== Deserialization Tests (deserialize*) ==========
-
   @Test
-  public void deserialize_shouldDeserializeSimpleObject() {
+  void testDeserializeDeserializesSimpleObject() {
     final String json = "{\"name\":\"Alice\",\"age\":25,\"hobbies\":[\"music\",\"sports\"]}";
 
-    final TestPojo result = JsonMapper.deserialize(json, TestPojo.class);
+    final TestPojo result = jsonMapper.deserialize(json, TestPojo.class);
 
     assertThat(result.getName()).isEqualTo("Alice");
     assertThat(result.getAge()).isEqualTo(25);
@@ -144,30 +149,30 @@ public class JsonMapperTest {
   }
 
   @Test
-  public void deserialize_shouldDeserializeMap() {
+  void testDeserializeDeserializesMap() {
     final String json = "{\"key1\":\"value1\",\"key2\":\"value2\"}";
 
     @SuppressWarnings("unchecked")
-    final Map<String, String> result = JsonMapper.deserialize(json, Map.class);
+    final Map<String, String> result = jsonMapper.deserialize(json, Map.class);
 
     assertThat(result).containsEntry("key1", "value1").containsEntry("key2", "value2");
   }
 
   @Test
-  public void deserialize_shouldReturnStringAsIsForStringClass() {
+  void testDeserializeReturnsStringAsIsForStringClass() {
     final String json = "just a plain string";
 
-    final String result = JsonMapper.deserialize(json, String.class);
+    final String result = jsonMapper.deserialize(json, String.class);
 
     assertThat(result).isEqualTo(json);
   }
 
   @Test
-  public void deserialize_shouldDeserializeNestedObject() {
+  void testDeserializeDeserializesNestedObject() {
     final String json =
         "{\"person\":{\"name\":\"Bob\",\"age\":40,\"hobbies\":[]},\"location\":\"NYC\"}";
 
-    final NestedPojo result = JsonMapper.deserialize(json, NestedPojo.class);
+    final NestedPojo result = jsonMapper.deserialize(json, NestedPojo.class);
 
     assertThat(result.getPerson().getName()).isEqualTo("Bob");
     assertThat(result.getPerson().getAge()).isEqualTo(40);
@@ -175,38 +180,38 @@ public class JsonMapperTest {
   }
 
   @Test
-  public void deserialize_shouldThrowExceptionForInvalidJson() {
+  void testDeserializeThrowsExceptionForInvalidJson() {
     final String invalidJson = "{invalid json}";
 
-    assertThatThrownBy(() -> JsonMapper.deserialize(invalidJson, TestPojo.class))
+    assertThatThrownBy(() -> jsonMapper.deserialize(invalidJson, TestPojo.class))
         .isInstanceOf(RuntimeJsonMappingException.class)
         .hasMessageContaining("Unable to deserialize JSON to TestPojo");
   }
 
   @Test
-  public void deserialize_shouldThrowExceptionForMismatchedType() {
-    final String json = "{\"name\":\"Test\",\"age\":\"not a number\",\"hobbies\":[]}";
+  void testDeserializeThrowsExceptionForMismatchedType() {
+    final String json = "{\"name\":\"Test\",\"age\":\"not a number\",\"getHobbies\":[]}";
 
-    assertThatThrownBy(() -> JsonMapper.deserialize(json, TestPojo.class))
+    assertThatThrownBy(() -> jsonMapper.deserialize(json, TestPojo.class))
         .isInstanceOf(RuntimeJsonMappingException.class)
         .hasMessageContaining("Unable to deserialize JSON to TestPojo");
   }
 
   @Test
-  public void deserialize_shouldHandleEmptyObject() {
+  void testDeserializeHandlesEmptyObject() {
     final String json = "{}";
 
-    final TestPojo result = JsonMapper.deserialize(json, TestPojo.class);
+    final TestPojo result = jsonMapper.deserialize(json, TestPojo.class);
 
     assertThat(result).isNotNull();
     assertThat(result.getName()).isNull();
   }
 
   @Test
-  public void deserializeWithMono_shouldDeserializeObject() {
+  void testDeserializeWithMonoDeserializesObject() {
     final String json = "{\"name\":\"Charlie\",\"age\":35,\"hobbies\":[\"gaming\"]}";
 
-    final Mono<TestPojo> result = JsonMapper.deserializeWithMono(json, TestPojo.class);
+    final Mono<TestPojo> result = jsonMapper.deserializeWithMono(json, TestPojo.class);
 
     StepVerifier.create(result)
         .assertNext(
@@ -219,19 +224,19 @@ public class JsonMapperTest {
   }
 
   @Test
-  public void deserializeWithMono_shouldReturnStringAsIs() {
+  void testDeserializeWithMonoReturnsStringAsIs() {
     final String json = "plain text";
 
-    final Mono<String> result = JsonMapper.deserializeWithMono(json, String.class);
+    final Mono<String> result = jsonMapper.deserializeWithMono(json, String.class);
 
     assertThat(result.block()).isEqualTo(json);
   }
 
   @Test
-  public void deserializeWithMono_shouldReturnErrorForInvalidJson() {
+  void testDeserializeWithMonoReturnsErrorForInvalidJson() {
     final String invalidJson = "not valid json";
 
-    final Mono<TestPojo> result = JsonMapper.deserializeWithMono(invalidJson, TestPojo.class);
+    final Mono<TestPojo> result = jsonMapper.deserializeWithMono(invalidJson, TestPojo.class);
 
     StepVerifier.create(result)
         .expectErrorMatches(
@@ -242,10 +247,10 @@ public class JsonMapperTest {
   }
 
   @Test
-  public void deserializeWithFlux_shouldDeserializeObject() {
+  void testDeserializeWithFluxDeserializesObject() {
     final String json = "{\"name\":\"Diana\",\"age\":28,\"hobbies\":[\"yoga\",\"cooking\"]}";
 
-    final Flux<TestPojo> result = JsonMapper.deserializeWithFlux(json, TestPojo.class);
+    final Flux<TestPojo> result = jsonMapper.deserializeWithFlux(json, TestPojo.class);
 
     StepVerifier.create(result)
         .assertNext(
@@ -258,19 +263,19 @@ public class JsonMapperTest {
   }
 
   @Test
-  public void deserializeWithFlux_shouldReturnStringAsIs() {
+  void testDeserializeWithFluxReturnsStringAsIs() {
     final String json = "plain text";
 
-    final Flux<String> result = JsonMapper.deserializeWithFlux(json, String.class);
+    final Flux<String> result = jsonMapper.deserializeWithFlux(json, String.class);
 
     assertThat(result.blockFirst()).isEqualTo(json);
   }
 
   @Test
-  public void deserializeWithFlux_shouldReturnErrorForInvalidJson() {
+  void testDeserializeWithFluxReturnsErrorForInvalidJson() {
     final String invalidJson = "{broken json";
 
-    final Flux<TestPojo> result = JsonMapper.deserializeWithFlux(invalidJson, TestPojo.class);
+    final Flux<TestPojo> result = jsonMapper.deserializeWithFlux(invalidJson, TestPojo.class);
 
     StepVerifier.create(result)
         .expectErrorMatches(
@@ -280,14 +285,12 @@ public class JsonMapperTest {
         .verify();
   }
 
-  // ========== Round-trip Tests (Serialize + Deserialize) ==========
-
   @Test
-  public void shouldRoundTripSerializeAndDeserialize() {
+  void testRoundTripSerializeAndDeserialize() {
     final TestPojo original = new TestPojo("Eve", 45, List.of("travel", "photography"));
 
-    final String json = JsonMapper.applyWithFallback(original);
-    final TestPojo deserialized = JsonMapper.deserialize(json, TestPojo.class);
+    final String json = jsonMapper.applyWithFallback(original);
+    final TestPojo deserialized = jsonMapper.deserialize(json, TestPojo.class);
 
     assertThat(deserialized.getName()).isEqualTo(original.getName());
     assertThat(deserialized.getAge()).isEqualTo(original.getAge());
@@ -295,12 +298,12 @@ public class JsonMapperTest {
   }
 
   @Test
-  public void shouldRoundTripWithReactiveMono() {
+  void testRoundTripWithReactiveMono() {
     final TestPojo original = new TestPojo("Frank", 50, List.of("golf"));
 
-    final Mono<String> serialized = JsonMapper.applyWithMono(original);
+    final Mono<String> serialized = jsonMapper.applyWithMono(original);
     final Mono<TestPojo> deserialized =
-        serialized.flatMap(json -> JsonMapper.deserializeWithMono(json, TestPojo.class));
+        serialized.flatMap(json -> jsonMapper.deserializeWithMono(json, TestPojo.class));
 
     StepVerifier.create(deserialized)
         .assertNext(
@@ -313,12 +316,12 @@ public class JsonMapperTest {
   }
 
   @Test
-  public void shouldRoundTripWithReactiveFlux() {
+  void testRoundTripWithReactiveFlux() {
     final TestPojo original = new TestPojo("Grace", 32, List.of("painting", "dancing"));
 
-    final Flux<String> serialized = JsonMapper.applyWithFlux(original);
+    final Flux<String> serialized = jsonMapper.applyWithFlux(original);
     final Flux<TestPojo> deserialized =
-        serialized.flatMap(json -> JsonMapper.deserializeWithFlux(json, TestPojo.class));
+        serialized.flatMap(json -> jsonMapper.deserializeWithFlux(json, TestPojo.class));
 
     StepVerifier.create(deserialized)
         .assertNext(
@@ -330,11 +333,8 @@ public class JsonMapperTest {
         .verifyComplete();
   }
 
-  // ========== Test POJOs ==========
-
   /** Test class that cannot be serialized by Jackson ObjectMapper. */
   private static class UnserializableObject {
-    // Adding a field with a circular reference or non-serializable type
     private final UnserializableObject self = this;
   }
 

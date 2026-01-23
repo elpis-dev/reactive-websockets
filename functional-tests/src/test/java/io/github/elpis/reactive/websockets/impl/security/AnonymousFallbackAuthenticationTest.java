@@ -4,7 +4,7 @@ import io.github.elpis.reactive.websockets.BaseWebSocketTest;
 import io.github.elpis.reactive.websockets.context.BootStarter;
 import io.github.elpis.reactive.websockets.context.resource.security.SecurityChainResource;
 import io.github.elpis.reactive.websockets.context.security.model.SecurityProfiles;
-import io.github.elpis.reactive.websockets.security.SocketHandshakeService;
+import io.github.elpis.reactive.websockets.security.ReactiveWebSocketHandshakeService;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -45,7 +45,6 @@ class AnonymousFallbackAuthenticationTest extends BaseWebSocketTest {
                 session
                     .receive()
                     .map(WebSocketMessage::getPayloadAsText)
-                    .log()
                     .doOnNext(sink::tryEmitValue)
                     .then())
         .subscribe();
@@ -54,7 +53,6 @@ class AnonymousFallbackAuthenticationTest extends BaseWebSocketTest {
     StepVerifier.create(sink.asMono())
         .expectNext(expected)
         .expectComplete()
-        .log()
         .verify(DEFAULT_GENERIC_TEST_FALLBACK);
   }
 
@@ -62,8 +60,8 @@ class AnonymousFallbackAuthenticationTest extends BaseWebSocketTest {
   public static class AnonymousFallbackTestSecurityConfiguration {
 
     @Bean
-    public SocketHandshakeService socketHandshakeService() {
-      return SocketHandshakeService.builder()
+    public ReactiveWebSocketHandshakeService socketHandshakeService() {
+      return ReactiveWebSocketHandshakeService.builder()
           .handshake(serverWebExchange -> Mono.empty())
           .fallbackToAnonymous(true)
           .build(new ReactorNettyRequestUpgradeStrategy());

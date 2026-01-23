@@ -38,7 +38,6 @@ public class SessionTest extends BaseWebSocketTest {
     StepVerifier.create(sink.asMono())
         .expectNextMatches(sessionId -> !sessionId.isEmpty())
         .expectComplete()
-        .log()
         .verify(DEFAULT_GENERIC_TEST_FALLBACK);
   }
 
@@ -63,7 +62,6 @@ public class SessionTest extends BaseWebSocketTest {
     StepVerifier.create(sink.asMono())
         .expectNextMatches(sessionId -> !sessionId.isEmpty())
         .expectComplete()
-        .log()
         .verify(DEFAULT_GENERIC_TEST_FALLBACK);
   }
 
@@ -88,7 +86,6 @@ public class SessionTest extends BaseWebSocketTest {
     StepVerifier.create(sink.asMono())
         .expectNextMatches(sessionId -> !sessionId.isEmpty())
         .expectComplete()
-        .log()
         .verify(DEFAULT_GENERIC_TEST_FALLBACK);
   }
 }

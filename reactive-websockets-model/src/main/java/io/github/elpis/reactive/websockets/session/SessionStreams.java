@@ -1,0 +1,123 @@
+package io.github.elpis.reactive.websockets.session;
+
+import java.util.concurrent.atomic.AtomicBoolean;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.web.reactive.socket.WebSocketMessage;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Sinks;
+
+/**
+ * Immutable record containing reactive streams for a WebSocket session.
+ *
+ * <p>Single Responsibility: Hold inbound/outbound sinks and metadata.
+ *
+ * <p>Contains:
+ *
+ * <ul>
+ *   <li>Inbound Sink: For publishing incoming WebSocketMessages from client
+ *   <li>Outbound Sink: For publishing outgoing Objects to client (converted by handler)
+ *   <li>Metadata: Session information (ID, timestamp, etc.)
+ * </ul>
+ *
+ * <p>Flux views are created on-demand via {@link #inboundFlux()} and {@link #outboundFlux()}
+ * methods rather than stored, reducing memory overhead and simplifying lifecycle management.
+ *
+ * @since 1.0.0
+ */
+public record SessionStreams(
+    Sinks.Many<WebSocketMessage> inboundSink,
+    Sinks.Many<Object> outboundSink,
+    ReactiveWebSocketSession metadata,
+    AtomicBoolean closed) {
+
+  private static final Logger log = LoggerFactory.getLogger(SessionStreams.class);
+
+  public SessionStreams(
+      final Sinks.Many<WebSocketMessage> inboundSink,
+      final Sinks.Many<Object> outboundSink,
+      final ReactiveWebSocketSession metadata) {
+    this(inboundSink, outboundSink, metadata, new AtomicBoolean(false));
+  }
+
+  /**
+   * Factory method to create SessionStreams with proper Sink configuration.
+   *
+   * @param session the reactive WebSocket session metadata
+   * @return new SessionStreams instance
+   */
+  public static SessionStreams create(final ReactiveWebSocketSession session) {
+    Sinks.Many<WebSocketMessage> inbound =
+        Sinks.many().multicast().onBackpressureBuffer(256, false);
+
+    Sinks.Many<Object> outbound = Sinks.many().multicast().onBackpressureBuffer(256, false);
+
+    return new SessionStreams(inbound, outbound, session);
+  }
+
+  /**
+   * Gets the inbound Flux view.
+   *
+   * <p>This method can be called multiple times - all calls return views of the same underlying
+   * Sink and will receive the same events.
+   *
+   * @return Flux view of incoming WebSocketMessages from the client
+   */
+  public Flux<WebSocketMessage> inboundFlux() {
+    return inboundSink.asFlux();
+  }
+
+  /**
+   * Gets the outbound Flux view.
+   *
+   * <p>This method can be called multiple times - all calls return views of the same underlying
+   * Sink and will receive the same events.
+   *
+   * <p>Note: The Flux contains Object types. Type conversion to WebSocketMessage is handled by
+   * BaseWebSocketHandler.mapOutput() when wiring to WebSocket.send().
+   *
+   * @return Flux view of outgoing Objects to the client
+   */
+  public Flux<Object> outboundFlux() {
+    return outboundSink.asFlux();
+  }
+
+  /**
+   * Closes the session streams gracefully.
+   *
+   * <p>Attempts to complete both inbound and outbound sinks and logs the results. Failures are
+   * logged at WARN level, while successful closures are logged at DEBUG level.
+   */
+  public void close() {
+    if (!closed.compareAndSet(false, true)) {
+      if (log.isTraceEnabled()) {
+        log.debug("Session {} already closed", metadata.getSessionId());
+      }
+      return;
+    }
+
+    final String sessionId = metadata.getSessionId();
+
+    final Sinks.EmitResult inboundResult = inboundSink.tryEmitComplete();
+    if (inboundResult.isFailure()) {
+      if (log.isWarnEnabled()) {
+        log.warn("Failed to close inbound sink for session {}: {}", sessionId, inboundResult);
+      }
+    } else {
+      if (log.isDebugEnabled()) {
+        log.debug("Successfully closed inbound sink for session {}", sessionId);
+      }
+    }
+
+    final Sinks.EmitResult outboundResult = outboundSink.tryEmitComplete();
+    if (outboundResult.isFailure()) {
+      if (log.isWarnEnabled()) {
+        log.warn("Failed to close outbound sink for session {}: {}", sessionId, outboundResult);
+      }
+    } else {
+      if (log.isDebugEnabled()) {
+        log.debug("Successfully closed outbound sink for session {}", sessionId);
+      }
+    }
+  }
+}
