@@ -309,7 +309,7 @@ public abstract class BaseWebSocketTest {
 ```java
 package io.github.elpis.reactive.websockets.impl.connection;
 
-import io.github.elpis.reactive.websockets.BaseWebSocketTest;
+import io.github.elpis.reactive.websockets.functional.BaseWebSocketTest;
 import context.io.github.elpis.reactive.websockets.BootStarter;
 import connection.resource.context.io.github.elpis.reactive.websockets.CloseResource;
 import connection.resource.context.io.github.elpis.reactive.websockets.CloseRoutingConfiguration;
@@ -417,7 +417,7 @@ StepVerifier.create(flux)
 ```java
 package io.github.elpis.reactive.websockets.impl.data;
 
-import io.github.elpis.reactive.websockets.BaseWebSocketTest;
+import io.github.elpis.reactive.websockets.functional.BaseWebSocketTest;
 import context.io.github.elpis.reactive.websockets.BootStarter;
 import data.resource.context.io.github.elpis.reactive.websockets.MessageBodySocketResource;
 import org.junit.jupiter.api.Test;
@@ -494,7 +494,7 @@ class BodySocketTest extends BaseWebSocketTest {
 ```java
 package io.github.elpis.reactive.websockets.impl.security;
 
-import io.github.elpis.reactive.websockets.BaseWebSocketTest;
+import io.github.elpis.reactive.websockets.functional.BaseWebSocketTest;
 import context.io.github.elpis.reactive.websockets.BootStarter;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

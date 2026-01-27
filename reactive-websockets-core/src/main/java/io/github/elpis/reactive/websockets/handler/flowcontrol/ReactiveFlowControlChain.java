@@ -4,11 +4,18 @@ import io.github.elpis.reactive.websockets.flowcontrol.AfterFlow;
 import io.github.elpis.reactive.websockets.flowcontrol.BeforeFlow;
 import io.github.elpis.reactive.websockets.flowcontrol.FlowControlPlacement;
 import io.github.elpis.reactive.websockets.flowcontrol.FlowControlPolicy;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Queue;
+import java.util.Set;
 import java.util.stream.Collectors;
+import org.springframework.util.Assert;
 
 public final class ReactiveFlowControlChain {
   private final List<FlowControlPolicy> inputPolicies;
@@ -46,9 +53,7 @@ public final class ReactiveFlowControlChain {
   }
 
   public static Builder builder(final Collection<FlowControlPolicy> initialPolicies) {
-    Builder builder = new Builder();
-    builder.addPolicies(initialPolicies);
-    return builder;
+    return builder().addPolicies(initialPolicies);
   }
 
   public static class Builder {
@@ -139,14 +144,60 @@ public final class ReactiveFlowControlChain {
      * they operate on separate streams.
      */
     private List<FlowControlPolicy> sortPolicies(final List<PolicyEntry> entries) {
-      return entries.stream()
-          .sorted(
-              (a, b) ->
-                  this.compareBuilderPolicies(a, b)
-                      .or(() -> this.compareAnnotationPolicies(a, b))
-                      .orElse(0))
-          .map(e -> e.policy)
-          .toList();
+      final Map<FlowControlPolicy, Set<FlowControlPolicy>> graph = new HashMap<>();
+      final Map<FlowControlPolicy, Integer> inDegree = new HashMap<>();
+
+      for (PolicyEntry entry : entries) {
+        graph.put(entry.policy, new HashSet<>());
+        inDegree.put(entry.policy, 0);
+      }
+
+      for (int i = 0; i < entries.size(); i++) {
+        for (int j = 0; j < entries.size(); j++) {
+          if (i == j) continue;
+
+          final PolicyEntry a = entries.get(i);
+          final PolicyEntry b = entries.get(j);
+
+          final Optional<Integer> comparison =
+              compareBuilderPolicies(a, b).or(() -> compareAnnotationPolicies(a, b));
+
+          if (comparison.isPresent()) {
+            int result = comparison.get();
+            if (result < 0) {
+              if (graph.get(a.policy).add(b.policy)) {
+                inDegree.merge(b.policy, 1, Integer::sum);
+              }
+            }
+          }
+        }
+      }
+
+      final Queue<FlowControlPolicy> queue = new ArrayDeque<>();
+      for (PolicyEntry entry : entries) {
+        if (inDegree.get(entry.policy) == 0) {
+          queue.offer(entry.policy);
+        }
+      }
+
+      final List<FlowControlPolicy> result = new ArrayList<>();
+      while (!queue.isEmpty()) {
+        final FlowControlPolicy current = queue.poll();
+        result.add(current);
+
+        for (FlowControlPolicy neighbor : graph.get(current)) {
+          int newDegree = inDegree.merge(neighbor, -1, Integer::sum);
+          if (newDegree == 0) {
+            queue.offer(neighbor);
+          }
+        }
+      }
+
+      Assert.state(
+          result.size() == entries.size(),
+          "Circular dependency detected in policy ordering constraints");
+
+      return result;
     }
 
     private record PolicyEntry(
