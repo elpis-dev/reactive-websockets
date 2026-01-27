@@ -1,11 +1,14 @@
 package io.github.elpis.reactive.websockets.functional.data;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.elpis.reactive.websockets.context.BootStarter;
 import io.github.elpis.reactive.websockets.context.model.TestChatMessage;
 import io.github.elpis.reactive.websockets.context.model.TestMessage;
 import io.github.elpis.reactive.websockets.context.model.TestUserMessage;
+import io.github.elpis.reactive.websockets.context.model.ValidatedMessage;
 import io.github.elpis.reactive.websockets.context.resource.data.JsonBodySocketResource;
 import io.github.elpis.reactive.websockets.functional.BaseWebSocketTest;
 import java.time.Duration;
@@ -402,6 +405,40 @@ class JsonBodySocketTest extends BaseWebSocketTest {
 
     // verify
     Thread.sleep(1000);
+  }
+
+  @Test
+  void testPojoWithValidation() throws Exception {
+    // given
+    final String path = "/json/validated";
+    final ValidatedMessage validatedMessage = new ValidatedMessage("definitelyNotEmail");
+
+    final Mono<String> data = Mono.just(validatedMessage).map(this::toJson);
+
+    final Sinks.One<String> sink = Sinks.one();
+
+    // test
+    this.withClient(
+            path,
+            session ->
+                session
+                    .send(data.map(session::textMessage))
+                    .thenMany(
+                        session
+                            .receive()
+                            .doOnNext(value -> sink.tryEmitValue(value.getPayloadAsText())))
+                    .then())
+        .subscribe();
+
+    // verify
+    StepVerifier.create(sink.asMono())
+        .assertNext(
+            value ->
+                assertThat(value)
+                    .contains("username: must be a well-formed email address")
+                    .contains("VALIDATION_FAILED"))
+        .expectComplete()
+        .verify(DEFAULT_FAST_TEST_FALLBACK);
   }
 
   /** Helper method to convert objects to JSON. */

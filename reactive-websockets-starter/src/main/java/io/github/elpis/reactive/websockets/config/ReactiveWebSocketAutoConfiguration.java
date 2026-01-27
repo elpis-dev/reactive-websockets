@@ -4,6 +4,7 @@ import static io.github.elpis.reactive.websockets.Constants.HANDLER_ORDER;
 
 import io.github.elpis.reactive.websockets.config.context.ReactiveWebSocketContextInitializingConfiguration;
 import io.github.elpis.reactive.websockets.config.context.ReactiveWebSocketParameterResolverConfiguration;
+import io.github.elpis.reactive.websockets.config.context.ReactiveWebSocketValidationConfiguration;
 import io.github.elpis.reactive.websockets.config.event.ReactiveWebSocketEventConfiguration;
 import io.github.elpis.reactive.websockets.config.flowcontrol.ReactiveWebSocketFlowControlConfiguration;
 import io.github.elpis.reactive.websockets.config.maintenance.ReactiveWebSocketRegistryMaintenanceConfiguration;
@@ -58,7 +59,8 @@ import reactor.util.context.Context;
   ReactiveWebSocketRegistryMaintenanceConfiguration.class,
   ReactiveWebSocketMappingConfiguration.class,
   ReactiveWebSocketParameterResolverConfiguration.class,
-  ReactiveWebSocketContextInitializingConfiguration.class
+  ReactiveWebSocketContextInitializingConfiguration.class,
+  ReactiveWebSocketValidationConfiguration.class,
 })
 public class ReactiveWebSocketAutoConfiguration {
 
