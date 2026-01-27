@@ -44,6 +44,12 @@
   ],
   "properties": [
     {
+      "name": "spring.webflux.reactive.websockets.validation.jsr303.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enable or disable JSR-303 validation for WebSocket messages.",
+      "defaultValue": true
+    },
+    {
       "name": "spring.webflux.reactive.websockets.flow-control.enabled",
       "type": "java.lang.Boolean",
       "description": "Enable or disable all flow control mechanisms globally.",

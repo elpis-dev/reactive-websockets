@@ -1,6 +1,7 @@
 package io.github.elpis.reactive.websockets.context.advice;
 
 import io.github.elpis.reactive.websockets.web.annotation.WebSocketAdvice;
+import jakarta.validation.ConstraintViolationException;
 import java.io.IOException;
 import java.util.Map;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -28,5 +29,10 @@ public class GlobalWebSocketErrorHandler {
   @ExceptionHandler
   public void handleIOException(final IOException __) {
     // Void handler - just logs, doesn't send response to client
+  }
+
+  @ExceptionHandler(ConstraintViolationException.class)
+  public Map<String, Object> handleAllOtherErrors(final ConstraintViolationException ex) {
+    return Map.of("error", "VALIDATION_FAILED", "message", ex.getMessage());
   }
 }

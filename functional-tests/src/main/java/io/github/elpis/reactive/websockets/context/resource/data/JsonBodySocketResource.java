@@ -3,8 +3,10 @@ package io.github.elpis.reactive.websockets.context.resource.data;
 import io.github.elpis.reactive.websockets.context.model.TestChatMessage;
 import io.github.elpis.reactive.websockets.context.model.TestMessage;
 import io.github.elpis.reactive.websockets.context.model.TestUserMessage;
+import io.github.elpis.reactive.websockets.context.model.ValidatedMessage;
 import io.github.elpis.reactive.websockets.web.annotation.MessageEndpoint;
 import io.github.elpis.reactive.websockets.web.annotation.OnMessage;
+import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -108,5 +110,13 @@ public class JsonBodySocketResource {
     return message
         .doOnNext(msg -> log.info("Raw (Mono): {}", msg.getPayloadAsText()))
         .map(msg -> "Raw (Mono): " + msg.getPayloadAsText());
+  }
+
+  @OnMessage("/validated")
+  public Flux<String> receiveValidatedMessages(
+      @RequestBody @Valid final Flux<ValidatedMessage> messages) {
+    return messages
+        .doOnNext(msg -> log.info("Validated Message: {}", msg))
+        .map(msg -> "Validated Message: " + msg);
   }
 }
