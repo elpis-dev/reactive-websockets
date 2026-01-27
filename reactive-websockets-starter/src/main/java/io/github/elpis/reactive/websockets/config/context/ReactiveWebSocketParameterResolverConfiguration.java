@@ -11,6 +11,7 @@ import io.github.elpis.reactive.websockets.session.WebSocketSessionContext;
 import io.github.elpis.reactive.websockets.util.TypeUtils;
 import jakarta.validation.Valid;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -143,26 +144,16 @@ public class ReactiveWebSocketParameterResolverConfiguration {
               .map(WebSocketMessage::getPayloadAsText)
               .map(text -> jsonMapper.deserialize(text, genericClass))
               .flatMap(
-                  converted -> {
-                    if (validationAnnotation.isPresent() && isValidationAvailable) {
-                      return validationHandlerProvider.getIfAvailable().validate(converted);
-                    }
-
-                    return Mono.just(converted);
-                  });
+                  converted ->
+                      this.tryValidate(converted, validationAnnotation, isValidationAvailable));
         } else {
           return messages
               .next()
               .map(WebSocketMessage::getPayloadAsText)
               .map(text -> jsonMapper.deserialize(text, genericClass))
               .flatMap(
-                  converted -> {
-                    if (validationAnnotation.isPresent() && isValidationAvailable) {
-                      return validationHandlerProvider.getIfAvailable().validate(converted);
-                    }
-
-                    return Mono.just(converted);
-                  });
+                  converted ->
+                      this.tryValidate(converted, validationAnnotation, isValidationAvailable));
         }
       }
 
@@ -183,6 +174,18 @@ public class ReactiveWebSocketParameterResolverConfiguration {
             () ->
                 "@RequestBody Flux/Mono must have a generic type parameter. Found raw type: %s"
                     .formatted(parameter.getParameterType()));
+      }
+
+      private Mono<?> tryValidate(
+          final Object converted,
+          final Optional<Valid> validationAnnotation,
+          final boolean isValidationAvailable) {
+        if (validationAnnotation.isPresent() && isValidationAvailable) {
+          return Objects.requireNonNull(validationHandlerProvider.getIfAvailable())
+              .validate(converted);
+        }
+
+        return Mono.just(converted);
       }
     };
   }
