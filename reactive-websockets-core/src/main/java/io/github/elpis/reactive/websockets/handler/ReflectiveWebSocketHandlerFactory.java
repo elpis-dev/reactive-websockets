@@ -15,7 +15,18 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.util.Assert;
 
-public class ReflectiveWebSocketHandlerFactory {
+/**
+ * Factory class for creating reflection-based WebSocket handlers.
+ *
+ * <p>This factory utilizes the ReactiveWebsocketMessageEndpointResolver to discover handler methods
+ * annotated for WebSocket message handling. It creates instances of
+ * ReflectiveReactiveWebSocketHandler for each discovered method, wiring in necessary dependencies
+ * such as event managers, session registries, flow control registries, and exception resolvers.
+ *
+ * @author Phillip J. Fry
+ * @since 1.0.0
+ */
+public final class ReflectiveWebSocketHandlerFactory {
   private static final Logger log =
       LoggerFactory.getLogger(ReflectiveWebSocketHandlerFactory.class);
 
@@ -62,6 +73,11 @@ public class ReflectiveWebSocketHandlerFactory {
     Assert.notNull(this.jsonMapper, "JsonMapper bean must not be null");
   }
 
+  /**
+   * Creates reflection-based WebSocket handlers for all discovered message endpoint methods.
+   *
+   * @return a list of created BaseReactiveWebSocketHandler instances
+   */
   public List<BaseReactiveWebSocketHandler> createHandlers() {
     final Map<String, ReactiveWebsocketMessageEndpointResolver.MessageHandlerMethod>
         handlerMethods = messageEndpointResolver.getHandlerMethods();
@@ -88,8 +104,8 @@ public class ReflectiveWebSocketHandlerFactory {
       }
     }
 
-    if (log.isInfoEnabled()) {
-      log.info("Created {} reflection-based WebSocket handlers", handlers.size());
+    if (log.isTraceEnabled()) {
+      log.trace("Created {} reflection-based WebSocket handlers", handlers.size());
     }
 
     return handlers;

@@ -227,10 +227,6 @@ public final class ReactiveWebsocketMessageEndpointResolver
     return found;
   }
 
-  /**
-   * Concatenates base path from @MessageEndpoint with method path from @OnMessage. Handles
-   * trailing/leading slashes properly.
-   */
   private String concatenatePaths(String basePath, String methodPath) {
     if (basePath == null || basePath.isEmpty()) {
       return ensureStartsWithSlash(methodPath);
@@ -253,20 +249,13 @@ public final class ReactiveWebsocketMessageEndpointResolver
     return path.startsWith("/") ? path : "/" + path;
   }
 
-  /**
-   * Information about a WebSocket handler method.
-   *
-   * @param beanName the Spring bean name
-   * @param beanType the target class (unwrapped from proxies)
-   * @param method the handler method
-   * @param annotations all annotations from class and method level
-   */
   public record MessageHandlerMethod(
       String beanName,
       Class<?> beanType,
       Method method,
       Annotation[] annotations,
       Map<MethodParameter, ReactiveWebSocketMethodParameterResolver> parameterResolvers) {
+
     /**
      * Find annotation of specific type.
      *

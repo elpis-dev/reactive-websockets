@@ -16,6 +16,13 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
 
+/**
+ * Context information about a WebSocket session, including path parameters, query parameters,
+ * headers, authentication, cookies, session ID, remote address, and path template.
+ *
+ * @author Phillip J. Fry
+ * @since 1.0.0
+ */
 public record WebSocketSessionContext(
     Map<String, String> pathParameters,
     MultiValueMap<String, String> queryParameters,
@@ -37,21 +44,58 @@ public record WebSocketSessionContext(
     cookies = cookies != null ? new LinkedMultiValueMap<>(cookies) : new LinkedMultiValueMap<>();
   }
 
+  /**
+   * Retrieves a cookie by its name and converts its value to the specified type.
+   *
+   * @param cookieName the name of the cookie
+   * @param type the desired type of the cookie value
+   * @param <T> the type parameter
+   * @return an Optional containing the converted cookie value if present, otherwise an empty
+   *     Optional
+   */
   public <T> Optional<T> getCookie(String cookieName, Class<T> type) {
     return Optional.ofNullable(cookies.getFirst(cookieName))
         .map(HttpCookie::getValue)
         .map(value -> TypeUtils.convert(value, type));
   }
 
+  /**
+   * Retrieves all cookies with the specified name.
+   *
+   * @param cookieName the name of the cookie
+   * @param type the desired type of the cookie value
+   * @param <T> the type parameter
+   * @return a list of cookies with the specified name
+   */
   public <T> List<HttpCookie> getCookies(String cookieName, Class<T> type) {
     return Optional.ofNullable(cookies.get(cookieName)).orElse(List.of());
   }
 
+  /**
+   * Retrieves a path variable by its name and converts its value to the specified type.
+   *
+   * @param header the name of the path variable
+   * @param type the desired type of the path variable value
+   * @param <T> the type parameter
+   * @return an Optional containing the converted path variable value if present, otherwise an empty
+   *     Optional
+   */
   public <T> Optional<T> getPathVariable(String header, Class<T> type) {
     return Optional.ofNullable(pathParameters.get(header))
         .map(value -> TypeUtils.convert(value, type));
   }
 
+  /**
+   * Retrieves a query parameter by its name, with a default value if not present, and converts its
+   * value to the specified type.
+   *
+   * @param queryParam the name of the query parameter
+   * @param defaultValue the default value to use if the query parameter is not present
+   * @param type the desired type of the query parameter value
+   * @param <T> the type parameter
+   * @return an Optional containing the converted query parameter value if present, otherwise an
+   *     Optional containing the default value
+   */
   public <T> Optional<T> getQueryParam(String queryParam, String defaultValue, Class<T> type) {
     return Optional.ofNullable(queryParameters.get(queryParam))
         .map(h -> h.stream().findFirst())
@@ -59,6 +103,16 @@ public record WebSocketSessionContext(
         .map(value -> TypeUtils.convert(value, type));
   }
 
+  /**
+   * Retrieves all query parameters with the specified name, with a default value if not present,
+   * and converts their values to the specified type.
+   *
+   * @param queryParam the name of the query parameter
+   * @param defaultValue the default value to use if the query parameter is not present
+   * @param type the desired type of the query parameter values
+   * @param <T> the type parameter
+   * @return a list of converted query parameter values
+   */
   public <T> List<T> getQueryParams(String queryParam, String defaultValue, Class<T> type) {
     return Optional.ofNullable(queryParameters.get(queryParam))
         .filter(headerList -> !headerList.isEmpty())
@@ -69,6 +123,17 @@ public record WebSocketSessionContext(
         .collect(Collectors.toList());
   }
 
+  /**
+   * Retrieves a header by its name, with a default value if not present, and converts its value to
+   * the specified type.
+   *
+   * @param header the name of the header
+   * @param defaultValue the default value to use if the header is not present
+   * @param type the desired type of the header value
+   * @param <T> the type parameter
+   * @return an Optional containing the converted header value if present, otherwise an Optional
+   *     containing the default value
+   */
   public <T> Optional<T> getHeader(String header, String defaultValue, Class<T> type) {
     return Optional.ofNullable(headers.get(header))
         .map(h -> h.stream().findFirst())
@@ -76,6 +141,16 @@ public record WebSocketSessionContext(
         .map(value -> TypeUtils.convert(value, type));
   }
 
+  /**
+   * Retrieves all headers with the specified name, with a default value if not present, and
+   * converts their values to the specified type.
+   *
+   * @param header the name of the header
+   * @param defaultValue the default value to use if the header is not present
+   * @param type the desired type of the header values
+   * @param <T> the type parameter
+   * @return a list of converted header values
+   */
   public <T> List<T> getHeaders(String header, String defaultValue, Class<T> type) {
     return Optional.ofNullable(headers.get(header))
         .filter(headerList -> !headerList.isEmpty())
@@ -86,6 +161,19 @@ public record WebSocketSessionContext(
         .collect(Collectors.toList());
   }
 
+  /**
+   * Retrieves the principal from the authentication object based on the provided expression and
+   * type.
+   *
+   * @param expression the expression to evaluate against the authentication object
+   * @param errorOnInvalidType whether to throw an error if the principal is not of the expected
+   *     type
+   * @param type the expected type of the principal
+   * @param <T> the type parameter
+   * @return the principal of the specified type, or null if not found or of invalid type
+   * @throws ClassCastException if errorOnInvalidType is true and the principal is not of the
+   *     expected type
+   */
   public <T> T getPrincipal(String expression, boolean errorOnInvalidType, Class<T> type) {
     Object principal =
         StringUtils.hasLength(expression) ? parseExpression(expression, type) : authentication;

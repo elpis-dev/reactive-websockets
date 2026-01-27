@@ -19,6 +19,18 @@ import org.springframework.web.reactive.socket.WebSocketMessage;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+/**
+ * Flow control policy that applies rate limiting to inbound WebSocket message streams.
+ *
+ * <p>This policy checks for rate limit configuration in the {@link
+ * ReactiveRateLimitFlowControlRegistry} based on the WebSocket path. If a configuration is found
+ * and enabled, it applies the specified rate limiting to the incoming message Flux.
+ *
+ * <p>Rate limiting is enforced using Resilience4j's RateLimiter.
+ *
+ * @author Phillip J. Fry
+ * @since 1.0.0
+ */
 public class ReactiveRateLimitFlowControlPolicy implements FlowControlPolicy {
   private static final Logger log =
       LoggerFactory.getLogger(ReactiveRateLimitFlowControlPolicy.class);
@@ -32,6 +44,14 @@ public class ReactiveRateLimitFlowControlPolicy implements FlowControlPolicy {
     this.reactiveRateLimitFlowControlRegistry = reactiveRateLimitFlowControlRegistry;
   }
 
+  /**
+   * Applies rate limiting to the incoming WebSocket message Flux based on the path.
+   *
+   * @param path the WebSocket endpoint path
+   * @param context the WebSocket session context
+   * @param webSocketMessageFlux the original Flux of WebSocket messages
+   * @return the Flux with rate limiting applied if configured, otherwise the original Flux
+   */
   @Override
   public Flux<WebSocketMessage> apply(
       final String path,
@@ -53,6 +73,11 @@ public class ReactiveRateLimitFlowControlPolicy implements FlowControlPolicy {
         .orElse(webSocketMessageFlux);
   }
 
+  /**
+   * Specifies that this flow control policy applies to the input (incoming messages).
+   *
+   * @return FlowControlPlacement.INPUT
+   */
   @Override
   public FlowControlPlacement placement() {
     return FlowControlPlacement.INPUT;

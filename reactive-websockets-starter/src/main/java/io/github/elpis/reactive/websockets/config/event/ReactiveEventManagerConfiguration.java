@@ -6,6 +6,7 @@ import io.github.elpis.reactive.websockets.event.manager.ReactiveWebSocketEventM
 import io.github.elpis.reactive.websockets.event.model.impl.ClientSessionClosedEvent;
 import io.github.elpis.reactive.websockets.event.model.impl.ServerSessionClosedEvent;
 import io.github.elpis.reactive.websockets.event.model.impl.SessionConnectedEvent;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -42,6 +43,7 @@ public class ReactiveEventManagerConfiguration {
   }
 
   @Bean
+  @ConditionalOnMissingBean(ReactiveWebSocketEventManagerFactory.class)
   public ReactiveWebSocketEventManagerFactory eventManagerFactory() {
     return ReactiveWebSocketEventManagerFactory.builder()
         .register(SessionConnectedEvent.class, connectedEventWebSocketEventManager())

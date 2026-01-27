@@ -17,6 +17,62 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+/**
+ * Configuration properties for reactive WebSocket flow control, including backpressure, rate
+ * limiting, and heartbeat settings.
+ *
+ * <pre>{@code
+ * spring:
+ *   webflux:
+ *     reactive:
+ *       websockets:
+ *         flow-control:
+ *           enabled: true
+ *
+ *           # Backpressure Configuration
+ *           backpressure:
+ *             enabled: true
+ *             default-config:
+ *               strategy: BUFFER
+ *               buffer-size: 256
+ *             paths:
+ *               /properties/backpressure:
+ *                 strategy: DROP_OLDEST
+ *                 buffer-size: 128
+ *
+ *           # Rate Limit Configuration
+ *           rate-limit:
+ *             enabled: true
+ *             default-config:
+ *               limit-for-period: 10
+ *               limit-refresh-period: 1
+ *               time-unit: SECONDS
+ *               timeout: 25
+ *               scope: SESSION
+ *             paths:
+ *               /properties/ratelimit:
+ *                 limit-for-period: 100
+ *                 limit-refresh-period: 1
+ *                 time-unit: MINUTES
+ *                 timeout: 30
+ *                 scope: USER
+ *
+ *           # Heartbeat Configuration
+ *           heartbeat:
+ *             enabled: true
+ *             default-config:
+ *               interval: 30
+ *               timeout: 60
+ *             paths:
+ *               /properties/health:
+ *                 interval: 10
+ *                 timeout: 30
+ * }</pre>
+ *
+ * @see org.springframework.boot.context.properties.ConfigurationProperties
+ * @author Phillip J. Fry
+ * @since 1.0.0
+ */
 @ConfigurationProperties(prefix = "spring.webflux.reactive.websockets.flow-control")
 public final class ReactiveWebSocketFlowControlProperties {
   private BackpressureProperties backpressure = new BackpressureProperties();

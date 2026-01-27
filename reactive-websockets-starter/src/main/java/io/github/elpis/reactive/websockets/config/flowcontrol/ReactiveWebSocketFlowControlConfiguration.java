@@ -25,6 +25,13 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * Configuration class for setting up reactive WebSocket flow control mechanisms such as
+ * backpressure, rate limiting, and heartbeat.
+ *
+ * @author Phillip J. Fry
+ * @since 1.0.0
+ */
 @Configuration
 @EnableConfigurationProperties(ReactiveWebSocketFlowControlProperties.class)
 public class ReactiveWebSocketFlowControlConfiguration {
@@ -38,6 +45,13 @@ public class ReactiveWebSocketFlowControlConfiguration {
     this.annotationMapperFactory = annotationMapperFactory;
   }
 
+  /**
+   * Creates a registry for backpressure flow control configurations based on application
+   * properties.
+   *
+   * @param properties the ReactiveWebSocketFlowControlProperties
+   * @return the ReactiveBackpressureFlowControlRegistry bean
+   */
   @Bean
   @ConditionalOnProperty(
       name = "spring.webflux.reactive.websockets.flow-control.backpressure.enabled",
@@ -69,6 +83,12 @@ public class ReactiveWebSocketFlowControlConfiguration {
     return registry;
   }
 
+  /**
+   * Creates a registry for rate limit flow control configurations based on application properties.
+   *
+   * @param properties the ReactiveWebSocketFlowControlProperties
+   * @return the ReactiveRateLimitFlowControlRegistry bean
+   */
   @Bean
   @ConditionalOnProperty(
       name = "spring.webflux.reactive.websockets.flow-control.rate-limit.enabled",
@@ -110,6 +130,12 @@ public class ReactiveWebSocketFlowControlConfiguration {
     return registry;
   }
 
+  /**
+   * Creates a registry for heartbeat flow control configurations based on application properties.
+   *
+   * @param properties the ReactiveWebSocketFlowControlProperties
+   * @return the ReactiveHeartbeatFlowControlRegistry bean
+   */
   @Bean
   @ConditionalOnProperty(
       name = "spring.webflux.reactive.websockets.flow-control.heartbeat.enabled",
@@ -139,6 +165,12 @@ public class ReactiveWebSocketFlowControlConfiguration {
     return registry;
   }
 
+  /**
+   * Creates a rate limit flow control policy bean if enabled and not already defined.
+   *
+   * @param registry the ReactiveRateLimitFlowControlRegistry
+   * @return the ReactiveRateLimitFlowControlPolicy bean
+   */
   @Bean
   @ConditionalOnProperty(
       name = "spring.webflux.reactive.websockets.flow-control.rate-limit.enabled",
@@ -150,6 +182,12 @@ public class ReactiveWebSocketFlowControlConfiguration {
     return new ReactiveRateLimitFlowControlPolicy(registry);
   }
 
+  /**
+   * Creates a backpressure flow control policy bean if enabled and not already defined.
+   *
+   * @param registry the ReactiveBackpressureFlowControlRegistry
+   * @return the ReactiveBackpressureFlowControlPolicy bean
+   */
   @Bean
   @ConditionalOnProperty(
       name = "spring.webflux.reactive.websockets.flow-control.backpressure.enabled",
@@ -161,6 +199,14 @@ public class ReactiveWebSocketFlowControlConfiguration {
     return new ReactiveBackpressureFlowControlPolicy(registry);
   }
 
+  /**
+   * Creates a builder for the reactive flow control chain, adding available policies.
+   *
+   * @param backpressurePolicy provider for ReactiveBackpressureFlowControlPolicy
+   * @param rateLimitPolicy provider for ReactiveRateLimitFlowControlPolicy
+   * @param allPolicies provider for all FlowControlPolicy beans
+   * @return the ReactiveFlowControlChain.Builder bean
+   */
   @Bean
   @ConditionalOnProperty(
       name = "spring.webflux.reactive.websockets.flow-control.enabled",
@@ -187,6 +233,12 @@ public class ReactiveWebSocketFlowControlConfiguration {
     return builder.addPolicies(customPolicies);
   }
 
+  /**
+   * Builds the reactive flow control chain if enabled and not already defined.
+   *
+   * @param builder the ReactiveFlowControlChain.Builder
+   * @return the ReactiveFlowControlChain bean
+   */
   @Bean
   @ConditionalOnProperty(
       name = "spring.webflux.reactive.websockets.flow-control.enabled",
@@ -197,6 +249,11 @@ public class ReactiveWebSocketFlowControlConfiguration {
     return builder.build();
   }
 
+  /**
+   * Provides an empty reactive flow control chain if none is defined.
+   *
+   * @return the empty ReactiveFlowControlChain bean
+   */
   @Bean
   @ConditionalOnMissingBean(ReactiveFlowControlChain.class)
   public ReactiveFlowControlChain emptyFlowControlChain() {

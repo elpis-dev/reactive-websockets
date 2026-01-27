@@ -2,6 +2,12 @@ package io.github.elpis.reactive.websockets.event;
 
 import org.springframework.web.reactive.socket.CloseStatus;
 
+/**
+ * Message representing the closing of a WebSocket session.
+ *
+ * @author Phillip J. Fry
+ * @since 1.0.0
+ */
 public class CloseMessage {
   private String sessionId;
   private CloseStatus closeStatus;

@@ -30,6 +30,17 @@ import reactor.core.publisher.Mono;
  * Runtime exception resolver for WebSocket handlers. Discovers and invokes @ExceptionHandler
  * methods dynamically - no code generation needed. Similar to Spring's
  * ExceptionHandlerExceptionResolver.
+ *
+ * <p>Uses a two-level resolution strategy:
+ *
+ * <ul>
+ *   <li>Local handlers defined in the source bean
+ *   <li>Global handlers defined in @WebSocketAdvice beans.
+ * </ul>
+ *
+ * @author Phillip J. Fry
+ * @since 1.0.0
+ * @see AbstractReactiveWebSocketExceptionResolver
  */
 public final class ReactiveWebSocketExceptionResolver
     extends AbstractReactiveWebSocketExceptionResolver {
@@ -49,9 +60,9 @@ public final class ReactiveWebSocketExceptionResolver
     this.scanLocalHandlers();
     this.scanGlobalHandlers();
 
-    if (log.isInfoEnabled()) {
+    if (log.isTraceEnabled()) {
       int localHandlerCount = localHandlersByBean.values().stream().mapToInt(Map::size).sum();
-      log.info(
+      log.trace(
           "Registered {} local exception handlers across {} beans and {} global exception handlers",
           localHandlerCount,
           localHandlersByBean.size(),
@@ -95,12 +106,20 @@ public final class ReactiveWebSocketExceptionResolver
     return this.invokeHandlerMethod(bestMatchingHandler, exception);
   }
 
-  /** Check if this resolver has any handlers registered */
+  /**
+   * Check if any exception handlers are registered
+   *
+   * @return true if any handlers are registered
+   */
   public boolean hasHandlers() {
     return !localHandlersByBean.isEmpty() || !globalHandlers.isEmpty();
   }
 
-  /** Get all registered exception types for debugging */
+  /**
+   * Get all exception types that have handlers registered
+   *
+   * @return Set of exception types
+   */
   public Set<Class<? extends Throwable>> getAllHandledExceptionTypes() {
     final Set<Class<? extends Throwable>> types = new LinkedHashSet<>();
     localHandlersByBean.values().forEach(handlers -> types.addAll(handlers.keySet()));
@@ -109,17 +128,14 @@ public final class ReactiveWebSocketExceptionResolver
     return Collections.unmodifiableSet(types);
   }
 
-  /** Scan for @ExceptionHandler methods in all @MessageEndpoint beans */
   private void scanLocalHandlers() {
     this.scanHandlers(MessageEndpoint.class, this::processLocalHandlerBean);
   }
 
-  /** Scan for @ExceptionHandler methods in all @WebSocketAdvice beans */
   private void scanGlobalHandlers() {
     this.scanHandlers(WebSocketAdvice.class, this::processGlobalHandlerBean);
   }
 
-  /** Process a single bean to find @ExceptionHandler methods in @MessageEndpoint beans */
   private void processLocalHandlerBean(final String beanName, final Class<?> targetType) {
     if (!this.nonAnnotatedClasses.contains(targetType)) {
       final Map<Method, ExceptionHandler> annotatedMethods =
@@ -127,8 +143,8 @@ public final class ReactiveWebSocketExceptionResolver
 
       if (CollectionUtils.isEmpty(annotatedMethods)) {
         this.nonAnnotatedClasses.add(targetType);
-        if (log.isTraceEnabled()) {
-          log.trace(
+        if (log.isDebugEnabled()) {
+          log.debug(
               "No @ExceptionHandler annotations found on bean class: {}", targetType.getName());
         }
       } else {
@@ -178,7 +194,6 @@ public final class ReactiveWebSocketExceptionResolver
     }
   }
 
-  /** Process a single @WebSocketAdvice bean to find @ExceptionHandler methods */
   private void processGlobalHandlerBean(final String beanName, final Class<?> targetType) {
     final Map<Method, ExceptionHandler> annotatedMethods =
         this.resolveAnnotatedMethods(targetType, ExceptionHandler.class, beanName);
@@ -213,10 +228,6 @@ public final class ReactiveWebSocketExceptionResolver
     }
   }
 
-  /**
-   * Extract exception types from @ExceptionHandler annotation Same logic as Spring's
-   * ExceptionHandlerMethodResolver
-   */
   @SuppressWarnings("unchecked")
   private Class<? extends Throwable>[] extractExceptionTypes(
       final Method method, final ExceptionHandler annotation) {
@@ -244,14 +255,6 @@ public final class ReactiveWebSocketExceptionResolver
     return exceptionTypes.toArray(new Class[0]);
   }
 
-  /**
-   * Resolve the best handler for an exception. Priority: 1. Local handlers from the source bean
-   * (highest priority) 2. Global handlers (lower priority) Within each scope: Most specific
-   * exception match wins
-   *
-   * @param exceptionType The exception class
-   * @param sourceBean The bean where the exception originated (can be null)
-   */
   private HandlerMethodInfo resolveHandler(
       final Class<? extends Throwable> exceptionType, final Object sourceBean) {
     if (sourceBean != null) {
@@ -275,10 +278,6 @@ public final class ReactiveWebSocketExceptionResolver
         .orElseGet(() -> this.findBestMatch(exceptionType, globalHandlers));
   }
 
-  /**
-   * Find best matching handler based on exception hierarchy. Prefers the most specific (closest in
-   * hierarchy) exception type. Same algorithm as Spring's ExceptionDepthComparator
-   */
   private HandlerMethodInfo findBestMatch(
       final Class<? extends Throwable> exceptionType,
       final Map<Class<? extends Throwable>, HandlerMethodInfo> handlers) {
@@ -302,7 +301,6 @@ public final class ReactiveWebSocketExceptionResolver
     return bestMatch;
   }
 
-  /** Calculate inheritance distance between exception and handler type */
   private int getDepth(Class<?> exceptionType, Class<?> handlerType) {
     int depth = 0;
     Class<?> current = exceptionType;
@@ -315,10 +313,6 @@ public final class ReactiveWebSocketExceptionResolver
     return depth;
   }
 
-  /**
-   * Invoke the handler method using reflection. Handles both reactive (Mono/Flux) and non-reactive
-   * return types.
-   */
   private Publisher<?> invokeHandlerMethod(HandlerMethodInfo handler, Throwable exception) {
     try {
       ReflectionUtils.makeAccessible(handler.method);
@@ -345,7 +339,6 @@ public final class ReactiveWebSocketExceptionResolver
     }
   }
 
-  /** Prepare method arguments for invocation. Supports: Throwable, specific exception types */
   private Object[] prepareArguments(final Method method, final Throwable exception) {
     final Parameter[] parameters = method.getParameters();
     final Object[] args = new Object[parameters.length];
@@ -361,7 +354,6 @@ public final class ReactiveWebSocketExceptionResolver
     return args;
   }
 
-  /** Holds information about an exception handler method */
   private static class HandlerMethodInfo {
     final Method method;
     final Object bean;

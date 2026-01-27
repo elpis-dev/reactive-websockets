@@ -27,6 +27,20 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 
+/**
+ * WebSocket handler that invokes user-defined methods reflectively based on message endpoints.
+ *
+ * <p>This handler uses reflection to call methods annotated as WebSocket message endpoints. It
+ * resolves method parameters using registered resolvers and handles the method's return value
+ * appropriately, supporting Mono, Flux, Publisher, or direct values.
+ *
+ * <p>Exception handling is integrated to manage errors during method invocation and processing.
+ * Class is not targeted for extension or manual usage and should be handled by Spring framework
+ * only.
+ *
+ * @author Phillip J. Fry
+ * @since 1.0.0
+ */
 public final class ReflectiveReactiveWebSocketHandler extends AdaptiveReactiveWebSocketHandler {
   private static final Logger log =
       LoggerFactory.getLogger(ReflectiveReactiveWebSocketHandler.class);
@@ -75,6 +89,14 @@ public final class ReflectiveReactiveWebSocketHandler extends AdaptiveReactiveWe
     ReflectionUtils.makeAccessible(handlerMethod.method());
   }
 
+  /**
+   * Processes incoming WebSocket messages by invoking the user-defined handler method.
+   *
+   * @param context the WebSocket session context
+   * @param incomingStream the stream of incoming WebSocket messages
+   * @param outboundSink the sink for outbound messages
+   * @return a Publisher representing the processing result
+   */
   @Override
   protected Publisher<?> processMessages(
       final WebSocketSessionContext context,

@@ -31,12 +31,26 @@ public class ClosedConnectionHandlerConfiguration {
   private final ExecutorService executorService =
       Executors.newFixedThreadPool(Queues.XS_BUFFER_SIZE);
 
+  /**
+   * Creates a {@link ReactiveWebSocketEventSelectorMatcher} for {@link ClientSessionClosedEvent}
+   * events.
+   *
+   * @return the ReactiveWebSocketEventSelectorMatcher bean
+   */
   @Bean
   public ReactiveWebSocketEventSelectorMatcher<ClientSessionClosedEvent>
       closedEventSelectorMatcher() {
     return new ClosedSessionReactiveWebSocketEventSelectorMatcher();
   }
 
+  /**
+   * Creates an ApplicationListener that listens for ApplicationReadyEvent to handle closed
+   * WebSocket sessions.
+   *
+   * @param resolver the ReactiveWebSocketClosedEventHandlersResolver
+   * @param eventManagerFactory the ReactiveWebSocketEventManagerFactory
+   * @return the ApplicationListener bean
+   */
   @Bean
   public ApplicationListener<ApplicationReadyEvent> closedSessionListener(
       final ReactiveWebSocketClosedEventHandlersResolver resolver,

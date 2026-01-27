@@ -18,22 +18,54 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 
-// TODO: Check if it's consistent with the latest API changes
+/**
+ * Factory class for creating ReactiveWebSocketHandlerFunction instances that route WebSocket
+ * messages based on specified paths and handler functions.
+ *
+ * <p>This class provides static methods to create handler functions that can process incoming
+ * WebSocket messages using user-defined logic. It supports both message-returning handlers and void
+ * handlers.
+ *
+ * @author Phillip J. Fry
+ * @since 1.0.0
+ */
 public final class ReactiveWebSocketHandlerFunctions {
   private ReactiveWebSocketHandlerFunctions() {}
 
+  /**
+   * Creates a ReactiveWebSocketHandlerFunction that routes messages to the specified handler
+   * function for the given path.
+   *
+   * @param path the WebSocket endpoint path
+   * @param handlerFunction the function that processes incoming WebSocket messages
+   * @param <T> the type of messages returned by the handler function
+   * @return a ReactiveWebSocketHandlerFunction that routes messages to the handler function
+   */
   public static <T> ReactiveWebSocketHandlerFunction handle(
       final String path, final WebSocketMessageHandlerFunction<T> handlerFunction) {
 
     return new HandleRouterFunctionReactive<>(path, handlerFunction);
   }
 
+  /**
+   * Creates a ReactiveWebSocketHandlerFunction that routes messages to the specified void handler
+   * function for the given path.
+   *
+   * @param path the WebSocket endpoint path
+   * @param handlerFunction the void function that processes incoming WebSocket messages
+   * @return a ReactiveWebSocketHandlerFunction that routes messages to the void handler function
+   */
   public static ReactiveWebSocketHandlerFunction handle(
       final String path, final WebSocketVoidHandlerFunction handlerFunction) {
 
     return new VoidRouterFunctionReactive(path, handlerFunction);
   }
 
+  /**
+   * Creates an empty ReactiveWebSocketHandlerFunction that does not handle any messages.
+   *
+   * @return an empty ReactiveWebSocketHandlerFunction
+   */
   public static ReactiveWebSocketHandlerFunction empty() {
     return new DefaultRouterFunctionReactive(null) {
       @Override

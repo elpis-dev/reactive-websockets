@@ -30,13 +30,13 @@ public class WebFilterSecurityResource {
   public Publisher<?> withWebSocketPrincipal(@AuthenticationPrincipal final Principal principal) {
     return Flux.just(principal)
         .cast(WebSocketPrincipal.class)
-        .map(WebSocketPrincipal::getAuthentication);
+        .map(WebSocketPrincipal::authentication);
   }
 
   @OnMessage(value = "/withExtractedAuthentication")
   public Publisher<?> withExtractedAuthentication(
       @AuthenticationPrincipal final WebSocketPrincipal<String> authentication) {
-    return Flux.just(authentication.getAuthentication());
+    return Flux.just(authentication.authentication());
   }
 
   @OnMessage(value = "/withExpressionPrincipal")

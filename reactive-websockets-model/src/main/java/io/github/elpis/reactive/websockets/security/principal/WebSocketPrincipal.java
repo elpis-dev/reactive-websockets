@@ -18,9 +18,7 @@ import org.springframework.lang.NonNull;
  * @see Principal
  * @since 1.0.0
  */
-public class WebSocketPrincipal<T> implements Principal, Serializable {
-  private final T authentication;
-
+public record WebSocketPrincipal<T>(T authentication) implements Principal, Serializable {
   public WebSocketPrincipal(@NonNull final T authentication) {
     this.authentication = authentication;
   }
@@ -29,9 +27,5 @@ public class WebSocketPrincipal<T> implements Principal, Serializable {
   @Override
   public String getName() {
     return WebSocketPrincipal.class.getSimpleName();
-  }
-
-  public T getAuthentication() {
-    return authentication;
   }
 }
