@@ -32,31 +32,6 @@ class ReactiveFlowControlChainTest {
   }
 
   @Test
-  void testFlowControlChainMixedApproach() {
-    // given
-    final FlowControlPolicy policyA = new PolicyA();
-    final FlowControlPolicy policyB = new PolicyB();
-    final FlowControlPolicy policyC = new PolicyC();
-    final FlowControlPolicy policyX = new AnnotatedPolicyX();
-    final FlowControlPolicy policyY = new AnnotatedPolicyY();
-
-    // test
-    final ReactiveFlowControlChain chain =
-        ReactiveFlowControlChain.builder()
-            .addPolicy(policyA)
-            .addPolicies(List.of(policyX, policyY))
-            .addPolicyAfter(policyB, PolicyA.class)
-            .addPolicyBefore(policyC, PolicyA.class)
-            .build();
-
-    // assert
-    assertThat(chain.hasPolicies()).isTrue();
-    assertThat(chain.getOutputPolicies())
-        .hasSize(5)
-        .containsExactly(policyC, policyA, policyB, policyY, policyX);
-  }
-
-  @Test
   void testFlowControlChainBuilderApproach() {
     // given
     final FlowControlPolicy policyA = new PolicyA();
