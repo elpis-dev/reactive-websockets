@@ -62,12 +62,24 @@ import reactor.util.context.Context;
 })
 public class ReactiveWebSocketAutoConfiguration {
 
+  /**
+   * Default empty {@link ReactiveWebSocketHandlerFunction} bean if none is provided.
+   *
+   * @return empty {@link ReactiveWebSocketHandlerFunction}
+   * @since 1.0.0
+   */
   @Bean
   @ConditionalOnMissingBean(ReactiveWebSocketHandlerFunction.class)
   public ReactiveWebSocketHandlerFunction webSocketRouterFunction() {
     return ReactiveWebSocketHandlerFunctions.empty();
   }
 
+  /**
+   * Web filter that adds the session ID to the Reactor context for each WebSocket exchange.
+   *
+   * @return a WebFilter that adds the session ID to the Reactor context
+   * @since 1.0.0
+   */
   @Bean
   public WebFilter sessionFilter() {
     return (exchange, chain) ->
@@ -76,6 +88,12 @@ public class ReactiveWebSocketAutoConfiguration {
             .contextWrite(Context.of("sessionId", exchange.getSession().map(WebSession::getId)));
   }
 
+  /**
+   * Factory bean for creating WebSocket handlers based on methods annotated with {@link OnMessage}.
+   *
+   * @return {@link ReflectiveWebSocketHandlerFactory}
+   * @since 1.0.0
+   */
   @Bean
   public ReflectiveWebSocketHandlerFactory reflectiveWebSocketHandlerFactory(
       final ReactiveWebsocketMessageEndpointResolver messageEndpointResolver,
@@ -113,6 +131,14 @@ public class ReactiveWebSocketAutoConfiguration {
     return new SimpleUrlHandlerMapping(handlerMap, HANDLER_ORDER);
   }
 
+  /**
+   * Bean for managing WebSocket sessions and broadcasting messages.
+   *
+   * @param registry the ReactiveWebSocketSessionRegistry
+   * @param broadcastConcurrency the concurrency level for broadcasting messages
+   * @return {@link ReactiveWebSocketTemplate}
+   * @since 1.0.0
+   */
   @Bean
   public ReactiveWebSocketTemplate webSocketTemplate(
       final ReactiveWebSocketSessionRegistry registry,
@@ -121,6 +147,18 @@ public class ReactiveWebSocketAutoConfiguration {
     return new ReactiveWebSocketTemplate(registry, broadcastConcurrency);
   }
 
+  /**
+   * Resolver bean for WebSocket handler routes.
+   *
+   * @param registry the ReactiveWebSocketSessionRegistry
+   * @param eventManagerFactory the ReactiveWebSocketEventManagerFactory
+   * @param jsonMapper the JsonMapper
+   * @param reactiveHeartbeatFlowControlRegistry the ReactiveHeartbeatFlowControlRegistry
+   * @param reactiveFlowControlChain the ReactiveFlowControlChain
+   * @param functions the list of ReactiveWebSocketHandlerFunction
+   * @return {@link ReactiveWebSocketHandlerRouteResolver}
+   * @since 1.0.0
+   */
   @Bean
   public ReactiveWebSocketHandlerRouteResolver webSocketHandlerRouteResolver(
       final ReactiveWebSocketSessionRegistry registry,

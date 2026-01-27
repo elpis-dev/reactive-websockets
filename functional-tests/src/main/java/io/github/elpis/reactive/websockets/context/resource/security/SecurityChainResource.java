@@ -17,7 +17,7 @@ public class SecurityChainResource {
   @OnMessage(value = "/withExtractedAuthentication")
   public Publisher<?> withExtractedAuthentication(
       @AuthenticationPrincipal final WebSocketPrincipal<String> authentication) {
-    return Flux.just(authentication.getAuthentication());
+    return Flux.just(authentication.authentication());
   }
 
   @OnMessage(value = "/falseAuthenticationInstance")

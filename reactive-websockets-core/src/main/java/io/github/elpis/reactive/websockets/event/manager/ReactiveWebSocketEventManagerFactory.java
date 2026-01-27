@@ -16,6 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *     .build();
  * }</pre>
  *
+ * @author Phillip J. Fry
  * @since 1.0.0
  */
 public class ReactiveWebSocketEventManagerFactory {

@@ -10,11 +10,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Manages all sessions for a specific WebSocket path.
+ * Manages WebSocket sessions for a specific endpoint path.
  *
+ * <p>This class maintains a mapping of session IDs to their corresponding {@link SessionStreams},
+ * allowing for efficient addition, removal, and retrieval of sessions associated with a given path.
+ *
+ * @author Phillip J. Fry
  * @since 1.0.0
  */
-class ReactiveWebSocketPathSessions {
+final class ReactiveWebSocketPathSessions {
   private static final Logger log = LoggerFactory.getLogger(ReactiveWebSocketPathSessions.class);
 
   private final String path;
@@ -25,6 +29,12 @@ class ReactiveWebSocketPathSessions {
     this.path = path;
   }
 
+  /**
+   * Adds a new session to the path.
+   *
+   * @param sessionId the unique identifier of the session
+   * @param streams the session streams associated with the session
+   */
   void add(final String sessionId, final SessionStreams streams) {
     sessions.put(sessionId, streams);
     sessionCount.incrementAndGet();
@@ -34,6 +44,12 @@ class ReactiveWebSocketPathSessions {
     }
   }
 
+  /**
+   * Removes a session from the path.
+   *
+   * @param sessionId the unique identifier of the session to remove
+   * @return an Optional containing the removed SessionStreams if it existed, otherwise empty
+   */
   Optional<SessionStreams> remove(final String sessionId) {
     final SessionStreams removed = sessions.remove(sessionId);
 
@@ -49,22 +65,44 @@ class ReactiveWebSocketPathSessions {
     return Optional.ofNullable(removed);
   }
 
+  /**
+   * Retrieves a session by its ID.
+   *
+   * @param sessionId the unique identifier of the session
+   * @return an Optional containing the SessionStreams if found, otherwise empty
+   */
   Optional<SessionStreams> getSession(String sessionId) {
     return Optional.ofNullable(sessions.get(sessionId));
   }
 
+  /**
+   * Retrieves all sessions associated with the path.
+   *
+   * @return a collection of all SessionStreams
+   */
   Collection<SessionStreams> getAllSessions() {
     return sessions.values();
   }
 
+  /**
+   * Gets the current count of active sessions for the path.
+   *
+   * @return the number of active sessions
+   */
   long getSessionCount() {
     return sessionCount.get();
   }
 
+  /**
+   * Checks if there are no active sessions for the path.
+   *
+   * @return true if there are no sessions, false otherwise
+   */
   boolean isEmpty() {
     return sessions.isEmpty();
   }
 
+  /** Resets all sessions for the path, clearing the session map and resetting the count. */
   void resetSessions() {
     if (log.isDebugEnabled()) {
       log.debug("Shutting down path {} with {} sessions", path, sessions.size());

@@ -24,6 +24,16 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
+/**
+ * Resolver for WebSocket closed event handlers annotated with {@link CloseStatusHandler} and {@link
+ * SessionCloseStatus}. This class scans the application context for beans with methods annotated to
+ * handle WebSocket session close events, and organizes them based on the specified close status
+ * codes.
+ *
+ * @author Phillip J. Fry
+ * @since 1.0.0
+ * @see AbstractReactiveWebSocketExceptionResolver
+ */
 public final class ReactiveWebSocketClosedEventHandlersResolver
     extends AbstractReactiveWebSocketExceptionResolver {
   private static final Logger log =
@@ -50,14 +60,32 @@ public final class ReactiveWebSocketClosedEventHandlersResolver
     this.scanHandlers(CloseStatusHandler.class, this::processBean);
   }
 
+  /**
+   * Gets the map of close status codes to their corresponding event handlers.
+   *
+   * @return a MultiValueMap where the key is the close status code and the value is a list of event
+   *     handlers
+   */
   public MultiValueMap<Integer, Consumer<ClientSessionClosedEvent>> getHandlers() {
     return handlers;
   }
 
+  /**
+   * Gets the first event handler for the specified close status code.
+   *
+   * @param code the close status code
+   * @return the first event handler for the specified code, or null if none exist
+   */
   public Consumer<ClientSessionClosedEvent> getEventHandler(final Integer code) {
     return this.handlers.getFirst(code);
   }
 
+  /**
+   * Gets the list of event handlers for the specified close status code.
+   *
+   * @param code the close status code
+   * @return a list of event handlers for the specified code, or null if none exist
+   */
   public List<Consumer<ClientSessionClosedEvent>> getEventHandlers(final Integer code) {
     return this.handlers.get(code);
   }
@@ -121,9 +149,9 @@ public final class ReactiveWebSocketClosedEventHandlersResolver
       } catch (IllegalAccessException | InvocationTargetException exception) {
         if (log.isErrorEnabled()) {
           log.error(
-              String.format(
-                  "Cannot call `@SessionCloseStatus %s.%s()` due occurred exception",
-                  closeStatusHandler.getClass().getSimpleName(), method.getName()),
+              "Cannot call `@SessionCloseStatus {}.{}()` due occurred exception",
+              closeStatusHandler.getClass().getSimpleName(),
+              method.getName(),
               exception);
         }
       }

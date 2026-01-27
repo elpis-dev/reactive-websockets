@@ -7,6 +7,15 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * A generic registry for reactive flow control configurations based on annotations.
+ *
+ * <p>This class scans WebSocket handler methods for a specific annotation type and registers
+ * corresponding flow control configurations.
+ *
+ * @param <A> the type of annotation used for flow control configuration
+ * @param <T> the type of flow control configuration to be registered
+ */
 public abstract class GenericReactiveFlowControlRegistry<A extends Annotation, T>
     extends ConcurrentHashMap<String, T> {
   private static final Logger log =
@@ -26,8 +35,19 @@ public abstract class GenericReactiveFlowControlRegistry<A extends Annotation, T
     this.initialize();
   }
 
+  /**
+   * Gets the annotation type used for flow control configuration.
+   *
+   * @return the annotation class
+   */
   public abstract Class<A> getAnnotationType();
 
+  /**
+   * Determines whether a given annotation should be registered.
+   *
+   * @param annotation the annotation instance
+   * @return true if the annotation should be registered, false otherwise
+   */
   public abstract boolean shouldRegister(final A annotation);
 
   private void initialize() {

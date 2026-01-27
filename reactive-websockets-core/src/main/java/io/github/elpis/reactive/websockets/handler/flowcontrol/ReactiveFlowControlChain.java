@@ -17,6 +17,19 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.util.Assert;
 
+/**
+ * Represents a chain of reactive flow control policies for WebSocket message processing.
+ *
+ * <p>This class maintains separate lists of input and output flow control policies. It provides
+ * functionality to build a chain of policies with specified ordering constraints, either through
+ * builder methods or annotations on the policy classes.
+ *
+ * <p>The policies can be applied in sequence to incoming and outgoing WebSocket message streams to
+ * enforce various flow control strategies.
+ *
+ * @author Phillip J. Fry
+ * @since 1.0.0
+ */
 public final class ReactiveFlowControlChain {
   private final List<FlowControlPolicy> inputPolicies;
   private final List<FlowControlPolicy> outputPolicies;
@@ -32,55 +45,124 @@ public final class ReactiveFlowControlChain {
     this.outputPolicies = outputPolicies;
   }
 
+  /**
+   * Gets the list of input flow control policies.
+   *
+   * @return the list of input flow control policies
+   */
   public List<FlowControlPolicy> getInputPolicies() {
     return inputPolicies;
   }
 
+  /**
+   * Gets the list of output flow control policies.
+   *
+   * @return the list of output flow control policies
+   */
   public List<FlowControlPolicy> getOutputPolicies() {
     return outputPolicies;
   }
 
+  /**
+   * Checks if there are any flow control policies in the chain.
+   *
+   * @return true if there are input or output policies, false otherwise
+   */
   public boolean hasPolicies() {
     return !inputPolicies.isEmpty() || !outputPolicies.isEmpty();
   }
 
+  /**
+   * Creates an empty ReactiveFlowControlChain with no policies.
+   *
+   * @return an empty ReactiveFlowControlChain
+   */
   public static ReactiveFlowControlChain empty() {
     return new ReactiveFlowControlChain();
   }
 
+  /**
+   * Creates a builder for constructing a ReactiveFlowControlChain.
+   *
+   * @return a new Builder instance
+   */
   public static Builder builder() {
     return new Builder();
   }
 
+  /**
+   * Creates a builder initialized with the given collection of flow control policies.
+   *
+   * @param initialPolicies the initial collection of flow control policies
+   * @return a Builder instance with the initial policies added
+   */
   public static Builder builder(final Collection<FlowControlPolicy> initialPolicies) {
     return builder().addPolicies(initialPolicies);
   }
 
+  /**
+   * Builder class for constructing a ReactiveFlowControlChain with specified policies and ordering
+   * constraints.
+   *
+   * @author Phillip J. Fry
+   * @since 1.0.0
+   */
   public static class Builder {
     private final List<PolicyEntry> policies = new ArrayList<>();
 
+    /**
+     * Adds a flow control policy to the chain.
+     *
+     * @param policy the flow control policy to add
+     * @return the Builder instance for chaining
+     */
     public Builder addPolicy(final FlowControlPolicy policy) {
       policies.add(new PolicyEntry(policy, null, null));
       return this;
     }
 
+    /**
+     * Adds a flow control policy to be placed before another specified policy class.
+     *
+     * @param policy the flow control policy to add
+     * @param beforeClass the class of the policy before which to place the new policy
+     * @return the Builder instance for chaining
+     */
     public Builder addPolicyBefore(
         final FlowControlPolicy policy, Class<? extends FlowControlPolicy> beforeClass) {
       policies.add(new PolicyEntry(policy, beforeClass, null));
       return this;
     }
 
+    /**
+     * Adds a flow control policy to be placed after another specified policy class.
+     *
+     * @param policy the flow control policy to add
+     * @param afterClass the class of the policy after which to place the new policy
+     * @return the Builder instance for chaining
+     */
     public Builder addPolicyAfter(
         final FlowControlPolicy policy, Class<? extends FlowControlPolicy> afterClass) {
       policies.add(new PolicyEntry(policy, null, afterClass));
       return this;
     }
 
+    /**
+     * Adds a collection of flow control policies to the chain.
+     *
+     * @param policies the collection of flow control policies to add
+     * @return the Builder instance for chaining
+     */
     public Builder addPolicies(final Collection<FlowControlPolicy> policies) {
       policies.forEach(this::addPolicy);
       return this;
     }
 
+    /**
+     * Builds the ReactiveFlowControlChain with the added policies and specified ordering.
+     *
+     * @return the constructed ReactiveFlowControlChain
+     */
     public ReactiveFlowControlChain build() {
       final List<FlowControlPolicy> sorted = sortPolicies(policies);
 

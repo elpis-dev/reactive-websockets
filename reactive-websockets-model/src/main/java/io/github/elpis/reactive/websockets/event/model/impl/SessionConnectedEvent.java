@@ -3,6 +3,12 @@ package io.github.elpis.reactive.websockets.event.model.impl;
 import io.github.elpis.reactive.websockets.event.model.WebSocketEvent;
 import io.github.elpis.reactive.websockets.session.ReactiveWebSocketSession;
 
+/**
+ * Event representing a newly connected WebSocket session.
+ *
+ * @author Phillip J. Fry
+ * @since 1.0.0
+ */
 public class SessionConnectedEvent implements WebSocketEvent<ReactiveWebSocketSession> {
   private ReactiveWebSocketSession webSocketSessionInfo;
 

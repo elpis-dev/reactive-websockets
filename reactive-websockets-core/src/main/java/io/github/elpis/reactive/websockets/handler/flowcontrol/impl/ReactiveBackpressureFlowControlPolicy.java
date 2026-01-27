@@ -12,6 +12,25 @@ import java.util.Optional;
 import org.springframework.web.reactive.socket.WebSocketMessage;
 import reactor.core.publisher.Flux;
 
+/**
+ * Flow control policy that applies backpressure strategies to outbound WebSocket message streams.
+ *
+ * <p>This policy checks for backpressure configuration in the {@link
+ * ReactiveBackpressureFlowControlRegistry} based on the WebSocket path. If a configuration is found
+ * and enabled, it applies the specified backpressure strategy to the outgoing message Flux.
+ *
+ * <p>Supported backpressure strategies include:
+ *
+ * <ul>
+ *   <li>BUFFER - Buffers messages up to a specified size.
+ *   <li>DROP_OLDEST - Drops the oldest messages when overwhelmed.
+ *   <li>DROP_LATEST - Drops the latest messages when overwhelmed.
+ *   <li>ERROR - Emits an error when overwhelmed.
+ * </ul>
+ *
+ * @author Phillip J. Fry
+ * @since 1.0.0
+ */
 public class ReactiveBackpressureFlowControlPolicy implements FlowControlPolicy {
   private final ReactiveBackpressureFlowControlRegistry registry;
 
@@ -20,6 +39,14 @@ public class ReactiveBackpressureFlowControlPolicy implements FlowControlPolicy 
     this.registry = registry;
   }
 
+  /**
+   * Applies backpressure strategy to the outgoing WebSocket message Flux based on the path.
+   *
+   * @param path the WebSocket endpoint path
+   * @param __ the WebSocket session context (not used)
+   * @param webSocketMessageFlux the original Flux of WebSocket messages
+   * @return the Flux with backpressure applied if configured, otherwise the original Flux
+   */
   @Override
   public Flux<WebSocketMessage> apply(
       final String path,
@@ -30,6 +57,11 @@ public class ReactiveBackpressureFlowControlPolicy implements FlowControlPolicy 
         .orElse(webSocketMessageFlux);
   }
 
+  /**
+   * Specifies that this flow control policy applies to the output (outgoing messages).
+   *
+   * @return FlowControlPlacement.OUTPUT
+   */
   @Override
   public FlowControlPlacement placement() {
     return FlowControlPlacement.OUTPUT;

@@ -45,6 +45,7 @@ import reactor.core.publisher.Mono;
  * <p>Generated handlers from @MessageEndpoint extend this class to get flow control based on their
  * annotation configuration.
  *
+ * @author Phillip J. Fry
  * @since 1.0.0
  */
 public abstract class AdaptiveReactiveWebSocketHandler extends BaseReactiveWebSocketHandler {
@@ -110,7 +111,6 @@ public abstract class AdaptiveReactiveWebSocketHandler extends BaseReactiveWebSo
                     message.getType() == WebSocketMessage.Type.TEXT
                         || message.getType() == WebSocketMessage.Type.BINARY)
             .doOnNext(message -> streams.inboundSink().tryEmitNext(message))
-            // TODO: Check if this is enough
             .doOnError(
                 e -> {
                   if (log.isErrorEnabled()) {
@@ -131,9 +131,10 @@ public abstract class AdaptiveReactiveWebSocketHandler extends BaseReactiveWebSo
             .onErrorResume(
                 ErrorResponseException.class,
                 e -> {
-                  // TODO: Consider a better log message
                   if (log.isDebugEnabled()) {
-                    log.debug("Sending error response to session {}", sessionId);
+                    log.debug(
+                        "Caught a client-targeted exception. Sending error response to session {}",
+                        sessionId);
                   }
 
                   return this.mapOutput(session, Flux.just(e.getPayload()));
@@ -188,14 +189,6 @@ public abstract class AdaptiveReactiveWebSocketHandler extends BaseReactiveWebSo
             });
   }
 
-  /**
-   * Merges heartbeat ping messages with the outbound stream.
-   *
-   * @param config the heartbeat configuration
-   * @param session the WebSocket session
-   * @param outbound the outbound message stream
-   * @return the merged stream with heartbeat pings
-   */
   private Flux<WebSocketMessage> applyHeartbeat(
       final HeartbeatConfig config,
       final WebSocketSession session,

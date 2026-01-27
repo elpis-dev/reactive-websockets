@@ -5,6 +5,15 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Service for maintaining and cleaning up WebSocket sessions.
+ *
+ * <p>This service provides functionality to periodically clean up orphaned sessions and to
+ * gracefully shut down all sessions when needed.
+ *
+ * @author Phillip J. Fry
+ * @since 1.0.0
+ */
 public class ReactiveWebSocketSessionMaintenanceService {
   private static final Logger log =
       LoggerFactory.getLogger(ReactiveWebSocketSessionMaintenanceService.class);

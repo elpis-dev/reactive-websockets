@@ -18,6 +18,18 @@ import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
+/**
+ * Abstract base class for resolving WebSocket-related annotations and handlers within a Spring
+ * context. This class provides common functionality for scanning beans, resolving annotated
+ * methods, and filtering out Spring container classes. It's not intended to be instantiated and
+ * configured directly but serves as a foundation for specific resolvers.
+ *
+ * @author Phillip J. Fry
+ * @since 1.0.0
+ * @see ReactiveWebSocketClosedEventHandlersResolver
+ * @see ReactiveWebSocketExceptionResolver
+ * @see ReactiveWebsocketMessageEndpointResolver
+ */
 public abstract sealed class AbstractReactiveWebSocketExceptionResolver
     permits ReactiveWebSocketClosedEventHandlersResolver,
         ReactiveWebSocketExceptionResolver,
@@ -38,6 +50,11 @@ public abstract sealed class AbstractReactiveWebSocketExceptionResolver
     this.beanFactory = this.applicationContext.getBeanFactory();
   }
 
+  /**
+   * Initializes the resolver. Subclasses may override this method to perform custom initialization
+   * logic. By default, this method is a no-op. This method is typically called after the resolver
+   * has been constructed and the application context is set.
+   */
   void initialize() {
     // No-op by default
   }

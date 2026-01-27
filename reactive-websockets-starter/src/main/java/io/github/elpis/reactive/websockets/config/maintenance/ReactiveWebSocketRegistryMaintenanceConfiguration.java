@@ -53,6 +53,12 @@ public class ReactiveWebSocketRegistryMaintenanceConfiguration {
     this.reactiveWebSocketSessionMaintenanceService = reactiveWebSocketSessionMaintenanceService;
   }
 
+  /**
+   * Lifecycle bean to manage startup and shutdown of maintenance tasks. Ensures proper shutdown of
+   * the ReactiveWebSocketSessionMaintenanceService.
+   *
+   * @return the SmartLifecycle bean
+   */
   @Bean
   public SmartLifecycle smartLifecycle() {
     return new SmartLifecycle() {

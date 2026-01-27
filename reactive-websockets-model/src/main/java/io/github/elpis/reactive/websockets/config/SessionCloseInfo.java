@@ -3,6 +3,12 @@ package io.github.elpis.reactive.websockets.config;
 import io.github.elpis.reactive.websockets.session.ReactiveWebSocketSession;
 import org.springframework.web.reactive.socket.CloseStatus;
 
+/**
+ * Class representing information about a closed WebSocket session.
+ *
+ * @author Phillip J. Fry
+ * @since 1.0.0
+ */
 public class SessionCloseInfo {
   private ReactiveWebSocketSession session;
   private CloseStatus closeStatus;

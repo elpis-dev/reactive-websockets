@@ -7,6 +7,12 @@ import java.util.function.BooleanSupplier;
 import org.springframework.web.reactive.socket.CloseStatus;
 import reactor.core.publisher.Mono;
 
+/**
+ * Represents a reactive WebSocket session with capabilities to check its status and close it.
+ *
+ * @author Phillip J. Fry
+ * @since 1.0.0
+ */
 public class ReactiveWebSocketSession {
   private final String sessionId;
   private final BooleanSupplier isOpen;
@@ -48,6 +54,12 @@ public class ReactiveWebSocketSession {
     return new Builder();
   }
 
+  /**
+   * Builder class for constructing instances of {@link ReactiveWebSocketSession}.
+   *
+   * @author Phillip J. Fry
+   * @since 1.0.0
+   */
   public static class Builder {
     private BooleanSupplier isOpen = () -> true;
     private BiFunction<String, CloseStatus, Mono<Void>> onClose;

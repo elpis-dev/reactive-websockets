@@ -62,6 +62,7 @@ import reactor.core.publisher.Sinks;
  *   <li>Exception handling - annotation processor generates this
  * </ul>
  *
+ * @author Phillip J. Fry
  * @since 1.0.0
  */
 public abstract class BaseReactiveWebSocketHandler implements WebSocketHandler {
@@ -150,11 +151,9 @@ public abstract class BaseReactiveWebSocketHandler implements WebSocketHandler {
         .flatMap(
             sessionId -> {
               final HandshakeInfo handshakeInfo = session.getHandshakeInfo();
-
-              // TODO: Correct a log message
               if (log.isTraceEnabled()) {
                 log.trace(
-                    "Establishing WebSocketSession: id => {}, uri => {}, address => {}",
+                    "Establishing WebSocketSession [id={}, uri={}, address={}]",
                     sessionId,
                     handshakeInfo.getUri(),
                     handshakeInfo.getRemoteAddress());
@@ -319,7 +318,6 @@ public abstract class BaseReactiveWebSocketHandler implements WebSocketHandler {
     final Mono<Void> input =
         incomingMessages
             .doOnNext(msg -> streams.inboundSink().tryEmitNext(msg))
-            // TODO: Check if this is enough
             .doOnError(
                 e -> {
                   if (log.isErrorEnabled()) {
@@ -330,12 +328,13 @@ public abstract class BaseReactiveWebSocketHandler implements WebSocketHandler {
 
     final Flux<WebSocketMessage> outboundMessages =
         mapOutput(session, streams.outboundFlux())
-            // TODO: Looks to simple for now - needs a proper enrichment
             .onErrorResume(
                 ErrorResponseException.class,
                 e -> {
                   if (log.isDebugEnabled()) {
-                    log.debug("Sending error response to session {}", sessionId);
+                    log.debug(
+                        "Caught a client-targeted exception. Sending error response to session {}",
+                        sessionId);
                   }
                   return mapOutput(session, Flux.just(e.getPayload()));
                 });
@@ -343,7 +342,6 @@ public abstract class BaseReactiveWebSocketHandler implements WebSocketHandler {
     final Mono<Void> output =
         session
             .send(outboundMessages)
-            // TODO: Check if this is enough
             .doOnError(
                 e -> {
                   if (log.isErrorEnabled()) {
@@ -385,7 +383,7 @@ public abstract class BaseReactiveWebSocketHandler implements WebSocketHandler {
               e -> {
                 if (log.isErrorEnabled()) {
                   log.error(
-                      "Processing error for session {}: {}",
+                      "Outbound message stream resulted in exception. Processing error for session {}: {}",
                       webSocketSessionContext.sessionId(),
                       e.getMessage());
                 }
@@ -393,7 +391,7 @@ public abstract class BaseReactiveWebSocketHandler implements WebSocketHandler {
     } catch (WebSocketProcessingException e) {
       if (log.isErrorEnabled()) {
         log.error(
-            "Processing error for session {}: {}",
+            "Message processing method call resulted in exception. Processing error for session {}: {}",
             webSocketSessionContext.sessionId(),
             e.getMessage());
       }

@@ -10,6 +10,12 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.SimpleEvaluationContext;
 
+/**
+ * Constants used throughout the Reactive WebSockets library.
+ *
+ * @author Phillip J. Fry
+ * @since 1.0.0
+ */
 public final class Constants {
   public static final int NO_SESSIONS = 0;
   public static final int HANDLER_ORDER = 10;
@@ -39,6 +45,16 @@ public final class Constants {
     // private constructor
   }
 
+  /**
+   * Parses a SpEL expression with a custom evaluation context.
+   *
+   * @param expressionValue the SpEL expression as a string
+   * @param type the expected return type
+   * @param builder a function to customize the SimpleEvaluationContext.Builder
+   * @param contextConsumer a consumer to further modify the EvaluationContext
+   * @param <T> the type of the result
+   * @return the evaluated expression result
+   */
   public static <T> T parseExpression(
       final String expressionValue,
       final Class<T> type,
