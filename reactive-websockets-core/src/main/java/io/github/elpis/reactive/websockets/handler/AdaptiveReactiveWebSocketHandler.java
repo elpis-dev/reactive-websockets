@@ -4,6 +4,7 @@ import static io.github.elpis.reactive.websockets.Constants.DEFAULT_KEY;
 
 import io.github.elpis.reactive.websockets.event.manager.ReactiveWebSocketEventManagerFactory;
 import io.github.elpis.reactive.websockets.exception.ErrorResponseException;
+import io.github.elpis.reactive.websockets.exception.flowcontrol.RateLimitWarningException;
 import io.github.elpis.reactive.websockets.flowcontrol.config.HeartbeatConfig;
 import io.github.elpis.reactive.websockets.handler.flowcontrol.ReactiveFlowControlChain;
 import io.github.elpis.reactive.websockets.handler.flowcontrol.registry.ReactiveHeartbeatFlowControlRegistry;
@@ -110,6 +111,13 @@ public abstract class AdaptiveReactiveWebSocketHandler extends BaseReactiveWebSo
                 message ->
                     message.getType() == WebSocketMessage.Type.TEXT
                         || message.getType() == WebSocketMessage.Type.BINARY)
+            .transformDeferred(
+                origin ->
+                    this.reactiveFlowControlChain.getInputPolicies().stream()
+                        .reduce(
+                            origin,
+                            (stream, policy) -> policy.apply(path, webSocketSessionContext, stream),
+                            (flux, __) -> flux))
             .doOnNext(message -> streams.inboundSink().tryEmitNext(message))
             .doOnError(
                 e -> {
@@ -129,6 +137,17 @@ public abstract class AdaptiveReactiveWebSocketHandler extends BaseReactiveWebSo
     final Flux<WebSocketMessage> outboundMessages =
         this.mapOutput(session, streams.outboundFlux())
             .onErrorResume(
+                RateLimitWarningException.class,
+                e -> {
+                  if (log.isDebugEnabled()) {
+                    log.debug(
+                        "Caught a RateLimitWarningException. Sending details to client {}",
+                        sessionId);
+                  }
+
+                  return this.mapOutput(session, Flux.just(e.toServerMessage()));
+                })
+            .onErrorResume(
                 ErrorResponseException.class,
                 e -> {
                   if (log.isDebugEnabled()) {
@@ -139,14 +158,14 @@ public abstract class AdaptiveReactiveWebSocketHandler extends BaseReactiveWebSo
 
                   return this.mapOutput(session, Flux.just(e.getPayload()));
                 })
-            .transform(
+            .transformDeferred(
                 origin ->
                     this.reactiveFlowControlChain.getOutputPolicies().stream()
                         .reduce(
                             origin,
                             (stream, policy) -> policy.apply(path, webSocketSessionContext, stream),
                             (flux, __) -> flux))
-            .transform(
+            .transformDeferred(
                 origin ->
                     heartbeatConfig
                         .map(config -> this.applyHeartbeat(config, session, origin))
@@ -162,17 +181,7 @@ public abstract class AdaptiveReactiveWebSocketHandler extends BaseReactiveWebSo
                   }
                 });
 
-    final Flux<WebSocketMessage> inboundStream =
-        streams
-            .inboundFlux()
-            .transform(
-                origin ->
-                    this.reactiveFlowControlChain.getInputPolicies().stream()
-                        .reduce(
-                            origin,
-                            (stream, policy) -> policy.apply(path, webSocketSessionContext, stream),
-                            (flux, __) -> flux));
-
+    final Flux<WebSocketMessage> inboundStream = streams.inboundFlux();
     final Publisher<?> processing =
         this.getProcessingPublisher(
             webSocketSessionContext, inboundStream, streams.outboundSink(), session);

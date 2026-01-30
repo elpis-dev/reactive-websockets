@@ -1,15 +1,22 @@
 package io.github.elpis.reactive.websockets.functional.ratelimit;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import io.github.elpis.reactive.websockets.context.BootStarter;
 import io.github.elpis.reactive.websockets.context.resource.flowcontrol.RateLimitResource;
 import io.github.elpis.reactive.websockets.functional.BaseWebSocketTest;
 import java.time.Duration;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.web.reactive.socket.WebSocketMessage;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 import reactor.test.StepVerifier;
 
@@ -26,20 +33,27 @@ public class RateLimitTest extends BaseWebSocketTest {
   // Test message counts
   private static final int DEFAULT_TEST_MESSAGE_COUNT = 10;
   private static final int CUSTOM_TEST_MESSAGE_COUNT = 12;
-  private static final int USER_TEST_MESSAGE_COUNT = 6;
+  private static final int GENERIC_TEST_MESSAGE_COUNT = 5;
+
+  private static final String SUCCESSFUL_MESSAGE = "Message Processed";
+  private static final String RATE_LIMIT_MESSAGE = "Rate Limit hit in: ";
 
   @Test
   public void testDefaultRateLimitInherited() throws Exception {
     // given
     final Flux<String> data =
         Flux.interval(Duration.ofMillis(150))
-            .map(i -> "Till Rate Limit is hit: " + (i + 1))
+            .map(i -> RATE_LIMIT_MESSAGE + (GENERIC_TEST_MESSAGE_COUNT - i))
             .take(DEFAULT_TEST_MESSAGE_COUNT);
+    final String[] messagesToExpect =
+        Stream.generate(() -> SUCCESSFUL_MESSAGE)
+            .limit(GENERIC_TEST_MESSAGE_COUNT)
+            .toArray(String[]::new);
 
     final String path = "/ratelimit/default";
     final Sinks.Many<String> sink = Sinks.many().replay().all();
 
-    // test - send messages, rate limiter should drop excess messages
+    // test
     this.withClient(
             path,
             session ->
@@ -48,13 +62,15 @@ public class RateLimitTest extends BaseWebSocketTest {
                     .thenMany(
                         session
                             .receive()
-                            .doOnNext(value -> sink.tryEmitNext(value.getPayloadAsText())))
-                    .then())
+                            .map(WebSocketMessage::getPayloadAsText)
+                            .doOnNext(sink::tryEmitNext))
+                    .then(Mono.never()))
         .subscribe();
 
-    // verify - rate limit is 5 per 10 seconds (default), excess messages are dropped
-    // The rate limiting behavior is tested by observing that not all messages complete
-    Thread.sleep(2000);
+    // verify
+    StepVerifier.create(sink.asFlux().timeout(DEFAULT_GENERIC_TEST_FALLBACK))
+        .expectNext(messagesToExpect)
+        .verifyError(TimeoutException.class);
   }
 
   @Test
@@ -62,13 +78,17 @@ public class RateLimitTest extends BaseWebSocketTest {
     // given
     final Flux<String> data =
         Flux.interval(Duration.ofMillis(50))
-            .map(i -> "Till Rate Limit is hit: " + (i + 1))
+            .map(i -> "Rate Limit hit in: " + (GENERIC_TEST_MESSAGE_COUNT - i))
             .take(CUSTOM_TEST_MESSAGE_COUNT);
+    final String[] messagesToExpect =
+        Stream.generate(() -> SUCCESSFUL_MESSAGE)
+            .limit(GENERIC_TEST_MESSAGE_COUNT)
+            .toArray(String[]::new);
 
     final String path = "/ratelimit/custom";
     final Sinks.Many<String> sink = Sinks.many().replay().all();
 
-    // test - send messages, rate limiter should drop excess messages
+    // test
     this.withClient(
             path,
             session ->
@@ -77,12 +97,15 @@ public class RateLimitTest extends BaseWebSocketTest {
                     .thenMany(
                         session
                             .receive()
-                            .doOnNext(value -> sink.tryEmitNext(value.getPayloadAsText())))
-                    .then())
+                            .map(WebSocketMessage::getPayloadAsText)
+                            .doOnNext(sink::tryEmitNext))
+                    .then(Mono.never()))
         .subscribe();
 
-    // verify - rate limit is 10 per 10 seconds (custom), excess messages are dropped
-    Thread.sleep(1500);
+    // verify
+    StepVerifier.create(sink.asFlux().timeout(DEFAULT_GENERIC_TEST_FALLBACK))
+        .expectNext(messagesToExpect)
+        .verifyError(TimeoutException.class);
   }
 
   @Test
@@ -96,7 +119,7 @@ public class RateLimitTest extends BaseWebSocketTest {
     final String path = "/ratelimit/disabled";
     final Sinks.Many<String> sink = Sinks.many().replay().all();
 
-    // test - with rate limiting disabled, all messages should be processed
+    // test
     this.withClient(
             path,
             session ->
@@ -105,11 +128,13 @@ public class RateLimitTest extends BaseWebSocketTest {
                     .thenMany(
                         session
                             .receive()
-                            .doOnNext(value -> sink.tryEmitNext(value.getPayloadAsText())))
-                    .then())
+                            .map(WebSocketMessage::getPayloadAsText)
+                            .filter(message -> !SUCCESSFUL_MESSAGE.equals(message))
+                            .doOnNext(sink::tryEmitNext))
+                    .then(Mono.never()))
         .subscribe();
 
-    // verify - timeout confirms no responses (POST-style endpoint)
+    // verify
     StepVerifier.create(sink.asFlux().timeout(DEFAULT_FAST_TEST_FALLBACK))
         .verifyError(TimeoutException.class);
   }
@@ -117,15 +142,18 @@ public class RateLimitTest extends BaseWebSocketTest {
   @Test
   public void testUserScopedRateLimit() throws Exception {
     // given
+    final int allowedMessageCount = 3;
     final Flux<String> data =
         Flux.interval(Duration.ofMillis(150))
-            .map(i -> "Till Rate Limit is hit: " + (i + 1))
-            .take(USER_TEST_MESSAGE_COUNT);
+            .map(i -> "Rate Limit hit in: " + (allowedMessageCount - i))
+            .take(CUSTOM_TEST_MESSAGE_COUNT);
+    final String[] messagesToExpect =
+        Stream.generate(() -> SUCCESSFUL_MESSAGE).limit(allowedMessageCount).toArray(String[]::new);
 
     final String path = "/ratelimit/by-user";
     final Sinks.Many<String> sink = Sinks.many().replay().all();
 
-    // test - send messages, rate limiter should drop excess messages
+    // test
     this.withClient(
             path,
             session ->
@@ -134,12 +162,15 @@ public class RateLimitTest extends BaseWebSocketTest {
                     .thenMany(
                         session
                             .receive()
-                            .doOnNext(value -> sink.tryEmitNext(value.getPayloadAsText())))
-                    .then())
+                            .map(WebSocketMessage::getPayloadAsText)
+                            .doOnNext(sink::tryEmitNext))
+                    .then(Mono.never()))
         .subscribe();
 
-    // verify - rate limit is 3 per 10 seconds (user scope), excess messages are dropped
-    Thread.sleep(1500);
+    // verify
+    StepVerifier.create(sink.asFlux().timeout(DEFAULT_GENERIC_TEST_FALLBACK))
+        .expectNext(messagesToExpect)
+        .verifyError(TimeoutException.class);
   }
 
   /**
@@ -149,11 +180,15 @@ public class RateLimitTest extends BaseWebSocketTest {
    */
   @Test
   public void testIpScopedRateLimit() throws Exception {
-    // given - IP scope allows 5 messages per 10 seconds
+    // given
     final Flux<String> data =
         Flux.interval(Duration.ofMillis(150))
-            .map(i -> "Message from IP: " + (i + 1))
-            .take(8); // Send 8 messages to exceed the limit of 5
+            .map(i -> "Rate Limit hit in: " + (GENERIC_TEST_MESSAGE_COUNT - i))
+            .take(8);
+    final String[] messagesToExpect =
+        Stream.generate(() -> SUCCESSFUL_MESSAGE)
+            .limit(GENERIC_TEST_MESSAGE_COUNT)
+            .toArray(String[]::new);
 
     final String path = "/ratelimit/by-ip";
     final Sinks.Many<String> sink = Sinks.many().replay().all();
@@ -167,12 +202,15 @@ public class RateLimitTest extends BaseWebSocketTest {
                     .thenMany(
                         session
                             .receive()
-                            .doOnNext(value -> sink.tryEmitNext(value.getPayloadAsText())))
+                            .map(WebSocketMessage::getPayloadAsText)
+                            .doOnNext(sink::tryEmitNext))
                     .then())
         .subscribe();
 
-    // verify - rate limit enforced (3 messages dropped)
-    Thread.sleep(2000);
+    // verify
+    StepVerifier.create(sink.asFlux().timeout(DEFAULT_GENERIC_TEST_FALLBACK))
+        .expectNext(messagesToExpect)
+        .verifyError(TimeoutException.class);
   }
 
   /**
@@ -182,15 +220,22 @@ public class RateLimitTest extends BaseWebSocketTest {
    */
   @Test
   public void testIpScopedRateLimitSharedAcrossConnections() throws Exception {
-    // given - IP scope allows 5 messages per 10 seconds
-    final String path = "/ratelimit/by-ip";
-    final Sinks.Many<String> sink1 = Sinks.many().replay().all();
-    final Sinks.Many<String> sink2 = Sinks.many().replay().all();
-
-    // First connection - send 3 messages (within limit)
+    // given
     final Flux<String> data1 =
         Flux.interval(Duration.ofMillis(150)).map(i -> "Connection 1, Message: " + (i + 1)).take(3);
+    final Flux<String> data2 =
+        Flux.interval(Duration.ofMillis(150)).map(i -> "Connection 2, Message: " + (i + 1)).take(4);
+    final String[] messagesToExpect =
+        Stream.generate(() -> SUCCESSFUL_MESSAGE)
+            .limit(GENERIC_TEST_MESSAGE_COUNT)
+            .toArray(String[]::new);
 
+    final String path = "/ratelimit/by-ip";
+    final Sinks.Many<String> sink = Sinks.many().replay().all();
+
+    final CountDownLatch latch = new CountDownLatch(2);
+
+    // First connection - send 3 messages (within limit)
     this.withClient(
             path,
             session ->
@@ -199,16 +244,11 @@ public class RateLimitTest extends BaseWebSocketTest {
                     .thenMany(
                         session
                             .receive()
-                            .doOnNext(value -> sink1.tryEmitNext(value.getPayloadAsText())))
-                    .then())
+                            .map(WebSocketMessage::getPayloadAsText)
+                            .doOnNext(sink::tryEmitNext))
+                    .doOnSubscribe(__ -> latch.countDown())
+                    .then(Mono.never()))
         .subscribe();
-
-    // Allow first connection to process
-    Thread.sleep(800);
-
-    // Second connection from same IP - send 4 more messages (should exceed shared limit of 5)
-    final Flux<String> data2 =
-        Flux.interval(Duration.ofMillis(150)).map(i -> "Connection 2, Message: " + (i + 1)).take(4);
 
     this.withClient(
             path,
@@ -218,11 +258,17 @@ public class RateLimitTest extends BaseWebSocketTest {
                     .thenMany(
                         session
                             .receive()
-                            .doOnNext(value -> sink2.tryEmitNext(value.getPayloadAsText())))
-                    .then())
+                            .map(WebSocketMessage::getPayloadAsText)
+                            .doOnNext(sink::tryEmitNext))
+                    .doOnSubscribe(__ -> latch.countDown())
+                    .then(Mono.never()))
         .subscribe();
 
-    // verify - shared rate limit enforced (3 + 4 = 7, exceeds 5, so 2 messages dropped)
-    Thread.sleep(1500);
+    assertThat(latch.await(DEFAULT_FAST_TEST_FALLBACK.getSeconds(), TimeUnit.SECONDS)).isTrue();
+
+    // verify
+    StepVerifier.create(sink.asFlux().timeout(DEFAULT_GENERIC_TEST_FALLBACK))
+        .expectNext(messagesToExpect)
+        .verifyError(TimeoutException.class);
   }
 }

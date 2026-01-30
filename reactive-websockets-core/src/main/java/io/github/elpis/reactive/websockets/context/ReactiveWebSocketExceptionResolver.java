@@ -301,7 +301,7 @@ public final class ReactiveWebSocketExceptionResolver
     return bestMatch;
   }
 
-  private int getDepth(Class<?> exceptionType, Class<?> handlerType) {
+  private int getDepth(final Class<?> exceptionType, final Class<?> handlerType) {
     int depth = 0;
     Class<?> current = exceptionType;
 
@@ -313,7 +313,8 @@ public final class ReactiveWebSocketExceptionResolver
     return depth;
   }
 
-  private Publisher<?> invokeHandlerMethod(HandlerMethodInfo handler, Throwable exception) {
+  private Publisher<?> invokeHandlerMethod(
+      final HandlerMethodInfo handler, final Throwable exception) {
     try {
       ReflectionUtils.makeAccessible(handler.method);
 
@@ -348,7 +349,6 @@ public final class ReactiveWebSocketExceptionResolver
       if (Throwable.class.isAssignableFrom(paramType)) {
         args[i] = exception;
       }
-      // TODO: Extend this to support other parameter types like WebSocketSession, etc.
     }
 
     return args;

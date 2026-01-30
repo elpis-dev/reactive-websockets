@@ -2,17 +2,22 @@ package io.github.elpis.reactive.websockets.handler.flowcontrol.impl;
 
 import static io.github.elpis.reactive.websockets.Constants.DEFAULT_KEY;
 
+import io.github.elpis.reactive.websockets.exception.flowcontrol.RateLimitWarningException;
 import io.github.elpis.reactive.websockets.flowcontrol.FlowControlPlacement;
 import io.github.elpis.reactive.websockets.flowcontrol.FlowControlPolicy;
 import io.github.elpis.reactive.websockets.flowcontrol.config.RateLimitConfig;
 import io.github.elpis.reactive.websockets.handler.flowcontrol.registry.ReactiveRateLimitFlowControlRegistry;
+import io.github.elpis.reactive.websockets.session.ReactiveWebSocketSessionRegistry;
 import io.github.elpis.reactive.websockets.session.WebSocketSessionContext;
 import io.github.elpis.reactive.websockets.web.annotation.RateLimit;
 import io.github.resilience4j.ratelimiter.RateLimiter;
 import io.github.resilience4j.ratelimiter.RateLimiterConfig;
 import io.github.resilience4j.ratelimiter.RateLimiterRegistry;
 import java.time.Duration;
+import java.time.Instant;
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.reactive.socket.WebSocketMessage;
@@ -36,12 +41,17 @@ public class ReactiveRateLimitFlowControlPolicy implements FlowControlPolicy {
       LoggerFactory.getLogger(ReactiveRateLimitFlowControlPolicy.class);
 
   private final RateLimiterRegistry rateLimiterRegistry = RateLimiterRegistry.ofDefaults();
+  private final Map<String, Instant> lastWarningTimestamps = new ConcurrentHashMap<>();
 
   private final ReactiveRateLimitFlowControlRegistry reactiveRateLimitFlowControlRegistry;
+  private final ReactiveWebSocketSessionRegistry sessionRegistry;
 
   public ReactiveRateLimitFlowControlPolicy(
-      final ReactiveRateLimitFlowControlRegistry reactiveRateLimitFlowControlRegistry) {
+      final ReactiveRateLimitFlowControlRegistry reactiveRateLimitFlowControlRegistry,
+      final ReactiveWebSocketSessionRegistry sessionRegistry) {
+
     this.reactiveRateLimitFlowControlRegistry = reactiveRateLimitFlowControlRegistry;
+    this.sessionRegistry = sessionRegistry;
   }
 
   /**
@@ -68,7 +78,8 @@ public class ReactiveRateLimitFlowControlPolicy implements FlowControlPolicy {
               final String identifier = this.resolveRateLimitIdentifier(config.getScope(), context);
               final RateLimiter rateLimiter =
                   this.getOrCreateRateLimiter(path + ":" + identifier, config);
-              return this.applyRateLimit(rateLimiter, webSocketMessageFlux, identifier);
+              return this.applyRateLimit(
+                  rateLimiter, webSocketMessageFlux, identifier, config, path, context);
             })
         .orElse(webSocketMessageFlux);
   }
@@ -86,11 +97,55 @@ public class ReactiveRateLimitFlowControlPolicy implements FlowControlPolicy {
   private Flux<WebSocketMessage> applyRateLimit(
       final RateLimiter rateLimiter,
       final Flux<WebSocketMessage> webSocketMessageFlux,
-      final String identifier) {
-    return webSocketMessageFlux.flatMap(
+      final String identifier,
+      final RateLimitConfig config,
+      final String path,
+      final WebSocketSessionContext context) {
+    if (!config.isEnabled()) {
+      return webSocketMessageFlux;
+    }
+
+    return webSocketMessageFlux.concatMap(
         webSocketMessage -> {
           final boolean permitted = rateLimiter.acquirePermission();
           if (permitted) {
+            int remaining = rateLimiter.getMetrics().getAvailablePermissions();
+            int total = rateLimiter.getRateLimiterConfig().getLimitForPeriod();
+            double utilization = 1.0 - ((double) remaining / total);
+
+            if (log.isTraceEnabled()) {
+              log.trace(
+                  "Rate limit check passed for identifier: {}. Remaining: {}/{}. Utilization: {}%",
+                  identifier, remaining, total, String.format("%.2f", utilization * 100));
+            }
+
+            final Optional<Double> warningThresholdOpt = config.getWarningThreshold();
+            if (warningThresholdOpt.isPresent() && utilization >= warningThresholdOpt.get()) {
+              final Double warningThreshold = warningThresholdOpt.get();
+              if (log.isWarnEnabled()) {
+                log.warn(
+                    "Rate limit utilization warning for identifier: {}. Utilization: {}% exceeds threshold of {}%",
+                    identifier,
+                    String.format("%.2f", utilization * 100),
+                    String.format("%.2f", warningThreshold * 100));
+              }
+
+              if (this.shouldSendWarning(identifier, config)) {
+                this.sessionRegistry
+                    .getSession(path, context.sessionId())
+                    .ifPresent(
+                        session ->
+                            session
+                                .outboundSink()
+                                .tryEmitError(
+                                    new RateLimitWarningException(
+                                        "Rate limit utilization warning",
+                                        remaining,
+                                        (int) (utilization * 100))));
+                this.lastWarningTimestamps.put(identifier, Instant.now());
+              }
+            }
+
             return Mono.just(webSocketMessage);
           } else {
             if (log.isWarnEnabled()) {
@@ -126,5 +181,19 @@ public class ReactiveRateLimitFlowControlPolicy implements FlowControlPolicy {
             .timeoutDuration(Duration.ofMillis(config.getTimeout()))
             .build();
     return rateLimiterRegistry.rateLimiter(key, rateLimiterConfig);
+  }
+
+  private boolean shouldSendWarning(final String identifier, final RateLimitConfig config) {
+    final Instant now = Instant.now();
+    final Instant lastWarning = this.lastWarningTimestamps.get(identifier);
+
+    if (lastWarning == null) {
+      return true;
+    }
+
+    final long refreshPeriodMillis = config.getTimeUnit().toMillis(config.getLimitRefreshPeriod());
+    final Duration timeSinceLastWarning = Duration.between(lastWarning, now);
+
+    return timeSinceLastWarning.toMillis() >= refreshPeriodMillis;
   }
 }

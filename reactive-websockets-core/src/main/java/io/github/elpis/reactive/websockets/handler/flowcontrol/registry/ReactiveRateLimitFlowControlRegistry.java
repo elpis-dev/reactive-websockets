@@ -31,13 +31,13 @@ public class ReactiveRateLimitFlowControlRegistry
   }
 
   /**
-   * Determines if the given RateLimit annotation should be registered based on its enabled status.
+   * Determines if the given RateLimit annotation should be registered.
    *
    * @param rateLimit the RateLimit annotation
    * @return true if the rate limit is not null and enabled, false otherwise
    */
   @Override
   public boolean shouldRegister(final RateLimit rateLimit) {
-    return rateLimit != null && rateLimit.enabled();
+    return rateLimit != null;
   }
 }

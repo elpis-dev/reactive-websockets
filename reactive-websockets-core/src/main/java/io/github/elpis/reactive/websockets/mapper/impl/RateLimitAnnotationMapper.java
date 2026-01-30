@@ -26,7 +26,8 @@ public class RateLimitAnnotationMapper implements AnnotationMapper<RateLimit, Ra
             annotation.limitRefreshPeriod(),
             annotation.timeUnit(),
             annotation.timeoutDuration(),
-            annotation.scope())
+            annotation.scope(),
+            null)
         : RateLimitConfig.disabled();
   }
 }

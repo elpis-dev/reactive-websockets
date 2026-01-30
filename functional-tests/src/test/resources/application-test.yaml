@@ -35,6 +35,9 @@ spring:
           # Rate Limit Configuration
           rate-limit:
             enabled: true
+            warning-threshold:
+              enabled: true
+              threshold: 0.01
             default-config:
               limit-for-period: 10
               limit-refresh-period: 1

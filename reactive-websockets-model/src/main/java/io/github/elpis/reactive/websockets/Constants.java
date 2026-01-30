@@ -38,6 +38,7 @@ public final class Constants {
   public static final long DEFAULT_RATE_LIMIT_TIMEOUT = 25L;
   public static final RateLimit.RateLimitScope DEFAULT_RATE_LIMIT_SCOPE =
       RateLimit.RateLimitScope.SESSION;
+  public static final double DEFAULT_RATE_LIMIT_WARNING_THRESHOLD = 0.8;
 
   private static final SpelExpressionParser SPEL_EXPRESSION_PARSER = new SpelExpressionParser();
 
