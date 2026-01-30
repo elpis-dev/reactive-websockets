@@ -8,11 +8,11 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.aop.support.AopUtils;
@@ -90,9 +90,7 @@ public final class ReactiveWebsocketMessageEndpointResolver
    */
   public List<Annotation> getAnnotations(final String path) {
     MessageHandlerMethod handlerMethod = handlerMethods.get(path);
-    return handlerMethod != null
-        ? Arrays.asList(handlerMethod.annotations())
-        : Collections.emptyList();
+    return handlerMethod != null ? handlerMethod.getAllAnnotations() : List.of();
   }
 
   /**
@@ -118,7 +116,7 @@ public final class ReactiveWebsocketMessageEndpointResolver
   public Map<String, List<Annotation>> getPathAnnotations() {
     final Map<String, List<Annotation>> result = new LinkedHashMap<>();
     handlerMethods.forEach(
-        (path, handlerMethod) -> result.put(path, Arrays.asList(handlerMethod.annotations())));
+        (path, handlerMethod) -> result.put(path, handlerMethod.getAllAnnotations()));
     return Collections.unmodifiableMap(result);
   }
 
@@ -146,12 +144,6 @@ public final class ReactiveWebsocketMessageEndpointResolver
 
           final String fullPath = this.concatenatePaths(basePath, onMessage.value());
 
-          final Set<Annotation> annotations = new LinkedHashSet<>();
-          if (typeAnnotation != null) {
-            annotations.addAll(Arrays.asList(targetType.getAnnotations()));
-          }
-          annotations.addAll(Arrays.asList(methodToUse.getAnnotations()));
-
           final Map<MethodParameter, ReactiveWebSocketMethodParameterResolver> resolverCache =
               this.scanAndCacheResolvers(method);
           final MessageHandlerMethod handlerMethod =
@@ -159,7 +151,8 @@ public final class ReactiveWebsocketMessageEndpointResolver
                   beanName,
                   targetType,
                   methodToUse,
-                  annotations.toArray(new Annotation[0]),
+                  methodToUse.getAnnotations(),
+                  targetType.getAnnotations(),
                   resolverCache);
 
           final MessageHandlerMethod existing = handlerMethods.putIfAbsent(fullPath, handlerMethod);
@@ -253,8 +246,47 @@ public final class ReactiveWebsocketMessageEndpointResolver
       String beanName,
       Class<?> beanType,
       Method method,
-      Annotation[] annotations,
+      Annotation[] methodAnnotations,
+      Annotation[] typeAnnotations,
       Map<MethodParameter, ReactiveWebSocketMethodParameterResolver> parameterResolvers) {
+
+    /**
+     * Get all annotations.
+     *
+     * @return list of annotations
+     */
+    public List<Annotation> getAllAnnotations() {
+      return Stream.concat(Arrays.stream(methodAnnotations), Arrays.stream(typeAnnotations))
+          .toList();
+    }
+
+    /**
+     * Find annotation of specific type from target type.
+     *
+     * @param annotationType the annotation class
+     * @return the annotation if present, null otherwise
+     */
+    @Nullable public <A extends Annotation> A getTypeAnnotation(final Class<A> annotationType) {
+      return Arrays.stream(typeAnnotations)
+          .filter(annotationType::isInstance)
+          .map(annotationType::cast)
+          .findFirst()
+          .orElse(null);
+    }
+
+    /**
+     * Find annotation of specific type from method.
+     *
+     * @param annotationType the annotation class
+     * @return the annotation if present, null otherwise
+     */
+    @Nullable public <A extends Annotation> A getMethodAnnotation(final Class<A> annotationType) {
+      return Arrays.stream(methodAnnotations)
+          .filter(annotationType::isInstance)
+          .map(annotationType::cast)
+          .findFirst()
+          .orElse(null);
+    }
 
     /**
      * Find annotation of specific type.
@@ -263,11 +295,28 @@ public final class ReactiveWebsocketMessageEndpointResolver
      * @return the annotation if present, null otherwise
      */
     @Nullable public <A extends Annotation> A getAnnotation(final Class<A> annotationType) {
-      return Arrays.stream(annotations)
-          .filter(annotationType::isInstance)
-          .map(annotationType::cast)
-          .findFirst()
-          .orElse(null);
+      return Optional.ofNullable(this.getMethodAnnotation(annotationType))
+          .orElseGet(() -> this.getTypeAnnotation(annotationType));
+    }
+
+    /**
+     * Check if annotation is present on target type.
+     *
+     * @param annotationType the annotation class
+     * @return true if present
+     */
+    public boolean hasTypeAnnotation(final Class<? extends Annotation> annotationType) {
+      return Arrays.stream(typeAnnotations).anyMatch(annotationType::isInstance);
+    }
+
+    /**
+     * Check if annotation is present on method.
+     *
+     * @param annotationType the annotation class
+     * @return true if present
+     */
+    public boolean hasMethodAnnotation(final Class<? extends Annotation> annotationType) {
+      return Arrays.stream(methodAnnotations).anyMatch(annotationType::isInstance);
     }
 
     /**
@@ -277,7 +326,33 @@ public final class ReactiveWebsocketMessageEndpointResolver
      * @return true if present
      */
     public boolean hasAnnotation(final Class<? extends Annotation> annotationType) {
-      return Arrays.stream(annotations).anyMatch(annotationType::isInstance);
+      return this.hasMethodAnnotation(annotationType) || this.hasTypeAnnotation(annotationType);
+    }
+
+    /**
+     * Get all annotations of specific type from target type.
+     *
+     * @param annotationType the annotation class
+     * @return list of matching annotations
+     */
+    public <A extends Annotation> List<A> getTypeAnnotations(final Class<A> annotationType) {
+      return Stream.of(typeAnnotations)
+          .filter(annotationType::isInstance)
+          .map(annotationType::cast)
+          .toList();
+    }
+
+    /**
+     * Get all annotations of specific type from method.
+     *
+     * @param annotationType the annotation class
+     * @return list of matching annotations
+     */
+    public <A extends Annotation> List<A> getMethodAnnotations(final Class<A> annotationType) {
+      return Stream.of(methodAnnotations)
+          .filter(annotationType::isInstance)
+          .map(annotationType::cast)
+          .toList();
     }
 
     /**
@@ -287,9 +362,9 @@ public final class ReactiveWebsocketMessageEndpointResolver
      * @return list of matching annotations
      */
     public <A extends Annotation> List<A> getAnnotations(final Class<A> annotationType) {
-      return Arrays.stream(annotations)
-          .filter(annotationType::isInstance)
-          .map(annotationType::cast)
+      return Stream.concat(
+              this.getMethodAnnotations(annotationType).stream(),
+              this.getTypeAnnotations(annotationType).stream())
           .toList();
     }
   }

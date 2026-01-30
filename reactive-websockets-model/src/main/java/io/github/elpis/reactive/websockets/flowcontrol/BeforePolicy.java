@@ -29,7 +29,7 @@ import java.lang.annotation.Target;
  * }
  * }</pre>
  *
- * <p><b>Combining with {@link AfterFlow}:</b>
+ * <p><b>Combining with {@link AfterPolicy}:</b>
  *
  * <pre>{@code
  * @AfterFlow(PolicyA.class)
@@ -56,12 +56,12 @@ import java.lang.annotation.Target;
  *
  * @author Phillip J. Fry
  * @since 1.0.0
- * @see AfterFlow
+ * @see AfterPolicy
  * @see FlowControlPolicy
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface BeforeFlow {
+public @interface BeforePolicy {
   /**
    * The flow control policy that must be executed after this policy.
    *

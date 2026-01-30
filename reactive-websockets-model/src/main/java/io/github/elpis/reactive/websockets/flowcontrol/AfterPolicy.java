@@ -15,7 +15,7 @@ import java.lang.annotation.Target;
  * <p><b>Example usage:</b>
  *
  * <pre>{@code
- * @AfterFlow(RateLimitPolicy.class)
+ * @AfterPolicy(RateLimitPolicy.class)
  * public class LoggingPolicy implements FlowControlPolicy {
  *   // This policy will execute after RateLimitPolicy
  *
@@ -29,11 +29,11 @@ import java.lang.annotation.Target;
  * }
  * }</pre>
  *
- * <p><b>Combining with {@link BeforeFlow}:</b>
+ * <p><b>Combining with {@link BeforePolicy}:</b>
  *
  * <pre>{@code
- * @AfterFlow(PolicyA.class)
- * @BeforeFlow(PolicyC.class)
+ * @AfterPolicy(PolicyA.class)
+ * @BeforePolicy(PolicyC.class)
  * public class PolicyB implements FlowControlPolicy {
  *   // Execution order: PolicyA -> PolicyB -> PolicyC
  * }
@@ -41,12 +41,12 @@ import java.lang.annotation.Target;
  *
  * @author Phillip J. Fry
  * @since 1.0.0
- * @see BeforeFlow
+ * @see BeforePolicy
  * @see FlowControlPolicy
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface AfterFlow {
+public @interface AfterPolicy {
   /**
    * The flow control policy that must be executed before this policy.
    *

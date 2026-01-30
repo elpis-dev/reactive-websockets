@@ -14,6 +14,7 @@ import io.github.elpis.reactive.websockets.handler.flowcontrol.registry.Reactive
 import io.github.elpis.reactive.websockets.handler.flowcontrol.registry.ReactiveHeartbeatFlowControlRegistry;
 import io.github.elpis.reactive.websockets.handler.flowcontrol.registry.ReactiveRateLimitFlowControlRegistry;
 import io.github.elpis.reactive.websockets.mapper.AnnotationMapperFactory;
+import io.github.elpis.reactive.websockets.session.ReactiveWebSocketSessionRegistry;
 import io.github.elpis.reactive.websockets.web.annotation.Backpressure;
 import io.github.elpis.reactive.websockets.web.annotation.Heartbeat;
 import io.github.elpis.reactive.websockets.web.annotation.RateLimit;
@@ -102,6 +103,10 @@ public class ReactiveWebSocketFlowControlConfiguration {
 
     final ReactiveWebSocketFlowControlProperties.RateLimitPathConfig defaultConfig =
         properties.getRateLimit().getDefaultConfig();
+    final ReactiveWebSocketFlowControlProperties.RateLimitWarningProperties warningProperties =
+        properties.getRateLimit().getWarningThreshold();
+    final Double warningThreshold =
+        warningProperties.isEnabled() ? warningProperties.getThreshold() : null;
     if (defaultConfig != null) {
       registry.put(
           DEFAULT_KEY,
@@ -110,7 +115,8 @@ public class ReactiveWebSocketFlowControlConfiguration {
               defaultConfig.getLimitRefreshPeriod(),
               defaultConfig.getTimeUnit(),
               defaultConfig.getTimeout(),
-              defaultConfig.getScope()));
+              defaultConfig.getScope(),
+              warningThreshold));
     }
 
     properties
@@ -125,7 +131,8 @@ public class ReactiveWebSocketFlowControlConfiguration {
                         config.getLimitRefreshPeriod(),
                         config.getTimeUnit(),
                         config.getTimeout(),
-                        config.getScope())));
+                        config.getScope(),
+                        warningThreshold)));
 
     return registry;
   }
@@ -178,8 +185,9 @@ public class ReactiveWebSocketFlowControlConfiguration {
       matchIfMissing = true)
   @ConditionalOnMissingBean(ReactiveRateLimitFlowControlPolicy.class)
   public ReactiveRateLimitFlowControlPolicy rateLimitFlowControlPolicy(
-      final ReactiveRateLimitFlowControlRegistry registry) {
-    return new ReactiveRateLimitFlowControlPolicy(registry);
+      final ReactiveRateLimitFlowControlRegistry registry,
+      final ReactiveWebSocketSessionRegistry sessionRegistry) {
+    return new ReactiveRateLimitFlowControlPolicy(registry, sessionRegistry);
   }
 
   /**

@@ -9,6 +9,7 @@ import static io.github.elpis.reactive.websockets.Constants.DEFAULT_RATE_LIMIT_R
 import static io.github.elpis.reactive.websockets.Constants.DEFAULT_RATE_LIMIT_SCOPE;
 import static io.github.elpis.reactive.websockets.Constants.DEFAULT_RATE_LIMIT_TIMEOUT;
 import static io.github.elpis.reactive.websockets.Constants.DEFAULT_RATE_LIMIT_TIME_UNIT;
+import static io.github.elpis.reactive.websockets.Constants.DEFAULT_RATE_LIMIT_WARNING_THRESHOLD;
 
 import io.github.elpis.reactive.websockets.web.annotation.Backpressure;
 import io.github.elpis.reactive.websockets.web.annotation.RateLimit;
@@ -158,6 +159,7 @@ public final class ReactiveWebSocketFlowControlProperties {
     private boolean enabled = true;
     private RateLimitPathConfig defaultConfig = new RateLimitPathConfig();
     private Map<String, RateLimitPathConfig> paths = new HashMap<>();
+    private RateLimitWarningProperties warningThreshold = new RateLimitWarningProperties();
 
     public boolean isEnabled() {
       return enabled;
@@ -181,6 +183,35 @@ public final class ReactiveWebSocketFlowControlProperties {
 
     public void setPaths(Map<String, RateLimitPathConfig> paths) {
       this.paths = paths;
+    }
+
+    public RateLimitWarningProperties getWarningThreshold() {
+      return warningThreshold;
+    }
+
+    public void setWarningThreshold(final RateLimitWarningProperties warningThreshold) {
+      this.warningThreshold = warningThreshold;
+    }
+  }
+
+  public static final class RateLimitWarningProperties {
+    private boolean enabled = true;
+    private double threshold = DEFAULT_RATE_LIMIT_WARNING_THRESHOLD;
+
+    public double getThreshold() {
+      return threshold;
+    }
+
+    public void setThreshold(double threshold) {
+      this.threshold = threshold;
+    }
+
+    public boolean isEnabled() {
+      return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+      this.enabled = enabled;
     }
   }
 

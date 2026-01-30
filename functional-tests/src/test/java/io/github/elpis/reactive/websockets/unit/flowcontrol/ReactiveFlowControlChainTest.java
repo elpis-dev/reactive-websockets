@@ -2,8 +2,8 @@ package io.github.elpis.reactive.websockets.unit.flowcontrol;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import io.github.elpis.reactive.websockets.flowcontrol.AfterFlow;
-import io.github.elpis.reactive.websockets.flowcontrol.BeforeFlow;
+import io.github.elpis.reactive.websockets.flowcontrol.AfterPolicy;
+import io.github.elpis.reactive.websockets.flowcontrol.BeforePolicy;
 import io.github.elpis.reactive.websockets.flowcontrol.FlowControlPlacement;
 import io.github.elpis.reactive.websockets.flowcontrol.FlowControlPolicy;
 import io.github.elpis.reactive.websockets.handler.flowcontrol.ReactiveFlowControlChain;
@@ -75,7 +75,7 @@ class ReactiveFlowControlChainTest {
     }
   }
 
-  @AfterFlow(PolicyA.class)
+  @AfterPolicy(PolicyA.class)
   private static class AnnotatedPolicyX implements FlowControlPolicy {
 
     @Override
@@ -92,8 +92,8 @@ class ReactiveFlowControlChainTest {
     }
   }
 
-  @AfterFlow(PolicyA.class)
-  @BeforeFlow(AnnotatedPolicyX.class)
+  @AfterPolicy(PolicyA.class)
+  @BeforePolicy(AnnotatedPolicyX.class)
   private static class AnnotatedPolicyY implements FlowControlPolicy {
 
     @Override

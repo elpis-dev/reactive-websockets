@@ -85,6 +85,18 @@
       "defaultValue": true
     },
     {
+      "name": "spring.webflux.reactive.websockets.flow-control.rate-limit.warning-threshold.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enable or disable warning message threshold.",
+      "defaultValue": true
+    },
+    {
+      "name": "spring.webflux.reactive.websockets.flow-control.rate-limit.warning-threshold.threshold",
+      "type": "java.lang.Double",
+      "description": "Threshold for logging warnings when rate limit is approached (as a percentage of limit-for-period).",
+      "defaultValue": 0.8
+    },
+    {
       "name": "spring.webflux.reactive.websockets.flow-control.rate-limit.default-config.limit-for-period",
       "type": "java.lang.Integer",
       "description": "Maximum number of messages allowed within the refresh period.",

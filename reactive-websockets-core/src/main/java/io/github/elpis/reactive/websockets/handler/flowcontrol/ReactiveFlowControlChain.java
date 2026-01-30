@@ -1,7 +1,7 @@
 package io.github.elpis.reactive.websockets.handler.flowcontrol;
 
-import io.github.elpis.reactive.websockets.flowcontrol.AfterFlow;
-import io.github.elpis.reactive.websockets.flowcontrol.BeforeFlow;
+import io.github.elpis.reactive.websockets.flowcontrol.AfterPolicy;
+import io.github.elpis.reactive.websockets.flowcontrol.BeforePolicy;
 import io.github.elpis.reactive.websockets.flowcontrol.FlowControlPlacement;
 import io.github.elpis.reactive.websockets.flowcontrol.FlowControlPolicy;
 import java.util.ArrayDeque;
@@ -198,11 +198,11 @@ public final class ReactiveFlowControlChain {
     }
 
     private Optional<Integer> compareAnnotationPolicies(final PolicyEntry a, final PolicyEntry b) {
-      final BeforeFlow beforeA = a.policy.getClass().getAnnotation(BeforeFlow.class);
-      final AfterFlow afterA = a.policy.getClass().getAnnotation(AfterFlow.class);
+      final BeforePolicy beforeA = a.policy.getClass().getAnnotation(BeforePolicy.class);
+      final AfterPolicy afterA = a.policy.getClass().getAnnotation(AfterPolicy.class);
 
-      final BeforeFlow beforeB = b.policy.getClass().getAnnotation(BeforeFlow.class);
-      final AfterFlow afterB = b.policy.getClass().getAnnotation(AfterFlow.class);
+      final BeforePolicy beforeB = b.policy.getClass().getAnnotation(BeforePolicy.class);
+      final AfterPolicy afterB = b.policy.getClass().getAnnotation(AfterPolicy.class);
 
       if (beforeA != null && beforeA.value().equals(b.policy.getClass())) {
         return Optional.of(-1);

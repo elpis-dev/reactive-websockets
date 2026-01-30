@@ -21,13 +21,15 @@ public class RateLimitResource {
 
   /** Endpoint that inherits rate limit from class level. Allows 5 messages per 10 seconds. */
   @OnMessage(value = "/default")
-  public void defaultRateLimit(@RequestBody final Flux<WebSocketMessage> webSocketMessageFlux) {
-    webSocketMessageFlux.subscribe(
-        message -> log.info("Received message: {}", message.getPayloadAsText()));
+  public Flux<String> defaultRateLimit(
+      @RequestBody final Flux<WebSocketMessage> webSocketMessageFlux) {
+    return webSocketMessageFlux
+        .doOnNext(msg -> log.info("Received default limited message: {}", msg.getPayloadAsText()))
+        .map(__ -> "Message Processed");
   }
 
   /**
-   * Endpoint with custom rate limit that overrides class level. Allows 10 messages per 10 seconds.
+   * Endpoint with custom rate limit that overrides class level. Allows 5 messages per 10 seconds.
    */
   @OnMessage(value = "/custom")
   @RateLimit(
@@ -35,17 +37,21 @@ public class RateLimitResource {
       limitRefreshPeriod = 10,
       timeUnit = TimeUnit.SECONDS,
       scope = RateLimit.RateLimitScope.SESSION)
-  public void customRateLimit(@RequestBody final Flux<WebSocketMessage> webSocketMessageFlux) {
-    webSocketMessageFlux.subscribe(
-        message -> log.info("Received message: {}", message.getPayloadAsText()));
+  public Flux<String> customRateLimit(
+      @RequestBody final Flux<WebSocketMessage> webSocketMessageFlux) {
+    return webSocketMessageFlux
+        .doOnNext(msg -> log.info("Received custom message: {}", msg.getPayloadAsText()))
+        .map(__ -> "Message Processed");
   }
 
   /** Endpoint with rate limiting disabled. */
   @OnMessage(value = "/disabled")
-  @RateLimit(enabled = false)
-  public void disabledRateLimit(@RequestBody final Flux<WebSocketMessage> webSocketMessageFlux) {
-    webSocketMessageFlux.subscribe(
-        message -> log.info("Received message: {}", message.getPayloadAsText()));
+  @RateLimit(enabled = false, scope = RateLimit.RateLimitScope.INHERIT)
+  public Flux<String> disabledRateLimit(
+      @RequestBody final Flux<WebSocketMessage> webSocketMessageFlux) {
+    return webSocketMessageFlux
+        .doOnNext(msg -> log.info("Received no rate-limited message: {}", msg.getPayloadAsText()))
+        .map(__ -> "Message Processed");
   }
 
   /** Endpoint with rate limit by USER scope. Allows 3 messages per 10 seconds. */
@@ -55,9 +61,11 @@ public class RateLimitResource {
       limitRefreshPeriod = 10,
       timeUnit = TimeUnit.SECONDS,
       scope = RateLimit.RateLimitScope.USER)
-  public void userScopedRateLimit(@RequestBody final Flux<WebSocketMessage> webSocketMessageFlux) {
-    webSocketMessageFlux.subscribe(
-        message -> log.info("Received message: {}", message.getPayloadAsText()));
+  public Flux<String> userScopedRateLimit(
+      @RequestBody final Flux<WebSocketMessage> webSocketMessageFlux) {
+    return webSocketMessageFlux
+        .doOnNext(msg -> log.info("Received user scoped message: {}", msg.getPayloadAsText()))
+        .map(__ -> "Message Processed");
   }
 
   /** Endpoint with rate limit by IP scope. Allows 5 messages per 10 seconds. */
@@ -67,8 +75,10 @@ public class RateLimitResource {
       limitRefreshPeriod = 10,
       timeUnit = TimeUnit.SECONDS,
       scope = RateLimit.RateLimitScope.IP)
-  public void ipScopedRateLimit(@RequestBody final Flux<WebSocketMessage> webSocketMessageFlux) {
-    webSocketMessageFlux.subscribe(
-        message -> log.info("Received message: {}", message.getPayloadAsText()));
+  public Flux<String> ipScopedRateLimit(
+      @RequestBody final Flux<WebSocketMessage> webSocketMessageFlux) {
+    return webSocketMessageFlux
+        .doOnNext(msg -> log.info("Received ip scoped message: {}", msg.getPayloadAsText()))
+        .map(__ -> "Message Processed");
   }
 }
